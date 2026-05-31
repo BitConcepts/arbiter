@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Zephyr Project
+    url: https://docs.zephyrproject.org/
+    about: Zephyr RTOS documentation
+  - name: Arbiter Documentation
+    url: https://github.com/BitConcepts/arbiter/tree/main/doc
+    about: Arbiter user documentation and API reference
