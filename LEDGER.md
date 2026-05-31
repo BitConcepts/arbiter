@@ -1,5 +1,16 @@
 # Change Ledger
 
+## 2026-05-31T23:44 — Fix Zephyr module CMake source path resolution
+- **Author**: Oz
+- **Type**: fix
+- **REQs affected**: REQ-BUILD-001, REQ-ARCH-016
+- **Summary**: Updated root `CMakeLists.txt` to use
+  `${CMAKE_CURRENT_LIST_DIR}` for all module source, include, and subsystem
+  paths. This makes the Zephyr module resolve files correctly regardless of
+  whether it is included from the workspace root, `app/`, or
+  `modules/lib/arbiter/`.
+- **Status**: complete
+
 ## 2026-05-31T23:39 — Fix Zephyr module CMake guard
 - **Author**: Oz
 - **Type**: fix
