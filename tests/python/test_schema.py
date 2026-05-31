@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: MIT
-"""Tests for ZRM JSON schema validation."""
+"""Tests for ARB JSON schema validation."""
 
 import pytest
 from pathlib import Path
-from zproj.diagnostics import DiagnosticCollector
-from zproj.parser import parse_model
-from zproj.schema import validate_schema
+from arbiter.diagnostics import DiagnosticCollector
+from arbiter.parser import parse_model
+from arbiter.schema import validate_schema
 
 SAMPLES_DIR = Path(__file__).resolve().parent.parent.parent / "samples"
 
 
 def test_valid_battery_model():
-    model_path = SAMPLES_DIR / "battery_policy" / "models" / "battery.zrm.yaml"
+    model_path = SAMPLES_DIR / "battery_policy" / "models" / "battery.arb.yaml"
     diag = DiagnosticCollector()
     data = parse_model(model_path, diag)
     assert data is not None
@@ -29,7 +29,7 @@ def test_missing_required_fields():
 def test_invalid_fact_type():
     diag = DiagnosticCollector()
     data = {
-        "zrm_version": 0.1,
+        "arb_version": 0.1,
         "model": "test",
         "target": {"rtos": "zephyr"},
         "facts": [{"id": "f1", "type": "float64"}],
@@ -40,7 +40,7 @@ def test_invalid_fact_type():
 
 
 def test_valid_pid_controller_model():
-    model_path = SAMPLES_DIR / "pid_controller" / "models" / "pid_engine.zrm.yaml"
+    model_path = SAMPLES_DIR / "pid_controller" / "models" / "pid_engine.arb.yaml"
     diag = DiagnosticCollector()
     data = parse_model(model_path, diag)
     assert data is not None

@@ -1,0 +1,104 @@
+arb_version: 0.1
+model: battery_policy
+
+target:
+  rtos: zephyr
+  profile: static_c
+
+facts:
+  - id: battery.voltage_mv
+    type: uint32
+    unit: mV
+    range: [0, 5000]
+    source: adc
+    stale_after_ms: 500
+    safety_relevant: true
+
+  - id: battery.current_ma
+    type: int32
+    unit: mA
+    range: [-3000, 3000]
+    source: adc
+    stale_after_ms: 500
+
+  - id: battery.temp_c
+    type: int32
+    unit: celsius
+    range: [-40, 85]
+    source: sensor
+    stale_after_ms: 1000
+
+  - id: charger.enabled
+    type: bool
+    source: gpio
+
+modes:
+  - id: mode.normal
+  - id: mode.low_battery
+  - id: mode.critical
+  - id: mode.charging
+  - id: mode.thermal_shutdown
+
+rules:
+  - id: rule.low_battery
+    class: mode_guard
+    when:
+      all:
+        - fact: battery.voltage_mv
+          op: "<"
+          value: 3300
+    then:
+      set_mode: mode.low_battery
+      explanation: Battery voltage below 3.3V threshold.
+
+  - id: rule.critical_battery
+    class: safety_guard
+    when:
+      all:
+        - fact: battery.voltage_mv
+          op: "<"
+          value: 3000
+    then:
+      set_mode: mode.critical
+      action: disable_load
+      explanation: Battery critically low, disabling load.
+      criticality: safety_critical
+
+  - id: rule.thermal_shutdown
+    class: safety_guard
+    when:
+      any:
+        - fact: battery.temp_c
+          op: ">"
+          value: 60
+        - fact: battery.temp_c
+          op: "<"
+          value: -20
+    then:
+      set_mode: mode.thermal_shutdown
+      action: disable_charger
+      explanation: Temperature out of safe range.
+      criticality: safety_critical
+
+  - id: rule.charging
+    class: inference
+    when:
+      all:
+        - fact: charger.enabled
+          op: "=="
+          value: true
+        - fact: battery.voltage_mv
+          op: "<"
+          value: 4200
+    then:
+      set_mode: mode.charging
+      explanation: Charger connected and battery not full.
+
+actions:
+  - id: disable_load
+    type: callback
+    symbol: app_disable_load
+
+  - id: disable_charger
+    type: callback
+    symbol: app_disable_charger

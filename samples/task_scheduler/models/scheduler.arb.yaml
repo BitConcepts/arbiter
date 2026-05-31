@@ -1,0 +1,347 @@
+arb_version: 0.1
+model: task_scheduler
+target:
+  rtos: zephyr
+  profile: static_c
+
+system:
+  item: priority_deadline_scheduler
+  safety_context: real_time_dispatch
+
+# Priority-based task scheduler with deadline awareness.
+# Evaluates 4 task slots, computes urgency scores from priority and
+# deadline proximity, selects the highest-urgency ready task.
+# Urgency = priority * 100 + max(0, (deadline - now) inverted score).
+
+facts:
+  # --- System clock ---
+  - id: in.tick
+    type: uint32
+    unit: ms
+    source: timer
+
+  - id: in.enable
+    type: bool
+    source: command
+
+  # --- Task 0 ---
+  - id: task0.ready
+    type: bool
+    source: application
+  - id: task0.priority
+    type: int32
+    range: [0, 100]
+    source: application
+  - id: task0.deadline
+    type: uint32
+    unit: ms
+    source: application
+  - id: task0.slack
+    type: int32
+    source: computed
+  - id: task0.urgency
+    type: int32
+    source: computed
+
+  # --- Task 1 ---
+  - id: task1.ready
+    type: bool
+    source: application
+  - id: task1.priority
+    type: int32
+    range: [0, 100]
+    source: application
+  - id: task1.deadline
+    type: uint32
+    unit: ms
+    source: application
+  - id: task1.slack
+    type: int32
+    source: computed
+  - id: task1.urgency
+    type: int32
+    source: computed
+
+  # --- Task 2 ---
+  - id: task2.ready
+    type: bool
+    source: application
+  - id: task2.priority
+    type: int32
+    range: [0, 100]
+    source: application
+  - id: task2.deadline
+    type: uint32
+    unit: ms
+    source: application
+  - id: task2.slack
+    type: int32
+    source: computed
+  - id: task2.urgency
+    type: int32
+    source: computed
+
+  # --- Task 3 ---
+  - id: task3.ready
+    type: bool
+    source: application
+  - id: task3.priority
+    type: int32
+    range: [0, 100]
+    source: application
+  - id: task3.deadline
+    type: uint32
+    unit: ms
+    source: application
+  - id: task3.slack
+    type: int32
+    source: computed
+  - id: task3.urgency
+    type: int32
+    source: computed
+
+  # --- Solver output ---
+  - id: sched.best_urgency
+    type: int32
+    source: computed
+  - id: sched.selected
+    type: int32
+    range: [-1, 3]
+    default: -1
+    source: computed
+
+modes:
+  - id: mode.idle
+  - id: mode.dispatching
+  - id: mode.deadline_miss
+
+rules:
+  # ===== DISABLED =====
+  - id: "01_idle"
+    class: mode_guard
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.idle
+      compute:
+        - target: sched.selected
+          op: assign
+          left_literal: -1
+
+  # ===== COMPUTE URGENCY PER TASK =====
+  # slack = deadline - tick;  urgency = priority * 100 - min(slack, 10000)
+  # Lower slack = more urgent.  Higher priority = more urgent.
+
+  - id: "10_urgency.task0"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: task0.ready
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: task0.slack
+          op: sub
+          left: task0.deadline
+          right: in.tick
+        - target: task0.slack
+          op: clamp
+          left: task0.slack
+          right_literal: 0
+          scale: 100000
+        - target: task0.urgency
+          op: scale
+          left: task0.priority
+          right_literal: 100
+          scale: 1
+        - target: task0.urgency
+          op: sub
+          left: task0.urgency
+          right: task0.slack
+
+  - id: "11_urgency.task1"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: task1.ready
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: task1.slack
+          op: sub
+          left: task1.deadline
+          right: in.tick
+        - target: task1.slack
+          op: clamp
+          left: task1.slack
+          right_literal: 0
+          scale: 100000
+        - target: task1.urgency
+          op: scale
+          left: task1.priority
+          right_literal: 100
+          scale: 1
+        - target: task1.urgency
+          op: sub
+          left: task1.urgency
+          right: task1.slack
+
+  - id: "12_urgency.task2"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: task2.ready
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: task2.slack
+          op: sub
+          left: task2.deadline
+          right: in.tick
+        - target: task2.slack
+          op: clamp
+          left: task2.slack
+          right_literal: 0
+          scale: 100000
+        - target: task2.urgency
+          op: scale
+          left: task2.priority
+          right_literal: 100
+          scale: 1
+        - target: task2.urgency
+          op: sub
+          left: task2.urgency
+          right: task2.slack
+
+  - id: "13_urgency.task3"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: task3.ready
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: task3.slack
+          op: sub
+          left: task3.deadline
+          right: in.tick
+        - target: task3.slack
+          op: clamp
+          left: task3.slack
+          right_literal: 0
+          scale: 100000
+        - target: task3.urgency
+          op: scale
+          left: task3.priority
+          right_literal: 100
+          scale: 1
+        - target: task3.urgency
+          op: sub
+          left: task3.urgency
+          right: task3.slack
+
+  # ===== SELECT HIGHEST URGENCY =====
+  - id: "20_select"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+    then:
+      set_mode: mode.dispatching
+      compute:
+        - target: sched.best_urgency
+          op: assign
+          left_literal: -999999
+        - target: sched.selected
+          op: assign
+          left_literal: -1
+
+        # Compare task0
+        - target: sched.best_urgency
+          op: max
+          left: sched.best_urgency
+          right: task0.urgency
+        # Compare task1
+        - target: sched.best_urgency
+          op: max
+          left: sched.best_urgency
+          right: task1.urgency
+        # Compare task2
+        - target: sched.best_urgency
+          op: max
+          left: sched.best_urgency
+          right: task2.urgency
+        # Compare task3
+        - target: sched.best_urgency
+          op: max
+          left: sched.best_urgency
+          right: task3.urgency
+      explanation: "Select task with highest urgency score."
+
+  # ===== DISPATCH =====
+  - id: "30_dispatch"
+    class: obligation
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: sched.selected
+          op: ">="
+          value: 0
+    then:
+      action: dispatch_task
+      explanation: "Dispatch selected task."
+
+  # ===== DEADLINE MISS DETECTION =====
+  - id: "40_deadline_miss"
+    class: safety_guard
+    when:
+      any:
+        - fact: task0.slack
+          op: "<="
+          value: 0
+        - fact: task1.slack
+          op: "<="
+          value: 0
+        - fact: task2.slack
+          op: "<="
+          value: 0
+        - fact: task3.slack
+          op: "<="
+          value: 0
+    then:
+      set_mode: mode.deadline_miss
+      action: report_deadline_miss
+      explanation: "At least one task has missed its deadline."
+      criticality: safety_critical
+
+actions:
+  - id: dispatch_task
+    type: callback
+    symbol: app_dispatch_task
+
+  - id: report_deadline_miss
+    type: callback
+    symbol: app_report_deadline_miss

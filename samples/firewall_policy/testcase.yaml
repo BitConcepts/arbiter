@@ -1,6 +1,6 @@
 tests:
-  sample.zproj.firewall-policy:
-    tags: zproj sample
+  sample.arbiter.firewall-policy:
+    tags: arbiter sample
     platform_allow: native_sim
     harness: console
     build_only: true

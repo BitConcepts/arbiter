@@ -1,6 +1,6 @@
 tests:
-  sample.zproj.power-budget:
-    tags: zproj sample solver
+  sample.arbiter.power-budget:
+    tags: arbiter sample solver
     platform_allow: native_sim
     harness: console
     build_only: true

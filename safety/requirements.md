@@ -1,4 +1,4 @@
-# zproj Safety Requirements
+# arbiter Safety Requirements
 
 ## SR-001: Deterministic Evaluation Order
 The engine SHALL evaluate rules in a fixed order determined at compile
@@ -12,7 +12,7 @@ Rules with `class: safety_guard` SHALL be evaluated before all other
 rule classes.  If a safety guard fires, its effects SHALL take
 precedence.
 
-**Verification**: Model validator (`zprojc validate`) checks that
+**Verification**: Model validator (`arbiterc validate`) checks that
 safety_guard rules precede other classes in canonical order.
 
 ## SR-003: No Dynamic Allocation
@@ -20,11 +20,11 @@ The engine SHALL NOT call `malloc`, `realloc`, `free`, or any dynamic
 memory allocator during initialization or evaluation.
 
 **Verification**: Code review and static analysis of `lib/` and
-`subsys/zproj/` sources.
+`subsys/arbiter/` sources.
 
 ## SR-004: Bounded Execution
 The number of rules, conditions, and expressions evaluated per
-`zproj_eval` call is bounded by the compiled model's table sizes.
+`ARBITER_eval` call is bounded by the compiled model's table sizes.
 There SHALL be no unbounded loops or recursion.
 
 **Verification**: Code review confirms loop bounds are
@@ -63,11 +63,11 @@ Each compiled model SHALL carry a SHA-256 hash of its canonical
 representation.  The application SHALL be able to verify this hash
 at initialization.
 
-**Verification**: `zprojc compile` produces hash; init code can
+**Verification**: `arbiterc compile` produces hash; init code can
 compare.
 
 ## SR-010: Trace Completeness
-When tracing is enabled (`CONFIG_ZPROJ_TRACE=y`), the engine SHALL
+When tracing is enabled (`CONFIG_ARBITER_TRACE=y`), the engine SHALL
 record every rule that fires, including its id, class, and mode
 transition (if any).
 

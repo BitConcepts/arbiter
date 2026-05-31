@@ -3,20 +3,20 @@
 /**
  * Motion Planner Solver Sample
  *
- * zproj computes steering corrections toward a target waypoint
+ * arbiter computes steering corrections toward a target waypoint
  * while applying obstacle repulsion.  Demonstrates trajectory
  * planning as a reasoning solver with safety-critical e-stop.
  */
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zproj/zproj.h>
+#include <arbiter/arbiter.h>
 
 LOG_MODULE_REGISTER(motion_plan, LOG_LEVEL_INF);
 
-extern const struct zproj_model zproj_generated_model;
+extern const struct ARBITER_model ARBITER_generated_model;
 
-static struct zproj_ctx ctx;
+static struct ARBITER_ctx ctx;
 
 enum {
 	F_POS_X = 0, F_POS_Y, F_HEADING, F_SENSOR_VALID, F_ENABLE,
@@ -60,50 +60,50 @@ void app_waypoint_reached(void)
 
 int main(void)
 {
-	LOG_INF("=== zproj Motion Planner Solver ===");
+	LOG_INF("=== arbiter Motion Planner Solver ===");
 
-	int ret = zproj_init(&ctx, &zproj_generated_model);
+	int ret = ARBITER_init(&ctx, &ARBITER_generated_model);
 
-	if (ret != ZPROJ_OK) {
+	if (ret != ARBITER_OK) {
 		LOG_ERR("Init failed: %d", ret);
 		return ret;
 	}
 
-	zproj_set_bool(&ctx, F_ENABLE, true);
-	zproj_set_bool(&ctx, F_SENSOR_VALID, true);
+	ARBITER_set_bool(&ctx, F_ENABLE, true);
+	ARBITER_set_bool(&ctx, F_SENSOR_VALID, true);
 
 	/* Target waypoint at (5000, 3000) mm */
-	zproj_set_i32(&ctx, F_WP_X, 5000);
-	zproj_set_i32(&ctx, F_WP_Y, 3000);
+	ARBITER_set_i32(&ctx, F_WP_X, 5000);
+	ARBITER_set_i32(&ctx, F_WP_Y, 3000);
 
 	/* No obstacle initially */
-	zproj_set_i32(&ctx, F_OBS_DIST, 50000);
-	zproj_set_i32(&ctx, F_OBS_BEARING, 0);
+	ARBITER_set_i32(&ctx, F_OBS_DIST, 50000);
+	ARBITER_set_i32(&ctx, F_OBS_BEARING, 0);
 
 	for (uint32_t t = 0; t < 80; t++) {
-		zproj_set_i32(&ctx, F_POS_X, robot_x);
-		zproj_set_i32(&ctx, F_POS_Y, robot_y);
-		zproj_set_i32(&ctx, F_HEADING, 0);
-		zproj_set_timestamp(&ctx, F_HEADING, k_uptime_get_32());
+		ARBITER_set_i32(&ctx, F_POS_X, robot_x);
+		ARBITER_set_i32(&ctx, F_POS_Y, robot_y);
+		ARBITER_set_i32(&ctx, F_HEADING, 0);
+		ARBITER_set_timestamp(&ctx, F_HEADING, k_uptime_get_32());
 
 		/* Simulate obstacle appearing at t=30 */
 		if (t >= 30 && t < 50) {
-			zproj_set_i32(&ctx, F_OBS_DIST, 1000);
-			zproj_set_i32(&ctx, F_OBS_BEARING, 90000);
+			ARBITER_set_i32(&ctx, F_OBS_DIST, 1000);
+			ARBITER_set_i32(&ctx, F_OBS_BEARING, 90000);
 		} else {
-			zproj_set_i32(&ctx, F_OBS_DIST, 50000);
+			ARBITER_set_i32(&ctx, F_OBS_DIST, 50000);
 		}
 
-		struct zproj_snapshot snap;
-		struct zproj_result result;
+		struct ARBITER_snapshot snap;
+		struct ARBITER_result result;
 
-		zproj_snapshot_begin(&ctx, &snap);
-		zproj_eval(&zproj_generated_model, &snap, &result, NULL);
+		ARBITER_snapshot_begin(&ctx, &snap);
+		ARBITER_eval(&ARBITER_generated_model, &snap, &result, NULL);
 
 		if (t % 5 == 0) {
 			uint16_t mode;
 
-			zproj_get_mode(&result, &mode);
+			ARBITER_get_mode(&result, &mode);
 			LOG_INF("t=%u  dist=%d  steer=%d  speed=%d  mode=%u",
 				t,
 				ctx.fact_values[F_DISTANCE].value,

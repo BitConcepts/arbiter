@@ -1,0 +1,4 @@
+tests:
+  arbiter.blob:
+    tags: arbiter unit blob
+    platform_allow: native_sim

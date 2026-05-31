@@ -1,7 +1,7 @@
-zproj — Deterministic Reasoning and Safety-Policy Engine for Zephyr RTOS
+arbiter — Deterministic Reasoning and Safety-Policy Engine for Zephyr RTOS
 Copyright (c) 2024–2026 BitConcepts Contributors
 
-zproj is an application-layer reasoning and safety-policy engine for Zephyr RTOS.
+arbiter is an application-layer reasoning and safety-policy engine for Zephyr RTOS.
 It does not implement hardware timing fabrics, packet departure gates, global tick
 distribution, interconnect scheduling, GPU scheduling, DMA scheduling, FPGA
 constraint fabrics, or proprietary Layer1Labs systems.

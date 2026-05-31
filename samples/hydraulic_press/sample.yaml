@@ -1,10 +1,10 @@
 sample:
-  name: zproj Hydraulic Press Interlock
+  name: arbiter Hydraulic Press Interlock
   description: >
     Industrial hydraulic press safety interlock with guard monitoring,
     two-hand control, overpressure/overforce protection, thermal limits,
     and position-based stroke control. Uses strict safety profile.
 common:
-  tags: zproj reasoning safety hydraulic press interlock iec-62061
+  tags: arbiter reasoning safety hydraulic press interlock iec-62061
   harness: console
   platform_allow: native_sim

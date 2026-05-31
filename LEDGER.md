@@ -1,7 +1,7 @@
 # Change Ledger
 
 ## 2026-05-31 — specsmith import
-- Imported project: zproj
+- Imported project: arbiter
 - Detected type: embedded-hardware
 - Language: c
 - Build system: pyproject

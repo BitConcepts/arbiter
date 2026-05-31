@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MIT
+
+zephyr_library()
+
+zephyr_library_sources_ifdef(CONFIG_ARBITER_SHELL ARBITER_shell.c)
+zephyr_library_sources_ifdef(CONFIG_ARBITER_RUNTIME_THREAD ARBITER_runtime_thread.c)
+zephyr_library_sources_ifdef(CONFIG_ARBITER_WATCHDOG ARBITER_watchdog.c)

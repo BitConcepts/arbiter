@@ -11,17 +11,17 @@ Prerequisites
 - Python 3.10+
 - pip
 
-Adding zproj to Your Project
+Adding arbiter to Your Project
 *****************************
 
-Add zproj to your west manifest::
+Add arbiter to your west manifest::
 
     manifest:
       projects:
-        - name: zproj
+        - name: arbiter
           remote: bitconcepts
           revision: main
-          path: modules/lib/zproj
+          path: modules/lib/arbiter
 
 Then run::
 
@@ -32,20 +32,20 @@ Building a Sample
 
 ::
 
-    west build -b native_sim modules/lib/zproj/samples/battery_policy
+    west build -b native_sim modules/lib/arbiter/samples/battery_policy
     west build -t run
 
-Using zprojc
+Using arbiterc
 ************
 
 Install the compiler::
 
-    pip install -e modules/lib/zproj
+    pip install -e modules/lib/arbiter
 
 Validate a model::
 
-    zprojc validate model.zrm.yaml --strict
+    arbiterc validate model.arb.yaml --strict
 
 Compile to C::
 
-    zprojc compile model.zrm.yaml --out-c model.c --out-h model.h
+    arbiterc compile model.arb.yaml --out-c model.c --out-h model.h

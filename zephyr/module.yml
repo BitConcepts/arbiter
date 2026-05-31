@@ -1,4 +1,4 @@
-name: zproj
+name: arbiter
 build:
   cmake: .
   kconfig: Kconfig

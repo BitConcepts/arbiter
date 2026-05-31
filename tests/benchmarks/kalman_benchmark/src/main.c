@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 
 /**
- * Kalman Filter Benchmark: zproj engine vs. hand-coded 1-D Kalman
+ * Kalman Filter Benchmark: arbiter engine vs. hand-coded 1-D Kalman
  *
  * Measures CPU cycles, RAM, and provides ROM comparison methodology.
  * The hand-coded version is a minimal fixed-point 1-D Kalman filter
@@ -11,7 +11,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/timing/timing.h>
-#include <zproj/zproj.h>
+#include <arbiter/arbiter.h>
 
 LOG_MODULE_REGISTER(kf_bench, LOG_LEVEL_INF);
 
@@ -64,12 +64,12 @@ static void hand_kf_tick(struct hand_kf *kf, int32_t measurement)
 }
 
 /* ------------------------------------------------------------------ */
-/*  zproj Kalman filter (engine-based)                                */
+/*  arbiter Kalman filter (engine-based)                                */
 /* ------------------------------------------------------------------ */
 
-extern const struct zproj_model zproj_generated_model;
+extern const struct ARBITER_model ARBITER_generated_model;
 
-static struct zproj_ctx zctx;
+static struct ARBITER_ctx zctx;
 
 /* Fact indices matching kalman model canonical order */
 enum {
@@ -102,7 +102,7 @@ static int32_t prng_noise(int32_t amplitude)
 
 int main(void)
 {
-	LOG_INF("=== zproj Kalman Filter Benchmark ===");
+	LOG_INF("=== arbiter Kalman Filter Benchmark ===");
 	LOG_INF("Iterations: %d  (warmup: %d)", BENCH_ITERATIONS,
 		WARMUP_ITERATIONS);
 
@@ -147,16 +147,16 @@ int main(void)
 	LOG_INF("  RAM (struct): %u bytes", (unsigned)sizeof(struct hand_kf));
 	LOG_INF("  Final estimate: %d (true: %d)", hkf.x_est, true_val);
 
-	/* ----- zproj engine Kalman benchmark ----- */
-	int ret = zproj_init(&zctx, &zproj_generated_model);
+	/* ----- arbiter engine Kalman benchmark ----- */
+	int ret = ARBITER_init(&zctx, &ARBITER_generated_model);
 
-	if (ret != ZPROJ_OK) {
-		LOG_ERR("zproj init failed: %d", ret);
+	if (ret != ARBITER_OK) {
+		LOG_ERR("arbiter init failed: %d", ret);
 		return ret;
 	}
 
-	zproj_set_bool(&zctx, F_ENABLE, true);
-	zproj_set_bool(&zctx, F_SENSOR_VALID, true);
+	ARBITER_set_bool(&zctx, F_ENABLE, true);
+	ARBITER_set_bool(&zctx, F_SENSOR_VALID, true);
 
 	true_val = 0;
 	prng_seed = 42;
@@ -169,20 +169,20 @@ int main(void)
 
 		int32_t meas = true_val + prng_noise(3000);
 
-		zproj_set_i32(&zctx, F_MEASUREMENT, meas);
-		zproj_set_timestamp(&zctx, F_MEASUREMENT, (uint32_t)i * 10);
+		ARBITER_set_i32(&zctx, F_MEASUREMENT, meas);
+		ARBITER_set_timestamp(&zctx, F_MEASUREMENT, (uint32_t)i * 10);
 
-		struct zproj_snapshot snap;
-		struct zproj_result result;
+		struct ARBITER_snapshot snap;
+		struct ARBITER_result result;
 
-		zproj_snapshot_begin(&zctx, &snap);
-		zproj_eval(&zproj_generated_model, &snap, &result, NULL);
+		ARBITER_snapshot_begin(&zctx, &snap);
+		ARBITER_eval(&ARBITER_generated_model, &snap, &result, NULL);
 	}
 
 	/* Reset */
-	zproj_init(&zctx, &zproj_generated_model);
-	zproj_set_bool(&zctx, F_ENABLE, true);
-	zproj_set_bool(&zctx, F_SENSOR_VALID, true);
+	ARBITER_init(&zctx, &ARBITER_generated_model);
+	ARBITER_set_bool(&zctx, F_ENABLE, true);
+	ARBITER_set_bool(&zctx, F_SENSOR_VALID, true);
 	true_val = 0;
 	prng_seed = 42;
 
@@ -195,30 +195,30 @@ int main(void)
 
 		int32_t meas = true_val + prng_noise(3000);
 
-		zproj_set_i32(&zctx, F_MEASUREMENT, meas);
-		zproj_set_timestamp(&zctx, F_MEASUREMENT,
+		ARBITER_set_i32(&zctx, F_MEASUREMENT, meas);
+		ARBITER_set_timestamp(&zctx, F_MEASUREMENT,
 				    (uint32_t)(WARMUP_ITERATIONS + i) * 10);
 
-		struct zproj_snapshot snap;
-		struct zproj_result result;
+		struct ARBITER_snapshot snap;
+		struct ARBITER_result result;
 
-		zproj_snapshot_begin(&zctx, &snap);
-		zproj_eval(&zproj_generated_model, &snap, &result, NULL);
+		ARBITER_snapshot_begin(&zctx, &snap);
+		ARBITER_eval(&ARBITER_generated_model, &snap, &result, NULL);
 	}
 
 	timing_t t3 = timing_counter_get();
-	uint64_t zproj_ns = timing_cycles_to_ns(timing_cycles_get(&t2, &t3));
-	uint64_t zproj_per_tick = zproj_ns / BENCH_ITERATIONS;
+	uint64_t ARBITER_ns = timing_cycles_to_ns(timing_cycles_get(&t2, &t3));
+	uint64_t ARBITER_per_tick = ARBITER_ns / BENCH_ITERATIONS;
 
-	LOG_INF("--- zproj Engine Kalman ---");
-	LOG_INF("  Total: %llu ns  (%llu ns/tick)", zproj_ns, zproj_per_tick);
-	LOG_INF("  RAM (ctx): %u bytes", (unsigned)sizeof(struct zproj_ctx));
+	LOG_INF("--- arbiter Engine Kalman ---");
+	LOG_INF("  Total: %llu ns  (%llu ns/tick)", ARBITER_ns, ARBITER_per_tick);
+	LOG_INF("  RAM (ctx): %u bytes", (unsigned)sizeof(struct ARBITER_ctx));
 	LOG_INF("  Final estimate: %d (true: %d)",
 		zctx.fact_values[F_X_EST].value, true_val);
 	LOG_INF("  Model: %u facts, %u rules, %u exprs",
-		zproj_generated_model.fact_count,
-		zproj_generated_model.rule_count,
-		zproj_generated_model.expr_count);
+		ARBITER_generated_model.fact_count,
+		ARBITER_generated_model.rule_count,
+		ARBITER_generated_model.expr_count);
 
 	/* ----- Comparison ----- */
 	LOG_INF("=== Comparison ===");
@@ -226,14 +226,14 @@ int main(void)
 	uint64_t overhead_pct = 0;
 
 	if (hand_per_tick > 0) {
-		overhead_pct = ((zproj_per_tick - hand_per_tick) * 100)
+		overhead_pct = ((ARBITER_per_tick - hand_per_tick) * 100)
 			       / hand_per_tick;
 	}
 
 	LOG_INF("  Overhead: %llu%% (%llu vs %llu ns/tick)",
-		overhead_pct, zproj_per_tick, hand_per_tick);
+		overhead_pct, ARBITER_per_tick, hand_per_tick);
 	LOG_INF("  RAM delta: %u bytes",
-		(unsigned)(sizeof(struct zproj_ctx) - sizeof(struct hand_kf)));
+		(unsigned)(sizeof(struct ARBITER_ctx) - sizeof(struct hand_kf)));
 	LOG_INF("  ROM: compare .elf sizes (see README)");
 
 	timing_stop();

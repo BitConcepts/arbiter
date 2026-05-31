@@ -3,7 +3,7 @@
 /**
  * Mesh Network Router — Reasoning Engine
  *
- * zproj reasons about network topology, link quality, congestion,
+ * arbiter reasons about network topology, link quality, congestion,
  * and power — computing derived metrics (link margin, parent score,
  * congestion level) and making routing decisions (parent switch,
  * TX power adjustment, sleep mode).
@@ -13,12 +13,12 @@
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zproj/zproj.h>
+#include <arbiter/arbiter.h>
 
 LOG_MODULE_REGISTER(mesh_router, LOG_LEVEL_INF);
 
-extern const struct zproj_model zproj_generated_model;
-static struct zproj_ctx ctx;
+extern const struct ARBITER_model ARBITER_generated_model;
+static struct ARBITER_ctx ctx;
 
 /* Callbacks */
 void app_start_network_discovery(void) { LOG_WRN("NET: Starting discovery"); }
@@ -38,31 +38,31 @@ static void run_scenario(const char *name,
 
 	/* Feed link metrics — fact indices depend on canonical sort */
 	/* Alphabetical: calc.*, link.*, node.*, queue.* */
-	zproj_set_i32(&ctx, 0, 0);        /* calc.congestion_level (computed) */
-	zproj_set_i32(&ctx, 1, 0);        /* calc.link_margin (computed) */
-	zproj_set_i32(&ctx, 2, 0);        /* calc.parent_score (computed) */
-	zproj_set_bool(&ctx, 3, false);   /* calc.should_switch (computed) */
-	zproj_set_u32(&ctx, 4, alt_cost); /* link.alt_route_cost */
-	zproj_set_u32(&ctx, 5, neighbors);/* link.neighbor_count */
-	zproj_set_u32(&ctx, 6, lqi);      /* link.parent_lqi */
-	zproj_set_i32(&ctx, 7, rssi);     /* link.parent_rssi */
-	zproj_set_u32(&ctx, 8, route_cost); /* link.route_cost */
-	zproj_set_u32(&ctx, 9, battery);  /* node.battery_pct */
-	zproj_set_u32(&ctx, 10, 0);       /* node.child_count */
-	zproj_set_bool(&ctx, 11, false);  /* node.is_leader */
-	zproj_set_bool(&ctx, 12, is_router); /* node.is_router */
-	zproj_set_u32(&ctx, 13, queue);   /* queue.depth */
-	zproj_set_u32(&ctx, 14, 0);       /* queue.drop_count */
+	ARBITER_set_i32(&ctx, 0, 0);        /* calc.congestion_level (computed) */
+	ARBITER_set_i32(&ctx, 1, 0);        /* calc.link_margin (computed) */
+	ARBITER_set_i32(&ctx, 2, 0);        /* calc.parent_score (computed) */
+	ARBITER_set_bool(&ctx, 3, false);   /* calc.should_switch (computed) */
+	ARBITER_set_u32(&ctx, 4, alt_cost); /* link.alt_route_cost */
+	ARBITER_set_u32(&ctx, 5, neighbors);/* link.neighbor_count */
+	ARBITER_set_u32(&ctx, 6, lqi);      /* link.parent_lqi */
+	ARBITER_set_i32(&ctx, 7, rssi);     /* link.parent_rssi */
+	ARBITER_set_u32(&ctx, 8, route_cost); /* link.route_cost */
+	ARBITER_set_u32(&ctx, 9, battery);  /* node.battery_pct */
+	ARBITER_set_u32(&ctx, 10, 0);       /* node.child_count */
+	ARBITER_set_bool(&ctx, 11, false);  /* node.is_leader */
+	ARBITER_set_bool(&ctx, 12, is_router); /* node.is_router */
+	ARBITER_set_u32(&ctx, 13, queue);   /* queue.depth */
+	ARBITER_set_u32(&ctx, 14, 0);       /* queue.drop_count */
 
-	struct zproj_snapshot snap;
-	struct zproj_result result;
+	struct ARBITER_snapshot snap;
+	struct ARBITER_result result;
 
-	zproj_snapshot_begin(&ctx, &snap);
-	zproj_eval(&zproj_generated_model, &snap, &result, NULL);
+	ARBITER_snapshot_begin(&ctx, &snap);
+	ARBITER_eval(&ARBITER_generated_model, &snap, &result, NULL);
 
 	uint16_t mode;
 
-	zproj_get_mode(&result, &mode);
+	ARBITER_get_mode(&result, &mode);
 	LOG_INF("  Mode: %u  Actions: %u  margin=%d  score=%d  congest=%d",
 		mode, result.requested_action_count,
 		ctx.fact_values[1].value,  /* link_margin */
@@ -72,11 +72,11 @@ static void run_scenario(const char *name,
 
 int main(void)
 {
-	LOG_INF("=== zproj Mesh Router Reasoning Engine ===");
+	LOG_INF("=== arbiter Mesh Router Reasoning Engine ===");
 
-	int ret = zproj_init(&ctx, &zproj_generated_model);
+	int ret = ARBITER_init(&ctx, &ARBITER_generated_model);
 
-	if (ret != ZPROJ_OK) {
+	if (ret != ARBITER_OK) {
 		LOG_ERR("Init failed: %d", ret);
 		return ret;
 	}

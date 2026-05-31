@@ -30,13 +30,13 @@ jobs:
         run: ruff check python/
 
       - name: Type check with mypy
-        run: mypy python/zproj/
+        run: mypy python/arbiter/
 
       - name: Run tests
         run: pytest tests/python -v
 
       - name: Validate sample model
-        run: zprojc validate samples/battery_policy/models/battery.zrm.yaml --strict
+        run: arbiterc validate samples/battery_policy/models/battery.arb.yaml --strict
 
   spdx:
     name: SPDX Header Check

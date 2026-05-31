@@ -1,4 +1,0 @@
-tests:
-  zproj.blob:
-    tags: zproj unit blob
-    platform_allow: native_sim

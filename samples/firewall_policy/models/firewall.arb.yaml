@@ -1,0 +1,266 @@
+arb_version: 0.1
+model: embedded_firewall
+
+imports:
+  - ARB://network_common
+
+target:
+  rtos: zephyr
+  profile: static_c
+
+system:
+  item: iot_gateway_firewall
+  safety_context: network_security
+
+facts:
+  # Inherits net.* from ARB://network_common, plus:
+  - id: fw.action
+    type: enum
+    source: computed
+    description: "0=pending, 1=accept, 2=drop, 3=reject, 4=log_accept, 5=log_drop"
+
+  - id: fw.syn_flood_score
+    type: uint32
+    range: [0, 1000]
+    source: computed
+    description: "SYN flood risk score (0=none, 1000=active flood)"
+
+  - id: fw.is_syn
+    type: bool
+    source: packet_parser
+    description: "TCP SYN flag set"
+
+  - id: fw.is_dns
+    type: bool
+    source: packet_parser
+
+  - id: fw.src_on_blocklist
+    type: bool
+    source: blocklist_lookup
+
+  - id: fw.src_on_allowlist
+    type: bool
+    source: allowlist_lookup
+
+  - id: fw.payload_anomaly
+    type: bool
+    source: dpi_engine
+    description: "Deep packet inspection anomaly detected"
+
+  - id: fw.icmp_rate
+    type: uint32
+    unit: packets_per_sec
+    range: [0, 10000]
+    source: rate_counter
+
+modes:
+  - id: mode.normal
+  - id: mode.rate_limited
+  - id: mode.under_attack
+  - id: mode.lockdown
+
+rules:
+  # ====== BLOCKLIST / ALLOWLIST (highest priority) ======
+
+  - id: "01_fw.blocklist"
+    class: safety_guard
+    when:
+      all:
+        - fact: fw.src_on_blocklist
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: fw.action
+          op: assign
+          left_literal: 5
+      action: fw_drop
+      explanation: "Source on blocklist — drop and log."
+      criticality: safety_critical
+
+  - id: "02_fw.allowlist"
+    class: inference
+    when:
+      all:
+        - fact: fw.src_on_allowlist
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: fw.action
+          op: assign
+          left_literal: 1
+      explanation: "Source on allowlist — accept."
+
+  # ====== STATEFUL: ESTABLISHED CONNECTIONS ======
+
+  - id: "10_fw.established"
+    class: inference
+    when:
+      all:
+        - fact: net.is_established
+          op: "=="
+          value: true
+        - fact: fw.payload_anomaly
+          op: "=="
+          value: false
+    then:
+      compute:
+        - target: fw.action
+          op: assign
+          left_literal: 1
+      explanation: "Established connection, no anomaly — accept."
+
+  # ====== SYN FLOOD DETECTION ======
+
+  - id: "20_fw.syn_flood_score"
+    class: inference
+    when:
+      all:
+        - fact: fw.is_syn
+          op: "=="
+          value: true
+    then:
+      compute:
+        # syn_flood_score = (rate_pps * 100) / 1000
+        - target: fw.syn_flood_score
+          op: scale
+          left: net.rate_pps
+          right_literal: 100
+          scale: 1000
+      explanation: "Compute SYN flood risk from packet rate."
+
+  - id: "21_fw.syn_flood_active"
+    class: safety_guard
+    when:
+      all:
+        - fact: fw.syn_flood_score
+          op: ">"
+          value: 500
+    then:
+      set_mode: mode.under_attack
+      compute:
+        - target: fw.action
+          op: assign
+          left_literal: 2
+      action: fw_enable_syn_cookies
+      explanation: "SYN flood detected (score > 500) — enable SYN cookies, drop."
+      criticality: safety_critical
+
+  # ====== PORT-BASED FILTERING ======
+
+  - id: "30_fw.allow_coap"
+    class: inference
+    when:
+      all:
+        - fact: net.dst_port
+          op: "=="
+          value: 5683
+        - fact: net.protocol
+          op: "=="
+          value: 2
+    then:
+      compute:
+        - target: fw.action
+          op: assign
+          left_literal: 4
+      explanation: "CoAP (UDP/5683) — accept and log."
+
+  - id: "31_fw.allow_mqtt"
+    class: inference
+    when:
+      all:
+        - fact: net.dst_port
+          op: "=="
+          value: 8883
+        - fact: net.protocol
+          op: "=="
+          value: 1
+    then:
+      compute:
+        - target: fw.action
+          op: assign
+          left_literal: 1
+      explanation: "MQTT-TLS (TCP/8883) — accept."
+
+  - id: "32_fw.allow_dns"
+    class: inference
+    when:
+      all:
+        - fact: fw.is_dns
+          op: "=="
+          value: true
+        - fact: net.packet_len
+          op: "<="
+          value: 512
+    then:
+      compute:
+        - target: fw.action
+          op: assign
+          left_literal: 1
+      explanation: "DNS query (<=512 bytes) — accept."
+
+  # ====== ICMP RATE LIMITING ======
+
+  - id: "33_fw.icmp_flood"
+    class: constraint
+    when:
+      all:
+        - fact: net.protocol
+          op: "=="
+          value: 3
+        - fact: fw.icmp_rate
+          op: ">"
+          value: 10
+    then:
+      compute:
+        - target: fw.action
+          op: assign
+          left_literal: 2
+      explanation: "ICMP rate > 10 pps — drop (ping flood)."
+
+  # ====== DPI ANOMALY ======
+
+  - id: "40_fw.dpi_anomaly"
+    class: safety_guard
+    when:
+      all:
+        - fact: fw.payload_anomaly
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: fw.action
+          op: assign
+          left_literal: 5
+      action: fw_log_anomaly
+      explanation: "Payload anomaly — drop and log for analysis."
+
+  # ====== DEFAULT DENY ======
+
+  - id: "99_fw.default_deny"
+    class: constraint
+    when:
+      all:
+        - fact: fw.action
+          op: "=="
+          value: 0
+    then:
+      compute:
+        - target: fw.action
+          op: assign
+          left_literal: 2
+      explanation: "Default deny — no rule matched."
+
+actions:
+  - id: fw_drop
+    type: callback
+    symbol: app_fw_drop_packet
+
+  - id: fw_enable_syn_cookies
+    type: callback
+    symbol: app_fw_enable_syn_cookies
+
+  - id: fw_log_anomaly
+    type: callback
+    symbol: app_fw_log_anomaly

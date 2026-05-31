@@ -1,11 +1,11 @@
 sample:
-  name: zproj Motion Planner Solver
+  name: arbiter Motion Planner Solver
   description: >
     Waypoint trajectory planner with obstacle avoidance.  Computes
     steering corrections from position, target bearing, and obstacle
     proximity.  Includes safety-critical emergency stop when obstacles
     are too close — demonstrating motion planning as reasoning.
 common:
-  tags: zproj solver motion-planning navigation obstacle-avoidance
+  tags: arbiter solver motion-planning navigation obstacle-avoidance
   harness: console
   platform_allow: native_sim

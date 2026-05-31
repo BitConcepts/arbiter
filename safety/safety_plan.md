@@ -1,29 +1,29 @@
-# zproj Safety Plan
+# arbiter Safety Plan
 
 ## 1. Overview
 
-This plan describes the safety lifecycle activities for zproj, a
+This plan describes the safety lifecycle activities for arbiter, a
 deterministic reasoning engine for embedded systems.
 
-**Important**: zproj is not a certified safety component.  This plan
-provides a framework for teams using zproj in safety-relevant
+**Important**: arbiter is not a certified safety component.  This plan
+provides a framework for teams using arbiter in safety-relevant
 applications to build their own safety case.
 
 ## 2. Safety Lifecycle
 
 ### 2.1 Concept Phase
 - Define the system's safety context and hazard analysis.
-- Identify which ZRM rules are safety-relevant (`safety_relevant: true`
+- Identify which ARB rules are safety-relevant (`safety_relevant: true`
   on facts, `criticality: safety_critical` on rules).
 
 ### 2.2 Model Development
-- Author ZRM models in YAML.
-- Use `zprojc validate` to check schema conformance.
+- Author ARB models in YAML.
+- Use `arbiterc validate` to check schema conformance.
 - Review models against safety requirements (SR-001 through SR-010).
-- Use `zprojc docs` to generate human-readable rule documentation.
+- Use `arbiterc docs` to generate human-readable rule documentation.
 
 ### 2.3 Compilation
-- Run `zprojc compile` to generate C code from the model.
+- Run `arbiterc compile` to generate C code from the model.
 - The compiler canonicalizes rules, validates constraints, and embeds
   integrity hashes.
 - The compiled output is deterministic: same model → same C code.
@@ -49,13 +49,13 @@ applications to build their own safety case.
 
 ## 3. Configuration Management
 
-- ZRM models are version-controlled alongside application code.
+- ARB models are version-controlled alongside application code.
 - Model hash changes are tracked in commit history.
-- The `zprojc inspect` command displays model metadata for audit.
+- The `arbiterc inspect` command displays model metadata for audit.
 
 ## 4. Roles
 
-- **Model Author**: Writes and maintains ZRM models.
+- **Model Author**: Writes and maintains ARB models.
 - **Firmware Engineer**: Implements callbacks and system integration.
 - **Safety Engineer**: Reviews models, requirements, and test results.
 - **Validator**: Executes test plans and records evidence.
@@ -70,7 +70,7 @@ applications to build their own safety case.
 
 ## 6. Tool Qualification
 
-The `zprojc` compiler is a development tool, not a certified tool.
+The `arbiterc` compiler is a development tool, not a certified tool.
 Its output (generated C code) must be reviewed or tested as part of
 the application's verification activities.  The compiler itself does
 not require tool qualification unless the generated code is used

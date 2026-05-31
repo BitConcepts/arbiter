@@ -1,0 +1,302 @@
+arb_version: 0.1
+model: iot_access_control
+
+imports:
+  - ARB://network_common
+
+target:
+  rtos: zephyr
+  profile: static_c
+
+system:
+  item: iot_http_gateway
+  safety_context: api_security
+
+facts:
+  # --- Request metadata ---
+  - id: req.method
+    type: enum
+    source: http_parser
+    description: "0=unknown, 1=GET, 2=POST, 3=PUT, 4=DELETE, 5=OPTIONS, 6=PATCH"
+
+  - id: req.origin_class
+    type: enum
+    source: cors_checker
+    description: "0=none, 1=same_origin, 2=allowed_origin, 3=unknown_origin, 4=blocked_origin"
+
+  - id: req.has_auth_token
+    type: bool
+    source: header_parser
+
+  - id: req.token_valid
+    type: bool
+    source: token_validator
+
+  - id: req.token_role
+    type: enum
+    source: token_validator
+    description: "0=none, 1=read_only, 2=operator, 3=admin, 4=service"
+
+  - id: req.path_class
+    type: enum
+    source: url_router
+    description: "0=unknown, 1=public, 2=auth_required, 3=admin_only, 4=health_check"
+
+  - id: req.content_length
+    type: uint32
+    range: [0, 1048576]
+    source: header_parser
+
+  - id: req.client_requests_1m
+    type: uint32
+    range: [0, 100000]
+    source: rate_tracker
+    description: "Requests from this client in last minute"
+
+  # --- Computed decisions ---
+  - id: cors.allow
+    type: bool
+    source: computed
+
+  - id: cors.preflight
+    type: bool
+    source: computed
+    description: "True if this is a CORS preflight OPTIONS request"
+
+  - id: auth.decision
+    type: enum
+    source: computed
+    description: "0=pending, 1=allow, 2=deny_401, 3=deny_403, 4=rate_limited_429"
+
+  - id: auth.risk_score
+    type: uint32
+    range: [0, 100]
+    source: computed
+
+modes:
+  - id: mode.allow
+  - id: mode.deny
+  - id: mode.rate_limited
+  - id: mode.cors_preflight
+
+rules:
+  # ====== CORS PREFLIGHT ======
+  - id: "01_cors.preflight"
+    class: inference
+    when:
+      all:
+        - fact: req.method
+          op: "=="
+          value: 5
+    then:
+      set_mode: mode.cors_preflight
+      compute:
+        - target: cors.preflight
+          op: assign
+          left_literal: 1
+        - target: cors.allow
+          op: assign
+          left_literal: 0
+      explanation: "OPTIONS request — CORS preflight."
+
+  - id: "02_cors.allow_origin"
+    class: inference
+    when:
+      any:
+        - fact: req.origin_class
+          op: "=="
+          value: 1
+        - fact: req.origin_class
+          op: "=="
+          value: 2
+    then:
+      compute:
+        - target: cors.allow
+          op: assign
+          left_literal: 1
+      explanation: "Same-origin or allowed origin — CORS pass."
+
+  - id: "03_cors.block_origin"
+    class: constraint
+    when:
+      all:
+        - fact: req.origin_class
+          op: "=="
+          value: 4
+    then:
+      set_mode: mode.deny
+      compute:
+        - target: auth.decision
+          op: assign
+          left_literal: 3
+      explanation: "Blocked origin — 403."
+
+  # ====== RATE LIMITING ======
+  - id: "10_rate.check"
+    class: constraint
+    when:
+      all:
+        - fact: req.client_requests_1m
+          op: ">"
+          value: 60
+    then:
+      set_mode: mode.rate_limited
+      compute:
+        - target: auth.decision
+          op: assign
+          left_literal: 4
+      action: send_429
+      explanation: "Client > 60 req/min — 429 Too Many Requests."
+
+  # ====== AUTH ======
+  - id: "20_auth.public_path"
+    class: inference
+    when:
+      all:
+        - fact: req.path_class
+          op: "=="
+          value: 1
+    then:
+      set_mode: mode.allow
+      compute:
+        - target: auth.decision
+          op: assign
+          left_literal: 1
+      explanation: "Public path — no auth required."
+
+  - id: "21_auth.health_check"
+    class: inference
+    when:
+      all:
+        - fact: req.path_class
+          op: "=="
+          value: 4
+        - fact: req.method
+          op: "=="
+          value: 1
+    then:
+      set_mode: mode.allow
+      compute:
+        - target: auth.decision
+          op: assign
+          left_literal: 1
+      explanation: "Health check GET — always allowed."
+
+  - id: "22_auth.no_token"
+    class: constraint
+    when:
+      all:
+        - fact: req.has_auth_token
+          op: "=="
+          value: false
+        - fact: req.path_class
+          op: "=="
+          value: 2
+    then:
+      set_mode: mode.deny
+      compute:
+        - target: auth.decision
+          op: assign
+          left_literal: 2
+      explanation: "Auth-required path but no token — 401."
+
+  - id: "23_auth.invalid_token"
+    class: constraint
+    when:
+      all:
+        - fact: req.has_auth_token
+          op: "=="
+          value: true
+        - fact: req.token_valid
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.deny
+      compute:
+        - target: auth.decision
+          op: assign
+          left_literal: 2
+      explanation: "Invalid/expired token — 401."
+
+  - id: "24_auth.admin_check"
+    class: constraint
+    when:
+      all:
+        - fact: req.path_class
+          op: "=="
+          value: 3
+        - fact: req.token_role
+          op: "<"
+          value: 3
+    then:
+      set_mode: mode.deny
+      compute:
+        - target: auth.decision
+          op: assign
+          left_literal: 3
+      explanation: "Admin path requires admin role — 403."
+
+  - id: "25_auth.valid_token"
+    class: inference
+    when:
+      all:
+        - fact: req.has_auth_token
+          op: "=="
+          value: true
+        - fact: req.token_valid
+          op: "=="
+          value: true
+        - fact: auth.decision
+          op: "=="
+          value: 0
+    then:
+      set_mode: mode.allow
+      compute:
+        - target: auth.decision
+          op: assign
+          left_literal: 1
+      explanation: "Valid token, authorized — allow."
+
+  # ====== RISK SCORING ======
+  - id: "30_risk.compute"
+    class: inference
+    when:
+      all:
+        - fact: req.has_auth_token
+          op: "=="
+          value: true
+    then:
+      compute:
+        # risk = (requests_1m * 100) / 120  (high rate = high risk)
+        - target: auth.risk_score
+          op: scale
+          left: req.client_requests_1m
+          right_literal: 100
+          scale: 120
+        # clamp to [0, 100]
+        - target: auth.risk_score
+          op: clamp
+          left: auth.risk_score
+          right_literal: 0
+          scale: 100
+
+  # ====== PAYLOAD SIZE CHECK ======
+  - id: "40_payload.too_large"
+    class: constraint
+    when:
+      all:
+        - fact: req.content_length
+          op: ">"
+          value: 65536
+    then:
+      set_mode: mode.deny
+      compute:
+        - target: auth.decision
+          op: assign
+          left_literal: 3
+      explanation: "Payload > 64KB — rejected."
+
+actions:
+  - id: send_429
+    type: callback
+    symbol: app_send_429_response

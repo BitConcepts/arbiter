@@ -1,6 +1,6 @@
 tests:
-  benchmark.zproj.pid:
-    tags: zproj benchmark
+  benchmark.arbiter.pid:
+    tags: arbiter benchmark
     platform_allow: native_sim
     harness: console
     build_only: true

@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a feature for zproj
+about: Suggest a feature for arbiter
 title: "[FEATURE] "
 labels: enhancement
 assignees: ''

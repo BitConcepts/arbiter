@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/BitConcepts/arbiter/schema/arb.schema.json",
+  "title": "ARB — Zephyr Reasoning Model",
+  "description": "Schema for .arb.yaml model files (v0.1)",
+  "type": "object",
+  "required": ["arb_version", "model", "target", "facts", "rules"],
+  "properties": {
+    "arb_version": {
+      "type": "number",
+      "const": 0.1
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target": {
+      "type": "object",
+      "required": ["rtos"],
+      "properties": {
+        "rtos": { "type": "string" },
+        "profile": { "type": "string" },
+        "safety_profile": { "type": "string" }
+      }
+    },
+    "system": {
+      "type": "object",
+      "properties": {
+        "item": { "type": "string" },
+        "safety_context": { "type": "string" }
+      }
+    },
+    "facts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/fact" }
+    },
+    "derived_facts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/fact" }
+    },
+    "modes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "string" }
+        }
+      }
+    },
+    "hazards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "string" },
+          "severity": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "safety_goals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "string" },
+          "hazard": { "type": "string" },
+          "integrity_target": { "type": "string" },
+          "safe_state": { "type": "string" }
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/rule" }
+    },
+    "constraints": { "type": "array" },
+    "obligations": { "type": "array" },
+    "actions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/action" }
+    },
+    "runtime": { "type": "object" },
+    "tests": { "type": "array" },
+    "metadata": { "type": "object" }
+  },
+  "$defs": {
+    "fact": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["bool", "int32", "uint32", "enum"]
+        },
+        "unit": { "type": "string" },
+        "range": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "source": { "type": "string" },
+        "stale_after_ms": { "type": "integer", "minimum": 0 },
+        "default": {},
+        "safety_relevant": { "type": "boolean" },
+        "description": { "type": "string" }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "properties": {
+        "fact": { "type": "string" },
+        "op": {
+          "type": "string",
+          "enum": ["==", "!=", "<", "<=", ">", ">=", "in", "not_in", "stale", "not_stale", "changed", "delta_gt", "delta_lt"]
+        },
+        "value": {}
+      }
+    },
+    "rule": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string" },
+        "class": {
+          "type": "string",
+          "enum": ["inference", "constraint", "mode_guard", "safety_guard", "obligation", "advisory"]
+        },
+        "safety_goal": { "type": "string" },
+        "when": {
+          "type": "object",
+          "properties": {
+            "all": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/condition" }
+            },
+            "any": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/condition" }
+            },
+            "not": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/condition" }
+            }
+          }
+        },
+        "then": {
+          "type": "object",
+          "properties": {
+            "set_mode": { "type": "string" },
+            "action": { "type": "string" },
+            "compute": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/expression" }
+            },
+            "explanation": { "type": "string" },
+            "criticality": { "type": "string" }
+          }
+        }
+      }
+    },
+    "expression": {
+      "type": "object",
+      "required": ["target", "op"],
+      "properties": {
+        "target": { "type": "string", "description": "Fact id to write the result to." },
+        "op": {
+          "type": "string",
+          "enum": ["add", "sub", "mul", "div", "mod", "abs", "negate", "min", "max", "clamp", "shift_r", "shift_l", "scale", "assign", "accumulate"]
+        },
+        "left": { "type": "string", "description": "Left operand fact id." },
+        "left_literal": { "type": "integer", "description": "Left operand literal value." },
+        "right": { "type": "string", "description": "Right operand fact id." },
+        "right_literal": { "type": "integer", "description": "Right operand literal value." },
+        "scale": { "type": "integer", "description": "Divisor for scale/accumulate, or hi bound for clamp." }
+      }
+    },
+    "action": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["callback", "log", "notify", "set_fact", "set_mode", "raise_fault", "clear_fault"]
+        },
+        "symbol": { "type": "string" },
+        "must_complete_within_ms": { "type": "integer", "minimum": 0 },
+        "failure_behavior": { "type": "string" },
+        "safe_state_action": { "type": "boolean" }
+      }
+    }
+  }
+}

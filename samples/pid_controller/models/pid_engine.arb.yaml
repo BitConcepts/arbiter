@@ -1,0 +1,315 @@
+arb_version: 0.1
+model: pid_engine
+
+target:
+  rtos: zephyr
+  profile: static_c
+
+system:
+  item: pid_position_controller
+  safety_context: servo_drive
+
+# All gain values use fixed-point x1000.
+# Kp=2.5 -> 2500,  Ki=0.1 -> 100,  Kd=0.8 -> 800
+
+facts:
+  # --- Inputs (written by application each tick) ---
+  - id: in.dt_ms
+    type: uint32
+    unit: ms
+    range: [1, 1000]
+    source: timer
+
+  - id: in.enable
+    type: bool
+    source: command
+
+  - id: in.process_value
+    type: int32
+    unit: millideg
+    range: [-180000, 180000]
+    source: encoder
+    stale_after_ms: 50
+    safety_relevant: true
+
+  - id: in.sensor_valid
+    type: bool
+    source: diagnostics
+    safety_relevant: true
+
+  - id: in.setpoint
+    type: int32
+    unit: millideg
+    range: [-180000, 180000]
+    source: command
+    stale_after_ms: 200
+
+  # --- Tunable gains ---
+  - id: gain.kd
+    type: int32
+    range: [0, 100000]
+    default: 800
+
+  - id: gain.ki
+    type: int32
+    range: [0, 100000]
+    default: 100
+
+  - id: gain.kp
+    type: int32
+    range: [0, 100000]
+    default: 2500
+
+  # --- Derived / computed by the engine ---
+  - id: pid.abs_error
+    type: uint32
+    range: [0, 360000]
+    source: computed
+    safety_relevant: true
+
+  - id: pid.d_term
+    type: int32
+    source: computed
+
+  - id: pid.error
+    type: int32
+    range: [-360000, 360000]
+    source: computed
+
+  - id: pid.error_prev
+    type: int32
+    source: computed
+
+  - id: pid.i_term
+    type: int32
+    source: computed
+
+  - id: pid.output
+    type: int32
+    unit: permille
+    range: [-1000, 1000]
+    source: computed
+    safety_relevant: true
+
+  - id: pid.output_raw
+    type: int32
+    source: computed
+
+  - id: pid.p_term
+    type: int32
+    source: computed
+
+modes:
+  - id: mode.anti_windup
+  - id: mode.disabled
+  - id: mode.following_fault
+  - id: mode.running
+  - id: mode.sensor_fault
+
+rules:
+  # ====== PHASE 1: FAULT DETECTION ======
+
+  - id: "01_fault.sensor"
+    class: safety_guard
+    when:
+      any:
+        - fact: in.sensor_valid
+          op: "=="
+          value: false
+        - fact: in.process_value
+          op: stale
+          value: 50
+    then:
+      set_mode: mode.sensor_fault
+      compute:
+        - target: pid.output
+          op: assign
+          left_literal: 0
+        - target: pid.i_term
+          op: assign
+          left_literal: 0
+      action: update_actuator
+      explanation: "Sensor fault — zero output."
+      criticality: safety_critical
+
+  - id: "02_fault.following"
+    class: safety_guard
+    when:
+      all:
+        - fact: pid.abs_error
+          op: ">"
+          value: 30000
+        - fact: in.enable
+          op: "=="
+          value: true
+    then:
+      set_mode: mode.following_fault
+      compute:
+        - target: pid.output
+          op: assign
+          left_literal: 0
+        - target: pid.i_term
+          op: assign
+          left_literal: 0
+      action: update_actuator
+      explanation: "Following error > 30 deg — fault."
+      criticality: safety_critical
+
+  - id: "03_check.disabled"
+    class: mode_guard
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.disabled
+      compute:
+        - target: pid.output
+          op: assign
+          left_literal: 0
+        - target: pid.i_term
+          op: assign
+          left_literal: 0
+
+  # ====== PHASE 2: PID COMPUTATION ======
+
+  - id: "10_pid.compute"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: in.sensor_valid
+          op: "=="
+          value: true
+    then:
+      set_mode: mode.running
+      compute:
+        # Save previous error
+        - target: pid.error_prev
+          op: assign
+          left: pid.error
+
+        # error = setpoint - process_value
+        - target: pid.error
+          op: sub
+          left: in.setpoint
+          right: in.process_value
+
+        # abs_error = |error|
+        - target: pid.abs_error
+          op: abs
+          left: pid.error
+
+        # P = (error * Kp) / 1000
+        - target: pid.p_term
+          op: scale
+          left: pid.error
+          right: gain.kp
+          scale: 1000
+
+        # I += (error * Ki) / 10000   (accumulate)
+        - target: pid.i_term
+          op: accumulate
+          left: pid.error
+          right: gain.ki
+          scale: 10000
+
+        # D = ((error - error_prev) * Kd) / 1000
+        - target: pid.d_term
+          op: sub
+          left: pid.error
+          right: pid.error_prev
+        - target: pid.d_term
+          op: scale
+          left: pid.d_term
+          right: gain.kd
+          scale: 1000
+
+      explanation: "PID compute: error, P, I+=, D."
+
+  # ====== PHASE 3: SUM & CLAMP ======
+
+  - id: "20_pid.output"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: in.sensor_valid
+          op: "=="
+          value: true
+    then:
+      compute:
+        # raw = P + I
+        - target: pid.output_raw
+          op: add
+          left: pid.p_term
+          right: pid.i_term
+        # raw += D
+        - target: pid.output_raw
+          op: add
+          left: pid.output_raw
+          right: pid.d_term
+        # output = clamp(raw, -1000, 1000)
+        - target: pid.output
+          op: clamp
+          left: pid.output_raw
+          right_literal: -1000
+          scale: 1000
+
+  # ====== PHASE 4: ANTI-WINDUP ======
+
+  - id: "30_windup.pos"
+    class: mode_guard
+    when:
+      all:
+        - fact: pid.output_raw
+          op: ">"
+          value: 1000
+    then:
+      set_mode: mode.anti_windup
+      compute:
+        - target: pid.i_term
+          op: clamp
+          left: pid.i_term
+          right_literal: -500000
+          scale: 500000
+      explanation: "Output saturated — integral clamped."
+
+  - id: "31_windup.neg"
+    class: mode_guard
+    when:
+      all:
+        - fact: pid.output_raw
+          op: "<"
+          value: -1000
+    then:
+      set_mode: mode.anti_windup
+      compute:
+        - target: pid.i_term
+          op: clamp
+          left: pid.i_term
+          right_literal: -500000
+          scale: 500000
+
+  # ====== PHASE 5: ACTUATE ======
+
+  - id: "40_actuate"
+    class: obligation
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+    then:
+      action: update_actuator
+      explanation: "Write pid.output to actuator."
+
+actions:
+  - id: update_actuator
+    type: callback
+    symbol: app_update_actuator

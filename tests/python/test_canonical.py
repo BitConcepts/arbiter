@@ -2,15 +2,15 @@
 """Tests for canonicalization and deterministic hashing."""
 
 from pathlib import Path
-from zproj.canonical import canonicalize, to_canonical_json
-from zproj.parser import parse_model
-from zproj.diagnostics import DiagnosticCollector
+from arbiter.canonical import canonicalize, to_canonical_json
+from arbiter.parser import parse_model
+from arbiter.diagnostics import DiagnosticCollector
 
 SAMPLES_DIR = Path(__file__).resolve().parent.parent.parent / "samples"
 
 
 def test_canonical_sorted_output():
-    model_path = SAMPLES_DIR / "battery_policy" / "models" / "battery.zrm.yaml"
+    model_path = SAMPLES_DIR / "battery_policy" / "models" / "battery.arb.yaml"
     data = parse_model(model_path)
     model = canonicalize(data)
 
@@ -20,7 +20,7 @@ def test_canonical_sorted_output():
 
 
 def test_deterministic_hash():
-    model_path = SAMPLES_DIR / "battery_policy" / "models" / "battery.zrm.yaml"
+    model_path = SAMPLES_DIR / "battery_policy" / "models" / "battery.arb.yaml"
     data = parse_model(model_path)
 
     m1 = canonicalize(data)
@@ -31,7 +31,7 @@ def test_deterministic_hash():
 
 
 def test_canonical_json_deterministic():
-    model_path = SAMPLES_DIR / "battery_policy" / "models" / "battery.zrm.yaml"
+    model_path = SAMPLES_DIR / "battery_policy" / "models" / "battery.arb.yaml"
     data = parse_model(model_path)
 
     m1 = canonicalize(data)
@@ -43,7 +43,7 @@ def test_canonical_json_deterministic():
 def test_different_key_order_same_canonical():
     """Different YAML key ordering should produce same canonical form."""
     data1 = {
-        "zrm_version": 0.1,
+        "arb_version": 0.1,
         "model": "test",
         "target": {"rtos": "zephyr"},
         "facts": [{"id": "b", "type": "bool"}, {"id": "a", "type": "int32"}],
@@ -51,7 +51,7 @@ def test_different_key_order_same_canonical():
     }
     data2 = {
         "model": "test",
-        "zrm_version": 0.1,
+        "arb_version": 0.1,
         "facts": [{"type": "int32", "id": "a"}, {"type": "bool", "id": "b"}],
         "target": {"rtos": "zephyr"},
         "rules": [],

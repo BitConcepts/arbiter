@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug in zproj
+about: Report a bug in arbiter
 title: "[BUG] "
 labels: bug
 assignees: ''
@@ -21,6 +21,6 @@ A clear description of the bug.
 ## Environment
 - Zephyr version:
 - Board/target:
-- zproj version:
+- arbiter version:
 - Python version:
 - OS:

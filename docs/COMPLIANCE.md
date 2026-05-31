@@ -1,10 +1,10 @@
-# Compliance Report — zproj
+# Compliance Report — arbiter
 
 **Generated:** 2026-05-31
 
 ## Project Summary
 
-- **Name**: zproj
+- **Name**: arbiter
 - **Type**: Embedded / hardware (C/C++)
 - **Language**: c
 - **VCS Platform**: github
@@ -101,7 +101,7 @@
 
 ## Recent Activity
 
-- `4cd58f2 feat: complete zproj ZRM module implementation`
+- `4cd58f2 feat: complete arbiter ARB module implementation`
 - `0411420 Initial commit`
 
 **Contributors:**

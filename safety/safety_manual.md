@@ -1,19 +1,19 @@
-# zproj Safety Manual
+# arbiter Safety Manual
 
 ## 1. Purpose
 
-This document describes the safety-relevant properties of the zproj
+This document describes the safety-relevant properties of the arbiter
 reasoning engine and how they support integration into safety-critical
 embedded systems.
 
 **This document does not constitute a safety certification claim.**
-zproj provides architectural support for functional safety workflows
+arbiter provides architectural support for functional safety workflows
 but has not been independently certified to any SIL or ASIL level.
 
 ## 2. Scope
 
-Covers the zproj C runtime (`lib/`, `subsys/zproj/`), the ZRM model
-format, and the `zprojc` compiler toolchain.
+Covers the arbiter C runtime (`lib/`, `subsys/arbiter/`), the ARB model
+format, and the `arbiterc` compiler toolchain.
 
 ## 3. Safety Architecture
 
@@ -48,7 +48,7 @@ Every rule carries a `class` attribute:
 
 - Each compiled model carries a SHA-256 hash of its canonical form.
 - The schema hash validates that the model was compiled against the
-  expected ZRM schema version.
+  expected ARB schema version.
 - At init time, the application can verify these hashes against
   expected values.
 
@@ -61,7 +61,7 @@ data is stale.
 ### 3.6 Traceability
 
 - Every rule has a unique `id` and optional `explanation`.
-- The trace subsystem (`CONFIG_ZPROJ_TRACE=y`) records which rules
+- The trace subsystem (`CONFIG_ARBITER_TRACE=y`) records which rules
   fired, in what order, with what mode transitions.
 - Facts are named and can be inspected at runtime via the shell
   subsystem.
@@ -70,7 +70,7 @@ data is stale.
 
 ### 4.1 Watchdog Supervision
 
-Enable `CONFIG_ZPROJ_WATCHDOG=y` to wrap the evaluation thread in a
+Enable `CONFIG_ARBITER_WATCHDOG=y` to wrap the evaluation thread in a
 hardware watchdog.  If evaluation exceeds the configured timeout, the
 watchdog resets the system — preventing stuck-engine scenarios.
 
@@ -88,7 +88,7 @@ defined safe state (e.g., zero actuator output, open contactor).
 
 ## 5. Limitations
 
-- zproj is **not certified** to IEC 61508, ISO 26262, or any other
+- arbiter is **not certified** to IEC 61508, ISO 26262, or any other
   functional safety standard.
 - The engine does not implement redundant execution or voting
   internally (see the `tmr_voter` sample for how to model TMR
@@ -100,11 +100,11 @@ defined safe state (e.g., zero actuator output, open contactor).
 
 ## 6. Recommended Verification
 
-- Run `zprojc validate` on every model to check schema conformance
+- Run `arbiterc validate` on every model to check schema conformance
   and rule consistency.
 - Use the provided test suites (`tests/`) as a starting point for
   application-specific validation.
 - Review the benchmark results (`tests/benchmarks/`) to confirm that
   engine execution time fits within your system's real-time budget.
-- Perform FMEA on the ZRM model to identify failure modes in rule
+- Perform FMEA on the ARB model to identify failure modes in rule
   interactions.

@@ -1,6 +1,6 @@
 tests:
-  sample.zproj.access-control:
-    tags: zproj sample
+  sample.arbiter.access-control:
+    tags: arbiter sample
     platform_allow: native_sim
     harness: console
     build_only: true

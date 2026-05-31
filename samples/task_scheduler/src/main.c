@@ -3,20 +3,20 @@
 /**
  * Task Scheduler Solver Sample
  *
- * zproj reasons about 4 task slots, computing urgency scores from
+ * arbiter reasons about 4 task slots, computing urgency scores from
  * priority and deadline proximity.  The engine selects the highest-
  * urgency ready task and detects deadline misses.
  */
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zproj/zproj.h>
+#include <arbiter/arbiter.h>
 
 LOG_MODULE_REGISTER(task_sched, LOG_LEVEL_INF);
 
-extern const struct zproj_model zproj_generated_model;
+extern const struct ARBITER_model ARBITER_generated_model;
 
-static struct zproj_ctx ctx;
+static struct ARBITER_ctx ctx;
 
 /* Fact indices (canonical order) */
 enum {
@@ -55,46 +55,46 @@ void app_report_deadline_miss(void)
 
 int main(void)
 {
-	LOG_INF("=== zproj Task Scheduler Solver ===");
+	LOG_INF("=== arbiter Task Scheduler Solver ===");
 
-	int ret = zproj_init(&ctx, &zproj_generated_model);
+	int ret = ARBITER_init(&ctx, &ARBITER_generated_model);
 
-	if (ret != ZPROJ_OK) {
+	if (ret != ARBITER_OK) {
 		LOG_ERR("Init failed: %d", ret);
 		return ret;
 	}
 
-	zproj_set_bool(&ctx, F_ENABLE, true);
+	ARBITER_set_bool(&ctx, F_ENABLE, true);
 
 	/* Configure 4 tasks with varying priorities and deadlines */
 	/* Task 0: sensor_read — high priority, tight deadline */
-	zproj_set_bool(&ctx, F_T0_READY, true);
-	zproj_set_i32(&ctx, F_T0_PRIO, 90);
-	zproj_set_u32(&ctx, F_T0_DEADLINE, 500);
+	ARBITER_set_bool(&ctx, F_T0_READY, true);
+	ARBITER_set_i32(&ctx, F_T0_PRIO, 90);
+	ARBITER_set_u32(&ctx, F_T0_DEADLINE, 500);
 
 	/* Task 1: log_flush — low priority, relaxed deadline */
-	zproj_set_bool(&ctx, F_T1_READY, true);
-	zproj_set_i32(&ctx, F_T1_PRIO, 20);
-	zproj_set_u32(&ctx, F_T1_DEADLINE, 5000);
+	ARBITER_set_bool(&ctx, F_T1_READY, true);
+	ARBITER_set_i32(&ctx, F_T1_PRIO, 20);
+	ARBITER_set_u32(&ctx, F_T1_DEADLINE, 5000);
 
 	/* Task 2: comms_tx — medium priority, medium deadline */
-	zproj_set_bool(&ctx, F_T2_READY, true);
-	zproj_set_i32(&ctx, F_T2_PRIO, 60);
-	zproj_set_u32(&ctx, F_T2_DEADLINE, 1000);
+	ARBITER_set_bool(&ctx, F_T2_READY, true);
+	ARBITER_set_i32(&ctx, F_T2_PRIO, 60);
+	ARBITER_set_u32(&ctx, F_T2_DEADLINE, 1000);
 
 	/* Task 3: watchdog_kick — critical priority, short deadline */
-	zproj_set_bool(&ctx, F_T3_READY, true);
-	zproj_set_i32(&ctx, F_T3_PRIO, 99);
-	zproj_set_u32(&ctx, F_T3_DEADLINE, 200);
+	ARBITER_set_bool(&ctx, F_T3_READY, true);
+	ARBITER_set_i32(&ctx, F_T3_PRIO, 99);
+	ARBITER_set_u32(&ctx, F_T3_DEADLINE, 200);
 
 	for (uint32_t tick = 0; tick < 600; tick += 50) {
-		zproj_set_u32(&ctx, F_TICK, tick);
+		ARBITER_set_u32(&ctx, F_TICK, tick);
 
-		struct zproj_snapshot snap;
-		struct zproj_result result;
+		struct ARBITER_snapshot snap;
+		struct ARBITER_result result;
 
-		zproj_snapshot_begin(&ctx, &snap);
-		zproj_eval(&zproj_generated_model, &snap, &result, NULL);
+		ARBITER_snapshot_begin(&ctx, &snap);
+		ARBITER_eval(&ARBITER_generated_model, &snap, &result, NULL);
 
 		LOG_INF("tick=%u  selected=%d  urgency=%d",
 			tick,

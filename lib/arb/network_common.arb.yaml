@@ -1,0 +1,78 @@
+# SPDX-License-Identifier: MIT
+# ARB://network_common — Reusable network security facts and rules
+#
+# Common facts for firewall, access control, and rate limiting.
+
+arb_version: 0.1
+model: _include_network_common
+
+facts:
+  - id: net.src_ip_class
+    type: enum
+    source: packet_parser
+    description: "0=unknown, 1=private, 2=public, 3=loopback, 4=multicast, 5=blocked"
+
+  - id: net.dst_port
+    type: uint32
+    range: [0, 65535]
+    source: packet_parser
+
+  - id: net.protocol
+    type: enum
+    source: packet_parser
+    description: "0=unknown, 1=TCP, 2=UDP, 3=ICMP, 4=CoAP, 5=MQTT, 6=HTTP"
+
+  - id: net.packet_len
+    type: uint32
+    range: [0, 65535]
+    source: packet_parser
+
+  - id: net.rate_pps
+    type: uint32
+    unit: packets_per_sec
+    range: [0, 100000]
+    source: rate_counter
+    description: "Current inbound packet rate"
+
+  - id: net.conn_count
+    type: uint32
+    range: [0, 10000]
+    source: conn_tracker
+    description: "Active connection count"
+
+  - id: net.is_established
+    type: bool
+    source: conn_tracker
+    description: "True if packet belongs to established connection"
+
+rules:
+  - id: inc.net_rate_limit
+    class: constraint
+    when:
+      all:
+        - fact: net.rate_pps
+          op: ">"
+          value: 1000
+    then:
+      action: inc_net_throttle
+      explanation: "Inbound rate > 1000 pps — throttle."
+
+  - id: inc.net_conn_limit
+    class: constraint
+    when:
+      all:
+        - fact: net.conn_count
+          op: ">"
+          value: 256
+    then:
+      action: inc_net_reject_new
+      explanation: "Connection table full — reject new connections."
+
+actions:
+  - id: inc_net_throttle
+    type: callback
+    symbol: app_net_throttle
+
+  - id: inc_net_reject_new
+    type: callback
+    symbol: app_net_reject_new_conn

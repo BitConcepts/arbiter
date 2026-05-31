@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 
 /**
- * PID Benchmark: zproj engine vs. hand-coded PID
+ * PID Benchmark: arbiter engine vs. hand-coded PID
  *
  * Measures:
  *   - CPU cycles per evaluation tick (avg over N iterations)
@@ -10,7 +10,7 @@
  *
  * ROM comparison is done post-build via `size` on the .elf — see README.
  *
- * Expected outcome:  Hand-coded PID is faster and smaller.  zproj adds
+ * Expected outcome:  Hand-coded PID is faster and smaller.  arbiter adds
  * ~2-5x cycle overhead and extra ROM/RAM for the engine tables, but
  * provides declarative safety semantics, traceability, model hashing,
  * and deterministic evaluation that hand-coded C does not.
@@ -19,7 +19,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/timing/timing.h>
-#include <zproj/zproj.h>
+#include <arbiter/arbiter.h>
 
 LOG_MODULE_REGISTER(pid_bench, LOG_LEVEL_INF);
 
@@ -80,12 +80,12 @@ static void hand_pid_tick(struct hand_pid *p, int32_t setpoint,
 }
 
 /* ------------------------------------------------------------------ */
-/*  zproj PID (engine-based)                                          */
+/*  arbiter PID (engine-based)                                          */
 /* ------------------------------------------------------------------ */
 
-extern const struct zproj_model zproj_generated_model;
+extern const struct ARBITER_model ARBITER_generated_model;
 
-static struct zproj_ctx zproj_ctx;
+static struct ARBITER_ctx ARBITER_ctx;
 
 /* Fact indices (must match canonical order from pid_engine model) */
 enum {
@@ -109,7 +109,7 @@ void app_update_actuator(void)
 
 int main(void)
 {
-	LOG_INF("=== zproj PID Benchmark ===");
+	LOG_INF("=== arbiter PID Benchmark ===");
 	LOG_INF("Iterations: %d  (warmup: %d)", BENCH_ITERATIONS,
 		WARMUP_ITERATIONS);
 
@@ -147,78 +147,78 @@ int main(void)
 	LOG_INF("  Total: %llu ns  (%llu ns/tick)", hand_ns, hand_per_tick_ns);
 	LOG_INF("  RAM (struct): %u bytes", (unsigned)sizeof(struct hand_pid));
 
-	/* ----- zproj engine PID benchmark ----- */
-	int ret = zproj_init(&zproj_ctx, &zproj_generated_model);
+	/* ----- arbiter engine PID benchmark ----- */
+	int ret = ARBITER_init(&ARBITER_ctx, &ARBITER_generated_model);
 
-	if (ret != ZPROJ_OK) {
-		LOG_ERR("zproj init failed: %d", ret);
+	if (ret != ARBITER_OK) {
+		LOG_ERR("arbiter init failed: %d", ret);
 		return ret;
 	}
 
-	zproj_set_i32(&zproj_ctx, F_KP, 2500);
-	zproj_set_i32(&zproj_ctx, F_KI, 100);
-	zproj_set_i32(&zproj_ctx, F_KD, 800);
-	zproj_set_bool(&zproj_ctx, F_ENABLE, true);
-	zproj_set_bool(&zproj_ctx, F_SENSOR_VALID, true);
-	zproj_set_u32(&zproj_ctx, F_DT_MS, 10);
+	ARBITER_set_i32(&ARBITER_ctx, F_KP, 2500);
+	ARBITER_set_i32(&ARBITER_ctx, F_KI, 100);
+	ARBITER_set_i32(&ARBITER_ctx, F_KD, 800);
+	ARBITER_set_bool(&ARBITER_ctx, F_ENABLE, true);
+	ARBITER_set_bool(&ARBITER_ctx, F_SENSOR_VALID, true);
+	ARBITER_set_u32(&ARBITER_ctx, F_DT_MS, 10);
 
 	int32_t plant_z = 0;
 
 	/* Warmup */
 	for (int i = 0; i < WARMUP_ITERATIONS; i++) {
-		zproj_set_i32(&zproj_ctx, F_SETPOINT, 10000);
-		zproj_set_i32(&zproj_ctx, F_PROCESS_VALUE, plant_z);
-		zproj_set_timestamp(&zproj_ctx, F_PROCESS_VALUE,
+		ARBITER_set_i32(&ARBITER_ctx, F_SETPOINT, 10000);
+		ARBITER_set_i32(&ARBITER_ctx, F_PROCESS_VALUE, plant_z);
+		ARBITER_set_timestamp(&ARBITER_ctx, F_PROCESS_VALUE,
 				    (uint32_t)i * 10);
 
-		struct zproj_snapshot snap;
-		struct zproj_result result;
+		struct ARBITER_snapshot snap;
+		struct ARBITER_result result;
 
-		zproj_snapshot_begin(&zproj_ctx, &snap);
-		zproj_eval(&zproj_generated_model, &snap, &result, NULL);
-		plant_z += zproj_ctx.fact_values[F_OUTPUT].value / 10;
+		ARBITER_snapshot_begin(&ARBITER_ctx, &snap);
+		ARBITER_eval(&ARBITER_generated_model, &snap, &result, NULL);
+		plant_z += ARBITER_ctx.fact_values[F_OUTPUT].value / 10;
 	}
 
 	/* Reset for measurement */
-	zproj_init(&zproj_ctx, &zproj_generated_model);
-	zproj_set_i32(&zproj_ctx, F_KP, 2500);
-	zproj_set_i32(&zproj_ctx, F_KI, 100);
-	zproj_set_i32(&zproj_ctx, F_KD, 800);
-	zproj_set_bool(&zproj_ctx, F_ENABLE, true);
-	zproj_set_bool(&zproj_ctx, F_SENSOR_VALID, true);
-	zproj_set_u32(&zproj_ctx, F_DT_MS, 10);
+	ARBITER_init(&ARBITER_ctx, &ARBITER_generated_model);
+	ARBITER_set_i32(&ARBITER_ctx, F_KP, 2500);
+	ARBITER_set_i32(&ARBITER_ctx, F_KI, 100);
+	ARBITER_set_i32(&ARBITER_ctx, F_KD, 800);
+	ARBITER_set_bool(&ARBITER_ctx, F_ENABLE, true);
+	ARBITER_set_bool(&ARBITER_ctx, F_SENSOR_VALID, true);
+	ARBITER_set_u32(&ARBITER_ctx, F_DT_MS, 10);
 	plant_z = 0;
 
 	timing_t t2 = timing_counter_get();
 
 	for (int i = 0; i < BENCH_ITERATIONS; i++) {
-		zproj_set_i32(&zproj_ctx, F_SETPOINT, 10000);
-		zproj_set_i32(&zproj_ctx, F_PROCESS_VALUE, plant_z);
-		zproj_set_timestamp(&zproj_ctx, F_PROCESS_VALUE,
+		ARBITER_set_i32(&ARBITER_ctx, F_SETPOINT, 10000);
+		ARBITER_set_i32(&ARBITER_ctx, F_PROCESS_VALUE, plant_z);
+		ARBITER_set_timestamp(&ARBITER_ctx, F_PROCESS_VALUE,
 				    (uint32_t)(WARMUP_ITERATIONS + i) * 10);
 
-		struct zproj_snapshot snap;
-		struct zproj_result result;
+		struct ARBITER_snapshot snap;
+		struct ARBITER_result result;
 
-		zproj_snapshot_begin(&zproj_ctx, &snap);
-		zproj_eval(&zproj_generated_model, &snap, &result, NULL);
-		plant_z += zproj_ctx.fact_values[F_OUTPUT].value / 10;
+		ARBITER_snapshot_begin(&ARBITER_ctx, &snap);
+		ARBITER_eval(&ARBITER_generated_model, &snap, &result, NULL);
+		plant_z += ARBITER_ctx.fact_values[F_OUTPUT].value / 10;
 	}
 
 	timing_t t3 = timing_counter_get();
-	uint64_t zproj_ns = timing_cycles_to_ns(timing_cycles_get(&t2, &t3));
-	uint64_t zproj_per_tick_ns = zproj_ns / BENCH_ITERATIONS;
+	uint64_t ARBITER_ns = timing_cycles_to_ns(timing_cycles_get(&t2, &t3));
+	uint64_t ARBITER_per_tick_ns = ARBITER_ns / BENCH_ITERATIONS;
 
-	LOG_INF("--- zproj Engine PID ---");
-	LOG_INF("  Total: %llu ns  (%llu ns/tick)", zproj_ns,
-		zproj_per_tick_ns);
-	LOG_INF("  RAM (ctx): %u bytes", (unsigned)sizeof(struct zproj_ctx));
+	LOG_INF("--- arbiter Engine PID ---");
+	LOG_INF("  Total: %llu ns  (%llu ns/tick)", ARBITER_ns,
+		ARBITER_per_tick_ns);
+	LOG_INF("  RAM (ctx): %u bytes", (unsigned)sizeof(struct ARBITER_ctx));
 	LOG_INF("  Model tables: %u facts, %u rules, %u conditions, "
 		"%u expressions",
-		zproj_generated_model.fact_count,
-		zproj_generated_model.rule_count,
-		zproj_generated_model.condition_count,
-		zproj_generated_model.expr_count);
+		ARBITER_generated_model.fact_count,
+		ARBITER_generated_model.rule_count,
+		ARBITER_generated_model.condition_count,
+		ARBITER_generated_model.expr_count);
 
 	/* ----- Comparison ----- */
 	LOG_INF("=== Comparison ===");
@@ -226,18 +226,18 @@ int main(void)
 	uint64_t overhead_pct = 0;
 
 	if (hand_per_tick_ns > 0) {
-		overhead_pct = ((zproj_per_tick_ns - hand_per_tick_ns) * 100)
+		overhead_pct = ((ARBITER_per_tick_ns - hand_per_tick_ns) * 100)
 			       / hand_per_tick_ns;
 	}
 
 	LOG_INF("  Engine overhead: %llu%% (%llu vs %llu ns/tick)",
-		overhead_pct, zproj_per_tick_ns, hand_per_tick_ns);
+		overhead_pct, ARBITER_per_tick_ns, hand_per_tick_ns);
 	LOG_INF("  RAM overhead: %u bytes (ctx) vs %u bytes (struct)",
-		(unsigned)sizeof(struct zproj_ctx),
+		(unsigned)sizeof(struct ARBITER_ctx),
 		(unsigned)sizeof(struct hand_pid));
 	LOG_INF("  ROM: compare with `size build/zephyr/zephyr.elf`");
 	LOG_INF("");
-	LOG_INF("  zproj adds: declarative model, safety guards,");
+	LOG_INF("  arbiter adds: declarative model, safety guards,");
 	LOG_INF("    traceability, model hashing, deterministic eval,");
 	LOG_INF("    shell inspection, and runtime watchdog integration.");
 	LOG_INF("  Hand-coded adds: nothing — it's just math.");

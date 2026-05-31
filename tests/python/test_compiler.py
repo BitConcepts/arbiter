@@ -1,16 +1,16 @@
 # SPDX-License-Identifier: MIT
-"""Tests for the zprojc compiler pipeline."""
+"""Tests for the arbiterc compiler pipeline."""
 
 import tempfile
 from pathlib import Path
 
-from zproj.compiler import CompileOptions, compile_model
+from arbiter.compiler import CompileOptions, compile_model
 
 SAMPLES_DIR = Path(__file__).resolve().parent.parent.parent / "samples"
 
 
 def test_compile_c_output():
-    model = SAMPLES_DIR / "battery_policy" / "models" / "battery.zrm.yaml"
+    model = SAMPLES_DIR / "battery_policy" / "models" / "battery.arb.yaml"
     with tempfile.TemporaryDirectory() as tmp:
         opts = CompileOptions(
             out_c=Path(tmp) / "model.c",
@@ -24,7 +24,7 @@ def test_compile_c_output():
 
 
 def test_compile_blob_output():
-    model = SAMPLES_DIR / "battery_policy" / "models" / "battery.zrm.yaml"
+    model = SAMPLES_DIR / "battery_policy" / "models" / "battery.arb.yaml"
     with tempfile.TemporaryDirectory() as tmp:
         opts = CompileOptions(out_blob=Path(tmp) / "model.zrmb")
         result = compile_model(model, opts)
@@ -34,7 +34,7 @@ def test_compile_blob_output():
 
 
 def test_deterministic_output():
-    model = SAMPLES_DIR / "battery_policy" / "models" / "battery.zrm.yaml"
+    model = SAMPLES_DIR / "battery_policy" / "models" / "battery.arb.yaml"
     with tempfile.TemporaryDirectory() as tmp:
         opts1 = CompileOptions(out_c=Path(tmp) / "a.c", out_h=Path(tmp) / "a.h")
         r1 = compile_model(model, opts1)
@@ -52,7 +52,7 @@ def test_deterministic_output():
 
 
 def test_strict_mode():
-    model = SAMPLES_DIR / "battery_policy" / "models" / "battery.zrm.yaml"
+    model = SAMPLES_DIR / "battery_policy" / "models" / "battery.arb.yaml"
     with tempfile.TemporaryDirectory() as tmp:
         opts = CompileOptions(
             out_c=Path(tmp) / "model.c",

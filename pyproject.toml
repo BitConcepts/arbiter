@@ -3,9 +3,9 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "zproj"
+name = "arbiter"
 version = "0.1.0"
-description = "ZRM compiler — deterministic reasoning model compiler for Zephyr RTOS"
+description = "ARB compiler — deterministic reasoning model compiler for Zephyr RTOS"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
@@ -39,7 +39,7 @@ dev = [
 ]
 
 [project.scripts]
-zprojc = "zproj.cli:main"
+arbiterc = "arbiter.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["python"]

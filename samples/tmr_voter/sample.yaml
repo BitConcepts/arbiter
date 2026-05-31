@@ -1,10 +1,10 @@
 sample:
-  name: zproj TMR Voter
+  name: arbiter TMR Voter
   description: >
-    Triple Modular Redundancy voter for IEC 61508 / SIL 3. zproj counts
+    Triple Modular Redundancy voter for IEC 61508 / SIL 3. arbiter counts
     valid channels, computes inter-channel deltas, selects 2-of-3 median,
     and degrades gracefully from TMR to dual to single to safe state.
 common:
-  tags: zproj reasoning safety tmr voter sil functional-safety
+  tags: arbiter reasoning safety tmr voter sil functional-safety
   harness: console
   platform_allow: native_sim

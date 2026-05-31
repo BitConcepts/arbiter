@@ -1,8 +1,8 @@
-# zproj — Agent Governance
+# arbiter — Agent Governance
 
 ## Project Summary
-zproj is a deterministic reasoning and safety-policy engine for Zephyr RTOS.
-It provides a YAML model language (ZRM), a Python compiler (`zprojc`), a C
+arbiter is a deterministic reasoning and safety-policy engine for Zephyr RTOS.
+It provides a YAML model language (ARB), a Python compiler (`arbiterc`), a C
 runtime engine, and Zephyr subsystem integration.
 
 - **Languages**: C (runtime engine), Python (compiler toolchain), YAML (models)
@@ -12,12 +12,12 @@ runtime engine, and Zephyr subsystem integration.
 - **License**: MIT
 
 ## Repository Layout
-- `include/zproj/` — Public C API headers
+- `include/arbiter/` — Public C API headers
 - `lib/` — C runtime library sources
-- `lib/zrm/` — Reusable ZRM include fragments
-- `subsys/zproj/` — Zephyr subsystem (shell, runtime thread, watchdog)
-- `python/zproj/` — Python compiler package
-- `schema/` — ZRM JSON Schema
+- `lib/arb/` — Reusable ARB include fragments
+- `subsys/arbiter/` — Zephyr subsystem (shell, runtime thread, watchdog)
+- `python/arbiter/` — Python compiler package
+- `schema/` — ARB JSON Schema
 - `samples/` — 17 sample applications (PID, Kalman, power budget, etc.)
 - `tests/zephyr/` — C unit tests (ztest)
 - `tests/python/` — Python tests (pytest)
@@ -33,7 +33,7 @@ runtime engine, and Zephyr subsystem integration.
 5. All C code uses Zephyr coding style (tabs, K&R braces).
 6. All files carry `SPDX-License-Identifier: MIT` header.
 7. Safety-relevant changes must update `safety/` artifacts.
-8. ZRM model changes must pass `zprojc validate`.
+8. ARB model changes must pass `arbiterc validate`.
 9. New samples require: model YAML, main.c, CMakeLists.txt, prj.conf, sample.yaml, testcase.yaml.
 10. Commits include `Co-Authored-By: Oz <oz-agent@warp.dev>` when AI-assisted.
 

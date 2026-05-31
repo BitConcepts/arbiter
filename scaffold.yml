@@ -1,5 +1,5 @@
 extends: ''
-name: zproj
+name: arbiter
 type: embedded-hardware
 platforms:
 - windows
@@ -10,7 +10,7 @@ spec_version: 0.11.8
 aee_phase: release
 description: >-
   Deterministic reasoning and safety-policy engine for Zephyr RTOS.
-  ZRM compiler, fixed-point compute engine, and safety evidence toolkit.
+  ARB compiler, fixed-point compute engine, and safety evidence toolkit.
 services: false
 shell_wrappers: false
 exec_shims: true

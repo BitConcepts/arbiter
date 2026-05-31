@@ -1,10 +1,10 @@
 sample:
-  name: zproj Access Control & CORS
+  name: arbiter Access Control & CORS
   description: >
     IoT gateway access policy with CORS origin validation, JWT auth,
     role-based path access, rate limiting, payload size checks, and
     computed risk scoring.
 common:
-  tags: zproj reasoning cors auth security api iot
+  tags: arbiter reasoning cors auth security api iot
   harness: console
   platform_allow: native_sim

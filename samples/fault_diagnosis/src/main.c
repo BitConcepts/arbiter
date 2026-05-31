@@ -3,7 +3,7 @@
 /**
  * Fault Diagnosis Solver Sample
  *
- * zproj maps observed symptom flags to candidate root causes using
+ * arbiter maps observed symptom flags to candidate root causes using
  * weighted evidence accumulation.  Each symptom contributes
  * confidence toward one or more diagnoses; the solver selects the
  * highest-confidence cause.
@@ -13,13 +13,13 @@
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zproj/zproj.h>
+#include <arbiter/arbiter.h>
 
 LOG_MODULE_REGISTER(fault_diag, LOG_LEVEL_INF);
 
-extern const struct zproj_model zproj_generated_model;
+extern const struct ARBITER_model ARBITER_generated_model;
 
-static struct zproj_ctx ctx;
+static struct ARBITER_ctx ctx;
 
 enum {
 	F_OVERCURRENT = 0,
@@ -59,60 +59,60 @@ void app_report_diagnosis(void)
 
 static void clear_symptoms(void)
 {
-	zproj_set_bool(&ctx, F_OVERCURRENT, false);
-	zproj_set_bool(&ctx, F_OVERTEMP, false);
-	zproj_set_bool(&ctx, F_VIBRATION, false);
-	zproj_set_bool(&ctx, F_SPEED_DEV, false);
-	zproj_set_bool(&ctx, F_VOLTAGE_SAG, false);
-	zproj_set_bool(&ctx, F_COMM_TIMEOUT, false);
+	ARBITER_set_bool(&ctx, F_OVERCURRENT, false);
+	ARBITER_set_bool(&ctx, F_OVERTEMP, false);
+	ARBITER_set_bool(&ctx, F_VIBRATION, false);
+	ARBITER_set_bool(&ctx, F_SPEED_DEV, false);
+	ARBITER_set_bool(&ctx, F_VOLTAGE_SAG, false);
+	ARBITER_set_bool(&ctx, F_COMM_TIMEOUT, false);
 }
 
 static void run_eval(const char *label)
 {
 	LOG_INF("--- %s ---", label);
 
-	struct zproj_snapshot snap;
-	struct zproj_result result;
+	struct ARBITER_snapshot snap;
+	struct ARBITER_result result;
 
-	zproj_snapshot_begin(&ctx, &snap);
-	zproj_eval(&zproj_generated_model, &snap, &result, NULL);
+	ARBITER_snapshot_begin(&ctx, &snap);
+	ARBITER_eval(&ARBITER_generated_model, &snap, &result, NULL);
 }
 
 int main(void)
 {
-	LOG_INF("=== zproj Fault Diagnosis Solver ===");
+	LOG_INF("=== arbiter Fault Diagnosis Solver ===");
 
-	int ret = zproj_init(&ctx, &zproj_generated_model);
+	int ret = ARBITER_init(&ctx, &ARBITER_generated_model);
 
-	if (ret != ZPROJ_OK) {
+	if (ret != ARBITER_OK) {
 		LOG_ERR("Init failed: %d", ret);
 		return ret;
 	}
 
-	zproj_set_bool(&ctx, F_ENABLE, true);
+	ARBITER_set_bool(&ctx, F_ENABLE, true);
 
 	/* Scenario 1: bearing failure symptoms */
 	clear_symptoms();
-	zproj_set_bool(&ctx, F_OVERTEMP, true);
-	zproj_set_bool(&ctx, F_VIBRATION, true);
+	ARBITER_set_bool(&ctx, F_OVERTEMP, true);
+	ARBITER_set_bool(&ctx, F_VIBRATION, true);
 	run_eval("Bearing failure pattern");
 
 	/* Scenario 2: winding short symptoms */
 	clear_symptoms();
-	zproj_set_bool(&ctx, F_OVERCURRENT, true);
-	zproj_set_bool(&ctx, F_OVERTEMP, true);
+	ARBITER_set_bool(&ctx, F_OVERCURRENT, true);
+	ARBITER_set_bool(&ctx, F_OVERTEMP, true);
 	run_eval("Winding short pattern");
 
 	/* Scenario 3: supply fault symptoms */
 	clear_symptoms();
-	zproj_set_bool(&ctx, F_VOLTAGE_SAG, true);
-	zproj_set_bool(&ctx, F_OVERCURRENT, true);
+	ARBITER_set_bool(&ctx, F_VOLTAGE_SAG, true);
+	ARBITER_set_bool(&ctx, F_OVERCURRENT, true);
 	run_eval("Supply fault pattern");
 
 	/* Scenario 4: encoder fault symptoms */
 	clear_symptoms();
-	zproj_set_bool(&ctx, F_SPEED_DEV, true);
-	zproj_set_bool(&ctx, F_COMM_TIMEOUT, true);
+	ARBITER_set_bool(&ctx, F_SPEED_DEV, true);
+	ARBITER_set_bool(&ctx, F_COMM_TIMEOUT, true);
 	run_eval("Encoder fault pattern");
 
 	/* Scenario 5: no symptoms */

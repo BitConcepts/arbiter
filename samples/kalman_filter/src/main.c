@@ -3,20 +3,20 @@
 /**
  * Kalman Filter Solver Sample
  *
- * zproj implements a 1-D Kalman filter entirely in ZRM compute
+ * arbiter implements a 1-D Kalman filter entirely in ARB compute
  * expressions.  The application feeds noisy measurements and reads
  * the filtered state estimate.
  */
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zproj/zproj.h>
+#include <arbiter/arbiter.h>
 
 LOG_MODULE_REGISTER(kalman_filter, LOG_LEVEL_INF);
 
-extern const struct zproj_model zproj_generated_model;
+extern const struct ARBITER_model ARBITER_generated_model;
 
-static struct zproj_ctx ctx;
+static struct ARBITER_ctx ctx;
 
 /* Fact indices (canonical alphabetical order) */
 enum {
@@ -57,17 +57,17 @@ static int32_t noise(int32_t amplitude)
 
 int main(void)
 {
-	LOG_INF("=== zproj Kalman Filter Solver ===");
+	LOG_INF("=== arbiter Kalman Filter Solver ===");
 
-	int ret = zproj_init(&ctx, &zproj_generated_model);
+	int ret = ARBITER_init(&ctx, &ARBITER_generated_model);
 
-	if (ret != ZPROJ_OK) {
+	if (ret != ARBITER_OK) {
 		LOG_ERR("Init failed: %d", ret);
 		return ret;
 	}
 
-	zproj_set_bool(&ctx, F_ENABLE, true);
-	zproj_set_bool(&ctx, F_SENSOR_VALID, true);
+	ARBITER_set_bool(&ctx, F_ENABLE, true);
+	ARBITER_set_bool(&ctx, F_SENSOR_VALID, true);
 
 	for (uint32_t t = 0; t < 120; t++) {
 		/* Simulated true value: ramp then hold */
@@ -77,14 +77,14 @@ int main(void)
 
 		int32_t meas = true_value + noise(3000);
 
-		zproj_set_i32(&ctx, F_MEASUREMENT, meas);
-		zproj_set_timestamp(&ctx, F_MEASUREMENT, k_uptime_get_32());
+		ARBITER_set_i32(&ctx, F_MEASUREMENT, meas);
+		ARBITER_set_timestamp(&ctx, F_MEASUREMENT, k_uptime_get_32());
 
-		struct zproj_snapshot snap;
-		struct zproj_result result;
+		struct ARBITER_snapshot snap;
+		struct ARBITER_result result;
 
-		zproj_snapshot_begin(&ctx, &snap);
-		zproj_eval(&zproj_generated_model, &snap, &result, NULL);
+		ARBITER_snapshot_begin(&ctx, &snap);
+		ARBITER_eval(&ARBITER_generated_model, &snap, &result, NULL);
 
 		if (t % 10 == 0) {
 			LOG_INF("t=%3u  true=%6d  meas=%6d  est=%6d  "

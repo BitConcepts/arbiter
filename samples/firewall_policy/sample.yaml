@@ -1,11 +1,11 @@
 sample:
-  name: zproj Embedded Firewall
+  name: arbiter Embedded Firewall
   description: >
-    Stateful packet filtering engine. zproj reasons about blocklists,
+    Stateful packet filtering engine. arbiter reasons about blocklists,
     established connections, SYN flood detection (computed score),
     port-based rules, ICMP rate limiting, DPI anomalies, and default
-    deny. Imports zrm://network_common for shared network facts.
+    deny. Imports ARB://network_common for shared network facts.
 common:
-  tags: zproj reasoning firewall security network iot
+  tags: arbiter reasoning firewall security network iot
   harness: console
   platform_allow: native_sim

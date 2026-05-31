@@ -1,11 +1,11 @@
 sample:
-  name: zproj PID Engine
+  name: arbiter PID Engine
   description: >
-    zproj IS the PID controller. The compute engine calculates error,
+    arbiter IS the PID controller. The compute engine calculates error,
     P/I/D terms, output summing, clamping, and anti-windup — all in
-    ZRM rules with fixed-point arithmetic. The application only feeds
+    ARB rules with fixed-point arithmetic. The application only feeds
     setpoint + sensor values and provides an actuator callback.
 common:
-  tags: zproj reasoning compute pid engine motion-control
+  tags: arbiter reasoning compute pid engine motion-control
   harness: console
   platform_allow: native_sim

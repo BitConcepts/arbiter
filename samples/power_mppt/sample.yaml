@@ -1,11 +1,11 @@
 sample:
-  name: zproj Solar MPPT Tracker
+  name: arbiter Solar MPPT Tracker
   description: >
-    Perturb-and-Observe MPPT algorithm as a zproj compute engine.
+    Perturb-and-Observe MPPT algorithm as a arbiter compute engine.
     Computes panel power, tracks power deltas, adjusts PWM duty cycle,
     handles night/overtemp/float-charge modes. Demonstrates compute-heavy
     reasoning with fixed-point arithmetic.
 common:
-  tags: zproj reasoning compute mppt solar energy power
+  tags: arbiter reasoning compute mppt solar energy power
   harness: console
   platform_allow: native_sim

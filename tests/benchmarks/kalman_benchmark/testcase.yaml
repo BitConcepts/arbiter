@@ -1,6 +1,6 @@
 tests:
-  benchmark.zproj.kalman:
-    tags: zproj benchmark
+  benchmark.arbiter.kalman:
+    tags: arbiter benchmark
     platform_allow: native_sim
     harness: console
     build_only: true

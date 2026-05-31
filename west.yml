@@ -9,9 +9,9 @@ manifest:
       remote: zephyrproject-rtos
       revision: v4.4.0
       import: true
-    - name: zproj
+    - name: arbiter
       remote: bitconcepts
       revision: main
-      path: modules/lib/zproj
+      path: modules/lib/arbiter
   self:
     path: app

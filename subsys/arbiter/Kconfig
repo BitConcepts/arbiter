@@ -1,0 +1,139 @@
+# SPDX-License-Identifier: MIT
+
+menuconfig arbiter
+	bool "arbiter deterministic reasoning engine"
+	help
+	  Enable the arbiter deterministic reasoning and safety-policy
+	  engine. arbiter evaluates compiled ARB models against frozen
+	  input snapshots to produce deterministic results and
+	  explanation traces.
+
+if arbiter
+
+config ARBITER_LOG_LEVEL
+	int "arbiter log level"
+	default 3
+	range 0 4
+	help
+	  Log level for arbiter module (0=off, 1=err, 2=wrn, 3=inf, 4=dbg).
+
+config ARBITER_MAX_FACTS
+	int "Maximum number of facts"
+	default 64
+	help
+	  Maximum number of facts supported by the runtime context.
+
+config ARBITER_MAX_ACTIONS_PER_EVAL
+	int "Maximum actions per evaluation"
+	default 16
+	help
+	  Maximum number of actions that can be requested per evaluation.
+
+config ARBITER_MAX_TRACE_ENTRIES
+	int "Maximum trace entries"
+	default 64
+	help
+	  Maximum number of trace entries per evaluation.
+
+config ARBITER_MAX_TRACE_INPUTS
+	int "Maximum input facts per trace entry"
+	default 8
+	help
+	  Maximum number of input fact IDs recorded per trace entry.
+
+config ARBITER_SHELL
+	bool "Enable arbiter shell commands"
+	depends on SHELL
+	default n
+	help
+	  Provides shell commands: arbiter info, facts, eval, result,
+	  trace, explain, model-hash.
+
+config ARBITER_BLOB_LOADER
+	bool "Enable binary blob model loading"
+	default n
+	help
+	  Enable loading models from .zrmb binary blob format.
+	  Note: strict safety profile prefers generated C tables.
+
+config ARBITER_ACTION_DISPATCHER
+	bool "Enable automatic action dispatching"
+	default n
+	help
+	  Enable the action dispatcher which calls registered callbacks
+	  after evaluation completes.
+
+config ARBITER_RUNTIME_THREAD
+	bool "Enable periodic evaluation thread"
+	default n
+	help
+	  Provide a dedicated thread that periodically takes snapshots,
+	  evaluates the model, and optionally dispatches actions.
+
+config ARBITER_THREAD_PRIORITY
+	int "Runtime thread priority"
+	default 5
+	depends on ARBITER_RUNTIME_THREAD
+
+config ARBITER_THREAD_STACK_SIZE
+	int "Runtime thread stack size"
+	default 2048
+	depends on ARBITER_RUNTIME_THREAD
+
+config ARBITER_PERIOD_MS
+	int "Evaluation period in milliseconds"
+	default 100
+	depends on ARBITER_RUNTIME_THREAD
+
+config ARBITER_THREAD_ESSENTIAL
+	bool "Mark runtime thread as essential"
+	default n
+	depends on ARBITER_RUNTIME_THREAD
+	help
+	  If enabled, a fatal error in the runtime thread will
+	  trigger a system fatal error.
+
+config ARBITER_THREAD_USERSPACE
+	bool "Run runtime thread in userspace"
+	depends on ARBITER_RUNTIME_THREAD && USERSPACE
+	default n
+
+config ARBITER_USERSPACE
+	bool "Enable userspace support"
+	depends on USERSPACE
+	default n
+	help
+	  Place arbiter data structures in a dedicated memory domain
+	  accessible only to the arbiter thread.
+
+config ARBITER_SAFETY_STRICT
+	bool "Enable strict safety profile"
+	default n
+	help
+	  Enforces strict safety constraints: no heap after init,
+	  no floating point, no dynamic loading, bounded everything.
+	  Shell is automatically disabled in this profile.
+
+config ARBITER_TRACE
+	bool "Enable evaluation tracing"
+	default y
+	help
+	  Record a bounded explanation trace for each evaluation.
+
+config ARBITER_ASSERTS
+	bool "Enable runtime assertions"
+	default y
+	help
+	  Enable __ASSERT checks in arbiter internals. Useful for
+	  development; strict production should not depend on these.
+
+config ARBITER_WATCHDOG
+	bool "Enable watchdog integration"
+	depends on WATCHDOG
+	default n
+	help
+	  Feed a watchdog channel after each successful evaluation.
+	  On evaluation failure or timeout, the watchdog is not fed,
+	  allowing it to trigger a reset.
+
+endif # arbiter

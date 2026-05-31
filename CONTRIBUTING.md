@@ -1,6 +1,6 @@
-# Contributing to zproj
+# Contributing to arbiter
 
-Thank you for your interest in contributing to zproj! This document provides
+Thank you for your interest in contributing to arbiter! This document provides
 guidelines and information for contributors.
 
 ## Code of Conduct
@@ -12,7 +12,7 @@ By participating, you are expected to uphold this code.
 
 ### Reporting Issues
 
-- Use the [GitHub issue tracker](https://github.com/BitConcepts/zproj/issues).
+- Use the [GitHub issue tracker](https://github.com/BitConcepts/arbiter/issues).
 - Check for existing issues before creating a new one.
 - Use the provided issue templates (bug report or feature request).
 - Include as much context as possible: Zephyr version, board, compiler, steps

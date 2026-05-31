@@ -1,0 +1,4 @@
+tests:
+  arbiter.eval:
+    tags: arbiter unit
+    platform_allow: native_sim

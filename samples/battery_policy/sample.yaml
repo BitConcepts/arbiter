@@ -1,7 +1,7 @@
 sample:
-  name: zproj Battery Policy
-  description: Demonstrates zproj battery management policy evaluation.
+  name: arbiter Battery Policy
+  description: Demonstrates arbiter battery management policy evaluation.
 common:
-  tags: zproj reasoning safety
+  tags: arbiter reasoning safety
   harness: console
   platform_allow: native_sim

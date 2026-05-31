@@ -1,28 +1,28 @@
-# zproj — Deterministic Reasoning & Safety-Policy Engine for Zephyr RTOS
+# arbiter — Deterministic Reasoning & Safety-Policy Engine for Zephyr RTOS
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zephyr Module](https://img.shields.io/badge/Zephyr-Module-brightgreen)](https://docs.zephyrproject.org/latest/develop/modules.html)
 
-**zproj** is a deterministic reasoning and safety-policy engine for
+**arbiter** is a deterministic reasoning and safety-policy engine for
 [Zephyr RTOS](https://www.zephyrproject.org/). It lets you express safety
 policies, mode-transition logic, and system-level reasoning rules in a
-declarative YAML model format called **ZRM** (Zephyr Reasoning Model), then
+declarative YAML model format called **ARB** (Zephyr Reasoning Model), then
 compile those models into bounded, deterministic C representations that run
 efficiently on resource-constrained microcontrollers.
 
-## What zproj Is
+## What arbiter Is
 
-- A **YAML model format** (`.zrm.yaml`) for expressing facts, rules, modes,
+- A **YAML model format** (`.arb.yaml`) for expressing facts, rules, modes,
   hazards, safety goals, and actions.
-- A **Python compiler** (`zprojc`) that validates models and emits generated C
+- A **Python compiler** (`arbiterc`) that validates models and emits generated C
   source/headers or compact binary blobs (`.zrmb`).
-- A **Zephyr runtime** (`libzproj`) that evaluates compiled models
+- A **Zephyr runtime** (`libarbiter`) that evaluates compiled models
   deterministically — same model + same input = same output.
 - A **Zephyr shell interface** for runtime inspection and debugging.
 - A **safety-evidence package** supporting functional-safety certification
   workflows (IEC 61508 / SIL readiness roadmap).
 
-## What zproj Is NOT
+## What arbiter Is NOT
 
 - A SAT/SMT solver or probabilistic inference engine.
 - A hardware timing fabric, FPGA constraint fabric, or ASIC logic.
@@ -46,10 +46,10 @@ manifest:
       remote: zephyrproject-rtos
       revision: main
       import: true
-    - name: zproj
+    - name: arbiter
       remote: bitconcepts
       revision: main
-      path: modules/lib/zproj
+      path: modules/lib/arbiter
   self:
     path: app
 ```
@@ -59,14 +59,14 @@ manifest:
 ```sh
 west init -m <your-manifest-repo>
 west update
-west build -b native_sim modules/lib/zproj/samples/battery_policy
+west build -b native_sim modules/lib/arbiter/samples/battery_policy
 west build -t run
 ```
 
-### Write a ZRM Model
+### Write a ARB Model
 
 ```yaml
-zrm_version: 0.1
+arb_version: 0.1
 model: motor_safety_policy
 
 target:
@@ -119,24 +119,24 @@ actions:
 
 ```sh
 # Validate
-zprojc validate model.zrm.yaml --strict
+arbiterc validate model.arb.yaml --strict
 
 # Compile to C tables (primary safety path)
-zprojc compile model.zrm.yaml --out-c zproj_model.c --out-h zproj_model.h
+arbiterc compile model.arb.yaml --out-c ARBITER_model.c --out-h ARBITER_model.h
 
 # Compile to binary blob (optional)
-zprojc compile model.zrm.yaml --out-blob model.zrmb
+arbiterc compile model.arb.yaml --out-blob model.zrmb
 
 # Generate documentation
-zprojc emit-docs model.zrm.yaml --out model.md
+arbiterc emit-docs model.arb.yaml --out model.md
 ```
 
 ### Enable in Your Application
 
 ```
 # prj.conf
-CONFIG_ZPROJ=y
-CONFIG_ZPROJ_TRACE=y
+CONFIG_ARBITER=y
+CONFIG_ARBITER_TRACE=y
 ```
 
 ## Design Principles
@@ -153,18 +153,18 @@ CONFIG_ZPROJ_TRACE=y
 
 ## Safety Disclaimer
 
-> zproj is designed to support deterministic, bounded, explainable reasoning in
+> arbiter is designed to support deterministic, bounded, explainable reasoning in
 > Zephyr-based systems and to produce evidence useful for functional-safety
-> certification workflows. zproj has an ASIL D / SIL 4 readiness roadmap.
+> certification workflows. arbiter has an ASIL D / SIL 4 readiness roadmap.
 >
-> **zproj is NOT certified to any functional-safety standard.** It does not
+> **arbiter is NOT certified to any functional-safety standard.** It does not
 > guarantee functional safety on its own. Certification is the responsibility of
 > the system integrator.
 
 ## Documentation
 
 - [Getting Started](doc/getting_started.rst)
-- [ZRM Reference](doc/zrm_reference.rst)
+- [ARB Reference](doc/zrm_reference.rst)
 - [C API Reference](doc/api.rst)
 - [Safety Manual](doc/safety_manual.rst)
 - [Determinism](doc/determinism.rst)

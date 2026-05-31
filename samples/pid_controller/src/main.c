@@ -3,12 +3,12 @@
 /**
  * PID Engine Sample
  *
- * zproj IS the PID controller. The application only provides:
+ * arbiter IS the PID controller. The application only provides:
  *   - setpoint and process_value each tick
  *   - sensor health status
  *   - an actuator callback
  *
- * zproj's compute engine handles all the math:
+ * arbiter's compute engine handles all the math:
  *   error, P/I/D terms, output summing, clamping, anti-windup.
  *
  * This is not a safety supervisor watching a PID — this IS the PID.
@@ -16,20 +16,20 @@
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zproj/zproj.h>
+#include <arbiter/arbiter.h>
 
 LOG_MODULE_REGISTER(pid_engine, LOG_LEVEL_INF);
 
-extern const struct zproj_model zproj_generated_model;
+extern const struct ARBITER_model ARBITER_generated_model;
 
-static struct zproj_ctx ctx;
+static struct ARBITER_ctx ctx;
 
 /* Simulated plant state */
 static int32_t plant_position = 0; /* millideg */
 static int32_t actuator_output = 0;
 
 /*
- * Fact indices — alphabetical by id (canonical order from zprojc).
+ * Fact indices — alphabetical by id (canonical order from arbiterc).
  * In production, use #defines from the generated header.
  */
 enum {
@@ -52,7 +52,7 @@ enum {
 };
 
 /**
- * Actuator callback — called by zproj's action dispatcher.
+ * Actuator callback — called by arbiter's action dispatcher.
  * Reads the computed output from the context and drives the plant.
  */
 void app_update_actuator(void)
@@ -64,31 +64,31 @@ void app_update_actuator(void)
 }
 
 /**
- * Run one PID tick: feed inputs, evaluate, let zproj compute everything.
+ * Run one PID tick: feed inputs, evaluate, let arbiter compute everything.
  */
 static void pid_tick(int32_t setpoint, uint32_t tick)
 {
 	/* Feed inputs */
-	zproj_set_i32(&ctx, F_SETPOINT, setpoint);
-	zproj_set_i32(&ctx, F_PROCESS_VALUE, plant_position);
-	zproj_set_timestamp(&ctx, F_PROCESS_VALUE, k_uptime_get_32());
-	zproj_set_bool(&ctx, F_SENSOR_VALID, true);
-	zproj_set_bool(&ctx, F_ENABLE, true);
-	zproj_set_u32(&ctx, F_DT_MS, 10);
+	ARBITER_set_i32(&ctx, F_SETPOINT, setpoint);
+	ARBITER_set_i32(&ctx, F_PROCESS_VALUE, plant_position);
+	ARBITER_set_timestamp(&ctx, F_PROCESS_VALUE, k_uptime_get_32());
+	ARBITER_set_bool(&ctx, F_SENSOR_VALID, true);
+	ARBITER_set_bool(&ctx, F_ENABLE, true);
+	ARBITER_set_u32(&ctx, F_DT_MS, 10);
 
-	/* Snapshot + evaluate — zproj computes error, P, I, D, output */
-	struct zproj_snapshot snap;
-	struct zproj_result result;
+	/* Snapshot + evaluate — arbiter computes error, P, I, D, output */
+	struct ARBITER_snapshot snap;
+	struct ARBITER_result result;
 
-	zproj_snapshot_begin(&ctx, &snap);
-	zproj_eval(&zproj_generated_model, &snap, &result, NULL);
+	ARBITER_snapshot_begin(&ctx, &snap);
+	ARBITER_eval(&ARBITER_generated_model, &snap, &result, NULL);
 
 	/* The actuator callback was requested — call it */
 	app_update_actuator();
 
 	uint16_t mode;
 
-	zproj_get_mode(&result, &mode);
+	ARBITER_get_mode(&result, &mode);
 
 	if (tick % 10 == 0) {
 		LOG_INF("t=%3u  sp=%6d  pv=%6d  err=%6d  "
@@ -105,20 +105,20 @@ static void pid_tick(int32_t setpoint, uint32_t tick)
 
 int main(void)
 {
-	LOG_INF("=== zproj PID Engine Demo ===");
-	LOG_INF("zproj computes the entire PID loop.");
+	LOG_INF("=== arbiter PID Engine Demo ===");
+	LOG_INF("arbiter computes the entire PID loop.");
 
-	int ret = zproj_init(&ctx, &zproj_generated_model);
+	int ret = ARBITER_init(&ctx, &ARBITER_generated_model);
 
-	if (ret != ZPROJ_OK) {
+	if (ret != ARBITER_OK) {
 		LOG_ERR("Init failed: %d", ret);
 		return ret;
 	}
 
 	/* Set gains (defaults already loaded, but show tunability) */
-	zproj_set_i32(&ctx, F_KP, 2500);  /* Kp = 2.5 */
-	zproj_set_i32(&ctx, F_KI, 100);   /* Ki = 0.1 */
-	zproj_set_i32(&ctx, F_KD, 800);   /* Kd = 0.8 */
+	ARBITER_set_i32(&ctx, F_KP, 2500);  /* Kp = 2.5 */
+	ARBITER_set_i32(&ctx, F_KI, 100);   /* Ki = 0.1 */
+	ARBITER_set_i32(&ctx, F_KD, 800);   /* Kd = 0.8 */
 
 	LOG_INF("Step response: setpoint = 10000 millideg (10 deg)");
 

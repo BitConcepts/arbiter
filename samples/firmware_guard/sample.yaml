@@ -1,10 +1,10 @@
 sample:
-  name: zproj Firmware Integrity Guard
+  name: arbiter Firmware Integrity Guard
   description: >
     Embedded AV/integrity engine. Boot-time hash/signature/rollback
     checks, runtime code region monitoring, stack canary checks,
     OTA update validation, and threat scoring. Uses strict safety profile.
 common:
-  tags: zproj reasoning security firmware integrity av boot
+  tags: arbiter reasoning security firmware integrity av boot
   harness: console
   platform_allow: native_sim

@@ -1,0 +1,11 @@
+/* SPDX-License-Identifier: MIT */
+
+#ifndef ARBITER_VERSION_H_
+#define ARBITER_VERSION_H_
+
+#define ARBITER_VERSION_MAJOR 0
+#define ARBITER_VERSION_MINOR 1
+#define ARBITER_VERSION_PATCH 0
+#define ARBITER_VERSION_STRING "0.1.0"
+
+#endif /* ARBITER_VERSION_H_ */

@@ -1,11 +1,11 @@
 sample:
-  name: zproj Power Budget Solver
+  name: arbiter Power Budget Solver
   description: >
     Allocates a limited power budget across 4 subsystems using
     priority-based reasoning.  Sheds low-priority loads when demand
     exceeds supply and triggers brownout protection when battery
     is critical — a common embedded energy management pattern.
 common:
-  tags: zproj solver power-management battery load-shedding
+  tags: arbiter solver power-management battery load-shedding
   harness: console
   platform_allow: native_sim

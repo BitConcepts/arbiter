@@ -30,14 +30,14 @@
 
 ## TEST-005
 - **Title**: Blob loading test
-- **File**: tests/unit/test_zproj_blob/src/main.c
+- **File**: tests/unit/test_ARBITER_blob/src/main.c
 - **Covers**: REQ-ARCH-006
 - **Status**: Implemented
 - **Harness**: ztest (native_sim)
 
 ## TEST-006
 - **Title**: Evaluation engine test
-- **File**: tests/unit/test_zproj_eval/src/main.c
+- **File**: tests/unit/test_ARBITER_eval/src/main.c
 - **Covers**: REQ-ARCH-001, REQ-ARCH-002, REQ-ARCH-003, REQ-ARCH-004, REQ-ARCH-007, REQ-SAFETY-001, REQ-SAFETY-003, REQ-SAFETY-004, REQ-SAFETY-006, REQ-SAFETY-007
 - **Status**: Implemented
 - **Harness**: ztest (native_sim)
@@ -79,29 +79,29 @@
 
 ## TEST-011
 - **Title**: Shell command inspection
-- **File**: tests/unit/test_zproj_eval/src/main.c
+- **File**: tests/unit/test_ARBITER_eval/src/main.c
 - **Covers**: REQ-ARCH-013, REQ-ARCH-016
 - **Status**: Implemented
 - **Note**: Shell tested indirectly via eval test; Kconfig validated by build
 
 ## TEST-012
 - **Title**: Runtime thread and watchdog
-- **File**: subsys/zproj/zproj_runtime.c
+- **File**: subsys/arbiter/ARBITER_runtime.c
 - **Covers**: REQ-ARCH-014, REQ-ARCH-015
 - **Status**: Implemented
-- **Note**: Verified via sample builds with CONFIG_ZPROJ=y
+- **Note**: Verified via sample builds with CONFIG_ARBITER=y
 
 ## API and Header Tests
 
 ## TEST-013
 - **Title**: Trace API validation
-- **File**: tests/unit/test_zproj_eval/src/main.c
+- **File**: tests/unit/test_ARBITER_eval/src/main.c
 - **Covers**: REQ-ARCH-005, REQ-ARCH-011, REQ-SAFETY-002
 - **Status**: Implemented
 
 ## TEST-014
 - **Title**: Version header and model integrity
-- **File**: include/zproj/zproj_version.h
+- **File**: include/arbiter/ARBITER_version.h
 - **Covers**: REQ-ARCH-012, REQ-SAFETY-005
 - **Status**: Implemented
 - **Note**: Version constants compile-time verified; hash in generated model
