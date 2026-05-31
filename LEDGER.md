@@ -1,5 +1,16 @@
 # Change Ledger
 
+## 2026-05-31T23:28 — Fix Zephyr Kconfig root symbol
+- **Author**: Oz
+- **Type**: fix
+- **REQs affected**: REQ-BUILD-001, REQ-ARCH-016
+- **Summary**: Changed the root module symbol in `subsys/arbiter/Kconfig`
+  from lowercase `menuconfig arbiter` / `if arbiter` to uppercase
+  `menuconfig ARBITER` / `if ARBITER`, matching all `CONFIG_ARBITER=y`
+  test/sample configurations and Zephyr Kconfig conventions. This fixes
+  Twister build failures where `CONFIG_ARBITER` was treated as undefined.
+- **Status**: complete
+
 ## 2026-05-31T22:36 — Benchmarks: build_only → execute in CI
 - **Author**: Oz
 - **Type**: ci

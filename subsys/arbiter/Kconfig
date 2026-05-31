@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 
-menuconfig arbiter
+menuconfig ARBITER
 	bool "arbiter deterministic reasoning engine"
 	help
 	  Enable the arbiter deterministic reasoning and safety-policy
@@ -8,7 +8,7 @@ menuconfig arbiter
 	  input snapshots to produce deterministic results and
 	  explanation traces.
 
-if arbiter
+if ARBITER
 
 config ARBITER_LOG_LEVEL
 	int "arbiter log level"
@@ -136,4 +136,4 @@ config ARBITER_WATCHDOG
 	  On evaluation failure or timeout, the watchdog is not fed,
 	  allowing it to trigger a reset.
 
-endif # arbiter
+endif # ARBITER
