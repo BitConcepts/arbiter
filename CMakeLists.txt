@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 
-if(CONFIG_ZPROJ)
+if(CONFIG_ARBITER)
   zephyr_library()
   zephyr_library_sources(
     lib/ARBITER_engine.c
@@ -19,5 +19,5 @@ if(CONFIG_ZPROJ)
 
   zephyr_include_directories(include)
 
-  add_subdirectory_ifdef(CONFIG_ZPROJ subsys/arbiter)
+  add_subdirectory_ifdef(CONFIG_ARBITER subsys/arbiter)
 endif()

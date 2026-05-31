@@ -1,5 +1,15 @@
 # Change Ledger
 
+## 2026-05-31T23:39 — Fix Zephyr module CMake guard
+- **Author**: Oz
+- **Type**: fix
+- **REQs affected**: REQ-BUILD-001, REQ-ARCH-016
+- **Summary**: Updated root `CMakeLists.txt` guards from legacy
+  `CONFIG_ZPROJ` to `CONFIG_ARBITER`. This ensures the module library,
+  `include/` path, runtime sources, and `subsys/arbiter` integration are
+  actually registered when tests and samples set `CONFIG_ARBITER=y`.
+- **Status**: complete
+
 ## 2026-05-31T23:28 — Fix Zephyr Kconfig root symbol
 - **Author**: Oz
 - **Type**: fix
