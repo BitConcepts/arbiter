@@ -61,6 +61,9 @@ jobs:
     env:
       # native_sim uses host GCC; skip cross-compiler toolchain lookup.
       ZEPHYR_TOOLCHAIN_VARIANT: host
+      # app/ is the arbiter module checkout; register it as an extra module
+      # so Zephyr CMake loads its Kconfig and cmake files.
+      ZEPHYR_EXTRA_MODULES: ${{ github.workspace }}/app
     steps:
       - uses: actions/checkout@v4
         with:
