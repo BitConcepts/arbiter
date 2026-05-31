@@ -1,5 +1,30 @@
 # Change Ledger
 
+## 2026-05-31T22:36 — Benchmarks: build_only → execute in CI
+- **Author**: Oz
+- **Type**: ci
+- **REQs affected**: REQ-BUILD-001
+- **Summary**: Removed `build_only: true` from pid_benchmark and kalman_benchmark
+  testcase.yaml. Added `harness_config.regex` anchors (final log line of each
+  benchmark) so Twister gates pass/fail on full execution. Timing numbers,
+  RAM overhead, and engine overhead % are now captured in the uploaded
+  twister-out/benchmarks/ artifact on every CI run.
+- **Status**: complete
+
+## 2026-05-31T22:29 — Enable full Zephyr Twister CI job
+- **Author**: Oz
+- **Type**: ci
+- **REQs affected**: REQ-BUILD-001
+- **Summary**: Replaced commented-out Zephyr stub with a fully working `zephyr` CI job.
+  Checkout to `app/` (matching `self.path` in west.yml), `west init -l app`,
+  `west update --narrow -o=--depth=1` (Zephyr core only, no HALs, shallow clone),
+  and three Twister steps: unit tests (executed on native_sim), benchmarks
+  (build_only), and all 17 samples (build_only). West workspace cached by
+  `west.yml` hash to keep runner times short. Twister results uploaded as
+  artifact on every run. No Zephyr SDK/cross-compiler needed — all tests
+  are `platform_allow: native_sim`.
+- **Status**: complete
+
 ## 2026-05-31 — specsmith import
 - Imported project: arbiter
 - Detected type: embedded-hardware

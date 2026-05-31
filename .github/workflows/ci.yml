@@ -55,20 +55,87 @@ jobs:
           done
           exit $missing
 
-  # Zephyr/Twister tests require a full Zephyr SDK setup.
-  # Uncomment when CI has west + Zephyr SDK available.
-  # zephyr:
-  #   name: Zephyr Twister Tests
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Install west
-  #       run: pip install west
-  #     - name: Init workspace
-  #       run: west init -l .
-  #     - name: Update
-  #       run: west update
-  #     - name: Twister tests
-  #       run: west twister -T tests
-  #     - name: Twister samples
-  #       run: west twister -T samples
+  zephyr:
+    name: Zephyr Twister Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # west.yml declares self.path: app — match it so west module
+          # resolution works correctly alongside modules/lib/arbiter/
+          path: app
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install west
+        run: pip install west
+
+      # Cache the Zephyr tree and west state keyed on west.yml.
+      # All three paths are saved/restored together so a partial
+      # hit cannot leave the workspace in an inconsistent state.
+      - name: Cache west workspace
+        id: cache-west
+        uses: actions/cache@v4
+        with:
+          path: |
+            zephyr
+            modules
+            .west
+          key: west-${{ hashFiles('app/west.yml') }}
+          restore-keys: west-
+
+      # Only run init+update on a cache miss; .west/config is
+      # restored from cache and is sufficient for subsequent steps.
+      - name: West init
+        if: steps.cache-west.outputs.cache-hit != 'true'
+        run: west init -l app
+
+      # --narrow: only fetch projects in our top-level manifest
+      # (zephyr + arbiter), skipping Zephyr's full HAL set.
+      # -o=--depth=1: shallow clone to keep the runner fast.
+      # native_sim needs only the Zephyr core tree, no HALs.
+      - name: West update
+        if: steps.cache-west.outputs.cache-hit != 'true'
+        run: west update --narrow -o=--depth=1
+
+      - name: Install Zephyr Python requirements
+        run: |
+          pip install -r zephyr/scripts/requirements-base.txt
+          pip install -r zephyr/scripts/requirements-build-test.txt
+
+      # Unit tests run as native executables on native_sim.
+      - name: Twister — unit tests
+        run: |
+          west twister \
+            -T app/tests/unit \
+            -p native_sim \
+            --inline-logs -v \
+            --output-dir twister-out/unit
+
+      # Benchmarks execute on native_sim; Twister captures timing output
+      # as an artifact. pass/fail is gated on the final log line regex.
+      - name: Twister — benchmarks
+        run: |
+          west twister \
+            -T app/tests/benchmarks \
+            -p native_sim \
+            --inline-logs -v \
+            --output-dir twister-out/benchmarks
+
+      # All 17 samples are build_only; CI proves they compile clean.
+      - name: Twister — samples
+        run: |
+          west twister \
+            -T app/samples \
+            -p native_sim \
+            --inline-logs -v \
+            --output-dir twister-out/samples
+
+      - name: Upload Twister results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: twister-results
+          path: twister-out/
