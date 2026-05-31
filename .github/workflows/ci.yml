@@ -101,9 +101,7 @@ jobs:
         run: west update --narrow -o=--depth=1
 
       - name: Install Zephyr Python requirements
-        run: |
-          pip install -r zephyr/scripts/requirements-base.txt
-          pip install -r zephyr/scripts/requirements-build-test.txt
+        run: pip install -r zephyr/scripts/requirements.txt
 
       # Unit tests run as native executables on native_sim.
       - name: Twister — unit tests
