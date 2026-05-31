@@ -106,9 +106,9 @@ jobs:
       # west treats the manifest project as already-present at app/ and will
       # NOT clone it to modules/lib/arbiter/ (its declared path).  Copy it
       # there so Zephyr CMake can discover the module's Kconfig + cmake files.
-      # This runs only on cache miss so the copy ends up in the restored cache.
+      # Runs unconditionally (idempotent) so a restored cache that predates
+      # this step still gets the directory populated correctly.
       - name: Place arbiter at canonical module path
-        if: steps.cache-west.outputs.cache-hit != 'true'
         run: |
           mkdir -p modules/lib
           if [ ! -d modules/lib/arbiter ]; then
