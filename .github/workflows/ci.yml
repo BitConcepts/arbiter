@@ -135,6 +135,19 @@ jobs:
           tar -xf /tmp/zephyr-sdk-minimal.tar.xz --strip-components=1 -C ~/zephyr-sdk
           ~/zephyr-sdk/setup.sh -c
 
+      - name: Debug — module discovery
+        run: |
+          echo "=== west list ==="
+          west list
+          echo "=== modules/ ==="
+          ls -la modules/ 2>/dev/null || echo "(no modules/ dir)"
+          echo "=== modules/lib/ ==="
+          ls -la modules/lib/ 2>/dev/null || echo "(no modules/lib/)"
+          echo "=== modules/lib/arbiter/ ==="
+          ls modules/lib/arbiter/ 2>/dev/null || echo "(no arbiter module)"
+          echo "=== zephyr/module.yml in arbiter? ==="
+          cat modules/lib/arbiter/zephyr/module.yml 2>/dev/null || echo "(not found)"
+
       # Unit tests run as native executables on native_sim.
       - name: Twister — unit tests
         run: |
