@@ -115,6 +115,11 @@ jobs:
             cp -rp app modules/lib/arbiter
           fi
 
+      # native_sim/native targets 32-bit by default; gcc-multilib provides
+      # the 32-bit glibc headers (bits/libc-header-start.h) on ubuntu-latest.
+      - name: Install native_sim build dependencies
+        run: sudo apt-get install -y --no-install-recommends gcc-multilib g++-multilib
+
       - name: Install Zephyr Python requirements
         run: pip install -r zephyr/scripts/requirements.txt
 
