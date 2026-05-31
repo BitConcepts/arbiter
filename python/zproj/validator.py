@@ -272,7 +272,7 @@ def _validate_strict_profile(data: dict[str, Any], diag: DiagnosticCollector) ->
             continue
         then = rule.get("then", {})
         if isinstance(then, dict) and then.get("criticality") == "safety_critical":
-            if not rule.get("class") in ("safety_guard", "obligation"):
+            if rule.get("class") not in ("safety_guard", "obligation"):
                 diag.warning(
                     "ZPROJ-W-SAFETY-GUARD-CLASS",
                     f"rules[{i}]",

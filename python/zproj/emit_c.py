@@ -187,7 +187,8 @@ def emit_c_source(model: CanonicalModel, header_name: str = "zproj_model.h",
             isinstance(then, dict) and then.get("criticality") == "safety_critical"
         )
         name = _c_str(r["id"]) if emit_trace_strings else "NULL"
-        explanation = _c_str(then.get("explanation") if isinstance(then, dict) else None) if emit_trace_strings else "NULL"
+        raw_expl = then.get("explanation") if isinstance(then, dict) else None
+        explanation = _c_str(raw_expl) if emit_trace_strings else "NULL"
 
         lines.append(
             f"\t{{ .id = {i}, .rule_class = {rclass}, "

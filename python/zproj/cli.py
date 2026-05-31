@@ -143,7 +143,7 @@ def inspect(blob: Path) -> None:
     model_hash = data[16:48].hex()
     schema_hash = data[48:80].hex()
 
-    click.echo(f"Magic:       ZRMB")
+    click.echo("Magic:       ZRMB")
     click.echo(f"Version:     {version}")
     click.echo(f"Flags:       0x{flags:04x}")
     click.echo(f"Header len:  {header_len}")
