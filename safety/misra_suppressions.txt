@@ -1,0 +1,8 @@
+# MISRA C:2012 Suppressions for Arbiter Engine
+#
+# Each suppression must have a documented deviation record.
+# Format: rule_number:file:line  # DEVIATION-NNN: rationale
+#
+# No suppressions at this time. All MISRA violations should be
+# fixed rather than suppressed until a full MISRA analysis is
+# completed and specific deviations are justified.

@@ -1,0 +1,5 @@
+tests:
+  arbiter.determinism.proof:
+    tags: arbiter safety determinism proof
+    platform_allow: native_sim
+    harness: ztest

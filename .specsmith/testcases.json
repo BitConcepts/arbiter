@@ -3,396 +3,432 @@
     "id": "TEST-001",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-001",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-002",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-002",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-003",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-003",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-004",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-004",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-005",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-005",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-006",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-006",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-007",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-007",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-008",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-008",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-009",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-009",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-010",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-010",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-011",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-011",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-012",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-012",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-013",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-013",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-014",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-014",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-015",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-015",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-016",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-016",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-017",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-017",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-018",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-018",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-019",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-019",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-020",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-020",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-021",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-021",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-022",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-022",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-023",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-023",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-024",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-024",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-025",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-025",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-026",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-026",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-027",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-027",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-028",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-ARCH-028",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-029",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-SAFETY-001",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-030",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-SAFETY-002",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-031",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-SAFETY-003",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-032",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-SAFETY-004",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-033",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-SAFETY-005",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-034",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-SAFETY-006",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-035",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-SAFETY-007",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   },
   {
     "id": "TEST-036",
     "title": "",
     "description": "",
-    "requirement_id": "",
+    "requirement_id": "REQ-BUILD-001",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0
+    "confidence": 1.0,
+    "last_result": "passed"
   }
 ]
