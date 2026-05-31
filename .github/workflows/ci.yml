@@ -110,7 +110,7 @@ jobs:
             -T app/tests/unit \
             -p native_sim \
             --inline-logs -v \
-            --output-dir twister-out/unit
+            -O twister-out/unit
 
       # Benchmarks execute on native_sim; Twister captures timing output
       # as an artifact. pass/fail is gated on the final log line regex.
@@ -120,7 +120,7 @@ jobs:
             -T app/tests/benchmarks \
             -p native_sim \
             --inline-logs -v \
-            --output-dir twister-out/benchmarks
+            -O twister-out/benchmarks
 
       # All 17 samples are build_only; CI proves they compile clean.
       - name: Twister — samples
@@ -129,7 +129,7 @@ jobs:
             -T app/samples \
             -p native_sim \
             --inline-logs -v \
-            --output-dir twister-out/samples
+            -O twister-out/samples
 
       - name: Upload Twister results
         if: always()
