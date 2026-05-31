@@ -110,9 +110,12 @@ jobs:
       # (host tools: DTC, cmake config files). The minimal bundle is ~10 MB
       # and contains no cross-compiler — only the cmake registration files.
       # setup.sh -c writes ~/.cmake/packages/Zephyr-sdk/ so CMake finds it.
+      # SDK 0.17.0 matches pinned Zephyr v4.4.0 (update this if west.yml
+      # revision ever changes). sdk-version file does not exist in v4.4.0.
       - name: Install Zephyr SDK (minimal, cmake files only)
+        env:
+          SDK_VER: "0.17.0"
         run: |
-          SDK_VER=$(cat zephyr/sdk-version | tr -d '[:space:]')
           wget -q \
             "https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${SDK_VER}/zephyr-sdk-${SDK_VER}_linux-x86_64_minimal.tar.xz" \
             -O /tmp/zephyr-sdk-minimal.tar.xz
