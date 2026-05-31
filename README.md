@@ -3,19 +3,19 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zephyr Module](https://img.shields.io/badge/Zephyr-Module-brightgreen)](https://docs.zephyrproject.org/latest/develop/modules.html)
 
-**arbiter** is a deterministic reasoning and safety-policy engine for
+**Arbiter** is a deterministic reasoning and safety-policy engine for
 [Zephyr RTOS](https://www.zephyrproject.org/). It lets you express safety
 policies, mode-transition logic, and system-level reasoning rules in a
-declarative YAML model format called **ARB** (Zephyr Reasoning Model), then
-compile those models into bounded, deterministic C representations that run
-efficiently on resource-constrained microcontrollers.
+declarative YAML model format called **ARB**, then compile those models into
+bounded, deterministic C representations that run efficiently on
+resource-constrained microcontrollers.
 
 ## What arbiter Is
 
 - A **YAML model format** (`.arb.yaml`) for expressing facts, rules, modes,
   hazards, safety goals, and actions.
 - A **Python compiler** (`arbiterc`) that validates models and emits generated C
-  source/headers or compact binary blobs (`.zrmb`).
+  source/headers or compact binary blobs (`.arbb`).
 - A **Zephyr runtime** (`libarbiter`) that evaluates compiled models
   deterministically — same model + same input = same output.
 - A **Zephyr shell interface** for runtime inspection and debugging.
@@ -63,7 +63,7 @@ west build -b native_sim modules/lib/arbiter/samples/battery_policy
 west build -t run
 ```
 
-### Write a ARB Model
+### Write an ARB Model
 
 ```yaml
 arb_version: 0.1
@@ -164,10 +164,13 @@ CONFIG_ARBITER_TRACE=y
 ## Documentation
 
 - [Getting Started](doc/getting_started.rst)
-- [ARB Reference](doc/zrm_reference.rst)
-- [C API Reference](doc/api.rst)
-- [Safety Manual](doc/safety_manual.rst)
-- [Determinism](doc/determinism.rst)
+- [ARB Model Reference](doc/arb_reference.md)
+- [C API Reference](doc/api.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Safety Manual](safety/safety_manual.md)
+- [Safety Requirements](safety/requirements.md)
+- [Determinism & Safety Design](doc/determinism.md)
+- [Benchmarks](tests/benchmarks/README.md)
 
 ## License
 
