@@ -39,8 +39,8 @@ def test_invalid_fact_type():
     assert len(errors) > 0
 
 
-def test_valid_safety_monitor_model():
-    model_path = SAMPLES_DIR / "safety_monitor" / "models" / "safety_monitor.zrm.yaml"
+def test_valid_pid_controller_model():
+    model_path = SAMPLES_DIR / "pid_controller" / "models" / "pid_engine.zrm.yaml"
     diag = DiagnosticCollector()
     data = parse_model(model_path, diag)
     assert data is not None
