@@ -58,6 +58,9 @@ jobs:
   zephyr:
     name: Zephyr Twister Tests
     runs-on: ubuntu-latest
+    env:
+      # native_sim uses host GCC; skip cross-compiler toolchain lookup.
+      ZEPHYR_TOOLCHAIN_VARIANT: host
     steps:
       - uses: actions/checkout@v4
         with:
@@ -102,6 +105,20 @@ jobs:
 
       - name: Install Zephyr Python requirements
         run: pip install -r zephyr/scripts/requirements.txt
+
+      # Zephyr CMake requires find_package(Zephyr-sdk) even for native_sim
+      # (host tools: DTC, cmake config files). The minimal bundle is ~10 MB
+      # and contains no cross-compiler — only the cmake registration files.
+      # setup.sh -c writes ~/.cmake/packages/Zephyr-sdk/ so CMake finds it.
+      - name: Install Zephyr SDK (minimal, cmake files only)
+        run: |
+          SDK_VER=$(cat zephyr/sdk-version | tr -d '[:space:]')
+          wget -q \
+            "https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${SDK_VER}/zephyr-sdk-${SDK_VER}_linux-x86_64_minimal.tar.xz" \
+            -O /tmp/zephyr-sdk-minimal.tar.xz
+          mkdir -p ~/zephyr-sdk
+          tar -xf /tmp/zephyr-sdk-minimal.tar.xz --strip-components=1 -C ~/zephyr-sdk
+          ~/zephyr-sdk/setup.sh -c
 
       # Unit tests run as native executables on native_sim.
       - name: Twister — unit tests
