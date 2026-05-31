@@ -1,0 +1,115 @@
+/* SPDX-License-Identifier: MIT */
+
+#include <zproj/zproj.h>
+#include <string.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_DECLARE(zproj, CONFIG_ZPROJ_LOG_LEVEL);
+
+static int validate_ctx_and_fact(const struct zproj_ctx *ctx, uint16_t fact_id)
+{
+	if (ctx == NULL || !ctx->initialized) {
+		return ZPROJ_EINVAL;
+	}
+	if (fact_id >= ctx->model->fact_count) {
+		return ZPROJ_ERANGE;
+	}
+	return ZPROJ_OK;
+}
+
+static int set_fact_value(struct zproj_ctx *ctx, uint16_t fact_id,
+			  enum zproj_fact_type expected_type, int32_t value)
+{
+	int ret = validate_ctx_and_fact(ctx, fact_id);
+
+	if (ret != ZPROJ_OK) {
+		return ret;
+	}
+
+	const struct zproj_fact_def *def = &ctx->model->facts[fact_id];
+
+	if (def->type != expected_type) {
+		LOG_WRN("Type mismatch for fact %u: expected %d, got %d",
+			fact_id, def->type, expected_type);
+		return ZPROJ_EINVAL;
+	}
+
+	/* Range check for int32 and uint32 */
+	if (expected_type == ZPROJ_FACT_INT32 ||
+	    expected_type == ZPROJ_FACT_UINT32) {
+		if (value < def->range_min || value > def->range_max) {
+			/* Only enforce range if range is specified (non-zero) */
+			if (def->range_min != 0 || def->range_max != 0) {
+				LOG_WRN("Value %d out of range [%d, %d] for fact %u",
+					value, def->range_min, def->range_max,
+					fact_id);
+				return ZPROJ_ERANGE;
+			}
+		}
+	}
+
+	struct zproj_fact_value *fv = &ctx->fact_values[fact_id];
+
+	fv->prev_value = fv->value;
+	fv->value = value;
+	fv->valid = true;
+	fv->changed = (fv->value != fv->prev_value);
+
+	return ZPROJ_OK;
+}
+
+int zproj_set_bool(struct zproj_ctx *ctx, uint16_t fact_id, bool value)
+{
+	return set_fact_value(ctx, fact_id, ZPROJ_FACT_BOOL,
+			     value ? 1 : 0);
+}
+
+int zproj_set_i32(struct zproj_ctx *ctx, uint16_t fact_id, int32_t value)
+{
+	return set_fact_value(ctx, fact_id, ZPROJ_FACT_INT32, value);
+}
+
+int zproj_set_u32(struct zproj_ctx *ctx, uint16_t fact_id, uint32_t value)
+{
+	if (value > INT32_MAX) {
+		return ZPROJ_EOVERFLOW;
+	}
+	return set_fact_value(ctx, fact_id, ZPROJ_FACT_UINT32,
+			     (int32_t)value);
+}
+
+int zproj_set_enum(struct zproj_ctx *ctx, uint16_t fact_id, uint16_t value)
+{
+	return set_fact_value(ctx, fact_id, ZPROJ_FACT_ENUM,
+			     (int32_t)value);
+}
+
+int zproj_set_timestamp(struct zproj_ctx *ctx, uint16_t fact_id,
+			uint32_t timestamp_ms)
+{
+	int ret = validate_ctx_and_fact(ctx, fact_id);
+
+	if (ret != ZPROJ_OK) {
+		return ret;
+	}
+
+	ctx->fact_values[fact_id].timestamp_ms = timestamp_ms;
+	return ZPROJ_OK;
+}
+
+int zproj_snapshot_begin(struct zproj_ctx *ctx,
+			 struct zproj_snapshot *snapshot)
+{
+	if (ctx == NULL || !ctx->initialized || snapshot == NULL) {
+		return ZPROJ_EINVAL;
+	}
+
+	/* Copy current fact values into the snapshot */
+	snapshot->values = ctx->fact_values;
+	snapshot->count = ctx->model->fact_count;
+	snapshot->timestamp_ms = k_uptime_get_32();
+	snapshot->frozen = true;
+
+	return ZPROJ_OK;
+}

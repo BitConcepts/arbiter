@@ -1,0 +1,11 @@
+/* SPDX-License-Identifier: MIT */
+
+#ifndef ZPROJ_VERSION_H_
+#define ZPROJ_VERSION_H_
+
+#define ZPROJ_VERSION_MAJOR 0
+#define ZPROJ_VERSION_MINOR 1
+#define ZPROJ_VERSION_PATCH 0
+#define ZPROJ_VERSION_STRING "0.1.0"
+
+#endif /* ZPROJ_VERSION_H_ */

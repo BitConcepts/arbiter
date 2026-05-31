@@ -1,0 +1,7 @@
+tests:
+  benchmark.zproj.kalman:
+    tags: zproj benchmark
+    platform_allow: native_sim
+    harness: console
+    build_only: true
+    extra_args: CONF_FILE=prj.conf

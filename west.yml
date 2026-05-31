@@ -1,0 +1,17 @@
+manifest:
+  remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
+    - name: bitconcepts
+      url-base: https://github.com/BitConcepts
+  projects:
+    - name: zephyr
+      remote: zephyrproject-rtos
+      revision: main
+      import: true
+    - name: zproj
+      remote: bitconcepts
+      revision: main
+      path: modules/lib/zproj
+  self:
+    path: app

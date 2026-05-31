@@ -1,0 +1,6 @@
+tests:
+  sample.zproj.task-scheduler:
+    tags: zproj sample solver
+    platform_allow: native_sim
+    harness: console
+    build_only: true

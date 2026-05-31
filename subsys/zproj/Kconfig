@@ -1,0 +1,139 @@
+# SPDX-License-Identifier: MIT
+
+menuconfig ZPROJ
+	bool "zproj deterministic reasoning engine"
+	help
+	  Enable the zproj deterministic reasoning and safety-policy
+	  engine. zproj evaluates compiled ZRM models against frozen
+	  input snapshots to produce deterministic results and
+	  explanation traces.
+
+if ZPROJ
+
+config ZPROJ_LOG_LEVEL
+	int "zproj log level"
+	default 3
+	range 0 4
+	help
+	  Log level for zproj module (0=off, 1=err, 2=wrn, 3=inf, 4=dbg).
+
+config ZPROJ_MAX_FACTS
+	int "Maximum number of facts"
+	default 64
+	help
+	  Maximum number of facts supported by the runtime context.
+
+config ZPROJ_MAX_ACTIONS_PER_EVAL
+	int "Maximum actions per evaluation"
+	default 16
+	help
+	  Maximum number of actions that can be requested per evaluation.
+
+config ZPROJ_MAX_TRACE_ENTRIES
+	int "Maximum trace entries"
+	default 64
+	help
+	  Maximum number of trace entries per evaluation.
+
+config ZPROJ_MAX_TRACE_INPUTS
+	int "Maximum input facts per trace entry"
+	default 8
+	help
+	  Maximum number of input fact IDs recorded per trace entry.
+
+config ZPROJ_SHELL
+	bool "Enable zproj shell commands"
+	depends on SHELL
+	default n
+	help
+	  Provides shell commands: zproj info, facts, eval, result,
+	  trace, explain, model-hash.
+
+config ZPROJ_BLOB_LOADER
+	bool "Enable binary blob model loading"
+	default n
+	help
+	  Enable loading models from .zrmb binary blob format.
+	  Note: strict safety profile prefers generated C tables.
+
+config ZPROJ_ACTION_DISPATCHER
+	bool "Enable automatic action dispatching"
+	default n
+	help
+	  Enable the action dispatcher which calls registered callbacks
+	  after evaluation completes.
+
+config ZPROJ_RUNTIME_THREAD
+	bool "Enable periodic evaluation thread"
+	default n
+	help
+	  Provide a dedicated thread that periodically takes snapshots,
+	  evaluates the model, and optionally dispatches actions.
+
+config ZPROJ_THREAD_PRIORITY
+	int "Runtime thread priority"
+	default 5
+	depends on ZPROJ_RUNTIME_THREAD
+
+config ZPROJ_THREAD_STACK_SIZE
+	int "Runtime thread stack size"
+	default 2048
+	depends on ZPROJ_RUNTIME_THREAD
+
+config ZPROJ_PERIOD_MS
+	int "Evaluation period in milliseconds"
+	default 100
+	depends on ZPROJ_RUNTIME_THREAD
+
+config ZPROJ_THREAD_ESSENTIAL
+	bool "Mark runtime thread as essential"
+	default n
+	depends on ZPROJ_RUNTIME_THREAD
+	help
+	  If enabled, a fatal error in the runtime thread will
+	  trigger a system fatal error.
+
+config ZPROJ_THREAD_USERSPACE
+	bool "Run runtime thread in userspace"
+	depends on ZPROJ_RUNTIME_THREAD && USERSPACE
+	default n
+
+config ZPROJ_USERSPACE
+	bool "Enable userspace support"
+	depends on USERSPACE
+	default n
+	help
+	  Place zproj data structures in a dedicated memory domain
+	  accessible only to the zproj thread.
+
+config ZPROJ_SAFETY_STRICT
+	bool "Enable strict safety profile"
+	default n
+	help
+	  Enforces strict safety constraints: no heap after init,
+	  no floating point, no dynamic loading, bounded everything.
+	  Shell is automatically disabled in this profile.
+
+config ZPROJ_TRACE
+	bool "Enable evaluation tracing"
+	default y
+	help
+	  Record a bounded explanation trace for each evaluation.
+
+config ZPROJ_ASSERTS
+	bool "Enable runtime assertions"
+	default y
+	help
+	  Enable __ASSERT checks in zproj internals. Useful for
+	  development; strict production should not depend on these.
+
+config ZPROJ_WATCHDOG
+	bool "Enable watchdog integration"
+	depends on WATCHDOG
+	default n
+	help
+	  Feed a watchdog channel after each successful evaluation.
+	  On evaluation failure or timeout, the watchdog is not fed,
+	  allowing it to trigger a reset.
+
+endif # ZPROJ

@@ -1,0 +1,271 @@
+zrm_version: 0.1
+model: firmware_integrity_guard
+
+imports:
+  - zrm://safety_common
+
+target:
+  rtos: zephyr
+  profile: static_c
+  safety_profile: zrm_safety_strict_v0
+
+system:
+  item: firmware_integrity_monitor
+  safety_context: secure_boot
+
+facts:
+  - id: boot.secure_boot_ok
+    type: bool
+    source: bootloader
+    safety_relevant: true
+
+  - id: boot.image_hash_valid
+    type: bool
+    source: hash_engine
+    safety_relevant: true
+
+  - id: boot.signature_valid
+    type: bool
+    source: crypto_engine
+    safety_relevant: true
+
+  - id: boot.rollback_protected
+    type: bool
+    source: anti_rollback
+    safety_relevant: true
+
+  - id: runtime.code_region_intact
+    type: bool
+    source: mpu_monitor
+    safety_relevant: true
+    stale_after_ms: 10000
+    description: "Periodic code region hash check"
+
+  - id: runtime.stack_canary_ok
+    type: bool
+    source: stack_monitor
+    safety_relevant: true
+
+  - id: runtime.heap_integrity
+    type: bool
+    source: heap_monitor
+
+  - id: runtime.watchdog_fed
+    type: bool
+    source: watchdog
+
+  - id: runtime.uptime_s
+    type: uint32
+    range: [0, 2000000000]
+    source: timer
+
+  - id: update.pending
+    type: bool
+    source: ota_manager
+
+  - id: update.source_trusted
+    type: bool
+    source: certificate_check
+
+  - id: update.hash_verified
+    type: bool
+    source: hash_engine
+
+  - id: fw.threat_score
+    type: uint32
+    range: [0, 100]
+    source: computed
+
+modes:
+  - id: mode.boot_check
+  - id: mode.running_trusted
+  - id: mode.running_degraded
+  - id: mode.integrity_violation
+  - id: mode.quarantine
+  - id: mode.update_pending
+
+rules:
+  # ====== BOOT-TIME CHECKS ======
+  - id: "01_boot.hash_fail"
+    class: safety_guard
+    when:
+      all:
+        - fact: boot.image_hash_valid
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.integrity_violation
+      action: halt_boot
+      explanation: "Firmware image hash mismatch — tampered binary."
+      criticality: safety_critical
+
+  - id: "02_boot.signature_fail"
+    class: safety_guard
+    when:
+      all:
+        - fact: boot.signature_valid
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.integrity_violation
+      action: halt_boot
+      explanation: "Code signature invalid — unsigned or forged firmware."
+      criticality: safety_critical
+
+  - id: "03_boot.rollback"
+    class: safety_guard
+    when:
+      all:
+        - fact: boot.rollback_protected
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.integrity_violation
+      action: halt_boot
+      explanation: "Anti-rollback check failed — downgrade attempt."
+      criticality: safety_critical
+
+  # ====== RUNTIME INTEGRITY ======
+  - id: "10_runtime.code_tampered"
+    class: safety_guard
+    when:
+      all:
+        - fact: runtime.code_region_intact
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.quarantine
+      action: isolate_and_reboot
+      explanation: "Code region hash mismatch at runtime — quarantine."
+      criticality: safety_critical
+
+  - id: "11_runtime.stack_smash"
+    class: safety_guard
+    when:
+      all:
+        - fact: runtime.stack_canary_ok
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.quarantine
+      action: isolate_and_reboot
+      explanation: "Stack canary violation — possible exploit."
+      criticality: safety_critical
+
+  - id: "12_runtime.heap_corrupt"
+    class: mode_guard
+    when:
+      all:
+        - fact: runtime.heap_integrity
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.running_degraded
+      action: log_threat
+      explanation: "Heap integrity check failed — degraded mode."
+
+  # ====== THREAT SCORING ======
+  - id: "20_threat.score"
+    class: inference
+    when:
+      all:
+        - fact: boot.secure_boot_ok
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: fw.threat_score
+          op: assign
+          left_literal: 0
+        # +30 if code region stale (not recently checked)
+        # +20 if heap corrupted
+        # +50 if stack canary failed
+        # Simplified: just sum boolean indicators
+
+  - id: "21_threat.elevated"
+    class: mode_guard
+    when:
+      all:
+        - fact: fw.threat_score
+          op: ">"
+          value: 50
+    then:
+      set_mode: mode.quarantine
+      action: isolate_and_reboot
+      explanation: "Threat score > 50 — quarantine."
+
+  # ====== OTA UPDATE POLICY ======
+  - id: "30_update.check"
+    class: inference
+    when:
+      all:
+        - fact: update.pending
+          op: "=="
+          value: true
+        - fact: update.source_trusted
+          op: "=="
+          value: true
+        - fact: update.hash_verified
+          op: "=="
+          value: true
+    then:
+      set_mode: mode.update_pending
+      action: approve_update
+      explanation: "OTA update: trusted source, hash verified — approve."
+
+  - id: "31_update.reject"
+    class: safety_guard
+    when:
+      all:
+        - fact: update.pending
+          op: "=="
+          value: true
+        - fact: update.source_trusted
+          op: "=="
+          value: false
+    then:
+      action: reject_update
+      explanation: "OTA from untrusted source — reject."
+      criticality: safety_critical
+
+  # ====== NORMAL ======
+  - id: "40_normal"
+    class: inference
+    when:
+      all:
+        - fact: boot.secure_boot_ok
+          op: "=="
+          value: true
+        - fact: runtime.code_region_intact
+          op: "=="
+          value: true
+        - fact: runtime.stack_canary_ok
+          op: "=="
+          value: true
+    then:
+      set_mode: mode.running_trusted
+
+actions:
+  - id: halt_boot
+    type: callback
+    symbol: app_halt_boot
+    must_complete_within_ms: 1
+    safe_state_action: true
+
+  - id: isolate_and_reboot
+    type: callback
+    symbol: app_isolate_and_reboot
+    must_complete_within_ms: 100
+    safe_state_action: true
+
+  - id: log_threat
+    type: callback
+    symbol: app_log_threat_event
+
+  - id: approve_update
+    type: callback
+    symbol: app_approve_ota_update
+
+  - id: reject_update
+    type: callback
+    symbol: app_reject_ota_update

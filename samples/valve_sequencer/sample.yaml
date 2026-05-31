@@ -1,0 +1,11 @@
+sample:
+  name: zproj Valve Sequencer
+  description: >
+    Multi-step batch process sequencer. zproj reasons through
+    fill -> reagent -> react -> drain -> vent, managing step state
+    as a derived fact and enforcing safety interlocks (overpressure,
+    overtemp, operator abort) at every step.
+common:
+  tags: zproj reasoning sequencer valve process-control batch
+  harness: console
+  platform_allow: native_sim

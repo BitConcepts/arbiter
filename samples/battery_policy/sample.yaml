@@ -1,0 +1,7 @@
+sample:
+  name: zproj Battery Policy
+  description: Demonstrates zproj battery management policy evaluation.
+common:
+  tags: zproj reasoning safety
+  harness: console
+  platform_allow: native_sim

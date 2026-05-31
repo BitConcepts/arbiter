@@ -1,0 +1,6 @@
+tests:
+  sample.zproj.cobot-safety:
+    tags: zproj sample
+    platform_allow: native_sim
+    harness: console
+    build_only: true

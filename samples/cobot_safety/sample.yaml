@@ -1,0 +1,11 @@
+sample:
+  name: zproj Cobot Safety Controller
+  description: >
+    Collaborative robot safety per ISO 10218 / TS 15066. Zone-based and
+    proximity-based dynamic speed/force limiting, protective stop on
+    close approach, overspeed/overtorque detection. Imports estop and
+    safety_common includes.
+common:
+  tags: zproj reasoning safety cobot robotics iso-10218
+  harness: console
+  platform_allow: native_sim

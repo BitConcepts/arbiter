@@ -1,0 +1,89 @@
+# SPDX-License-Identifier: MIT
+# zrm://safety_common — Common functional safety patterns
+#
+# Provides: safe state management, watchdog alive signal,
+# diagnostic coverage tracking, and proof-test reminder.
+
+zrm_version: 0.1
+model: _include_safety_common
+
+facts:
+  - id: safety.state
+    type: enum
+    source: computed
+    description: "0=normal, 1=degraded, 2=safe_state, 3=fault_detected"
+
+  - id: safety.diagnostic_pass
+    type: bool
+    source: self_test
+    safety_relevant: true
+    description: "Online diagnostic result"
+
+  - id: safety.demand_count
+    type: uint32
+    range: [0, 2000000000]
+    source: counter
+    description: "Number of safety demands since last proof test"
+
+  - id: safety.alive_counter
+    type: uint32
+    range: [0, 2000000000]
+    source: computed
+    description: "Incrementing alive/heartbeat counter"
+
+  - id: safety.proof_test_due
+    type: bool
+    source: computed
+    description: "True when proof test interval has elapsed"
+
+rules:
+  - id: inc.safety_diagnostic_fail
+    class: safety_guard
+    when:
+      all:
+        - fact: safety.diagnostic_pass
+          op: "=="
+          value: false
+    then:
+      compute:
+        - target: safety.state
+          op: assign
+          left_literal: 3
+      action: inc_enter_safe_state
+      explanation: "Online diagnostic failed — enter safe state."
+      criticality: safety_critical
+
+  - id: inc.safety_alive_tick
+    class: inference
+    when:
+      all:
+        - fact: safety.diagnostic_pass
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: safety.alive_counter
+          op: add
+          left: safety.alive_counter
+          right_literal: 1
+
+  - id: inc.safety_proof_test_check
+    class: advisory
+    when:
+      all:
+        - fact: safety.demand_count
+          op: ">"
+          value: 10000
+    then:
+      compute:
+        - target: safety.proof_test_due
+          op: assign
+          left_literal: 1
+      explanation: "Proof test interval exceeded — schedule maintenance."
+
+actions:
+  - id: inc_enter_safe_state
+    type: callback
+    symbol: app_enter_safe_state
+    must_complete_within_ms: 20
+    safe_state_action: true

@@ -1,0 +1,43 @@
+# Build artifacts
+build/
+twister-out/
+generated/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+*.egg
+dist/
+.eggs/
+.venv/
+venv/
+
+# C object files
+*.o
+*.a
+*.so
+*.elf
+*.bin
+*.hex
+*.map
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# West
+.west/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+htmlcov/
+.coverage
+coverage.xml

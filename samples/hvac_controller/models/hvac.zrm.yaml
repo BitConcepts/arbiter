@@ -1,0 +1,256 @@
+zrm_version: 0.1
+model: hvac_zone_controller
+
+target:
+  rtos: zephyr
+  profile: static_c
+
+system:
+  item: multi_zone_hvac
+  safety_context: building_climate
+
+facts:
+  - id: zone.temp_c
+    type: int32
+    unit: celsius_x10
+    range: [-200, 600]
+    source: thermocouple
+    stale_after_ms: 30000
+
+  - id: zone.setpoint_c
+    type: int32
+    unit: celsius_x10
+    range: [150, 300]
+    source: thermostat
+    default: 220
+
+  - id: zone.humidity_pct
+    type: uint32
+    range: [0, 100]
+    source: humidity_sensor
+    stale_after_ms: 60000
+
+  - id: zone.occupancy
+    type: bool
+    source: pir_sensor
+
+  - id: zone.window_open
+    type: bool
+    source: reed_switch
+
+  - id: outdoor.temp_c
+    type: int32
+    unit: celsius_x10
+    range: [-400, 500]
+    source: weather_station
+
+  - id: schedule.occupied_hours
+    type: bool
+    source: calendar
+    description: "True during scheduled occupancy hours"
+
+  - id: energy.rate_peak
+    type: bool
+    source: utility_signal
+    description: "True during peak electricity pricing"
+
+  # --- Computed ---
+  - id: calc.error
+    type: int32
+    source: computed
+
+  - id: calc.demand_pct
+    type: int32
+    range: [-100, 100]
+    source: computed
+    description: "Heating(+) or cooling(-) demand percentage"
+
+  - id: calc.setback_active
+    type: bool
+    source: computed
+
+modes:
+  - id: mode.idle
+  - id: mode.heating
+  - id: mode.cooling
+  - id: mode.dehumidify
+  - id: mode.setback
+  - id: mode.window_override
+  - id: mode.peak_shed
+
+rules:
+  # ====== WINDOW OVERRIDE ======
+  - id: "01_window.open"
+    class: constraint
+    when:
+      all:
+        - fact: zone.window_open
+          op: "=="
+          value: true
+    then:
+      set_mode: mode.window_override
+      compute:
+        - target: calc.demand_pct
+          op: assign
+          left_literal: 0
+      action: hvac_off
+      explanation: "Window open — HVAC off to save energy."
+
+  # ====== SETBACK (unoccupied + off-schedule) ======
+  - id: "05_setback"
+    class: inference
+    when:
+      all:
+        - fact: zone.occupancy
+          op: "=="
+          value: false
+        - fact: schedule.occupied_hours
+          op: "=="
+          value: false
+        - fact: zone.window_open
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.setback
+      compute:
+        - target: calc.setback_active
+          op: assign
+          left_literal: 1
+        # Widen deadband: reduce setpoint by 3°C for heating
+        - target: zone.setpoint_c
+          op: sub
+          left: zone.setpoint_c
+          right_literal: 30
+      explanation: "Unoccupied & off-schedule — setback mode."
+
+  # ====== COMPUTE ERROR & DEMAND ======
+  - id: "10_compute.error"
+    class: inference
+    when:
+      all:
+        - fact: zone.window_open
+          op: "=="
+          value: false
+    then:
+      compute:
+        - target: calc.error
+          op: sub
+          left: zone.setpoint_c
+          right: zone.temp_c
+        # demand = (error * 100) / 50  (proportional band = 5°C)
+        - target: calc.demand_pct
+          op: scale
+          left: calc.error
+          right_literal: 100
+          scale: 50
+        - target: calc.demand_pct
+          op: clamp
+          left: calc.demand_pct
+          right_literal: -100
+          scale: 100
+
+  # ====== PEAK SHEDDING ======
+  - id: "15_peak.shed"
+    class: constraint
+    when:
+      all:
+        - fact: energy.rate_peak
+          op: "=="
+          value: true
+        - fact: calc.demand_pct
+          op: ">"
+          value: 50
+    then:
+      set_mode: mode.peak_shed
+      compute:
+        - target: calc.demand_pct
+          op: clamp
+          left: calc.demand_pct
+          right_literal: -50
+          scale: 50
+      explanation: "Peak pricing — limiting demand to 50%."
+
+  # ====== MODE SELECTION ======
+  - id: "20_mode.heating"
+    class: mode_guard
+    when:
+      all:
+        - fact: calc.demand_pct
+          op: ">"
+          value: 5
+        - fact: zone.window_open
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.heating
+      action: run_heater
+      explanation: "Heating demand > 5%."
+
+  - id: "21_mode.cooling"
+    class: mode_guard
+    when:
+      all:
+        - fact: calc.demand_pct
+          op: "<"
+          value: -5
+        - fact: zone.window_open
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.cooling
+      action: run_compressor
+      explanation: "Cooling demand > 5%."
+
+  - id: "22_mode.dehumidify"
+    class: mode_guard
+    when:
+      all:
+        - fact: zone.humidity_pct
+          op: ">"
+          value: 65
+        - fact: calc.demand_pct
+          op: ">="
+          value: -5
+        - fact: calc.demand_pct
+          op: "<="
+          value: 5
+    then:
+      set_mode: mode.dehumidify
+      action: run_dehumidifier
+      explanation: "Humidity > 65% and no temp demand — dehumidify."
+
+  - id: "23_mode.idle"
+    class: inference
+    when:
+      all:
+        - fact: calc.demand_pct
+          op: ">="
+          value: -5
+        - fact: calc.demand_pct
+          op: "<="
+          value: 5
+        - fact: zone.humidity_pct
+          op: "<="
+          value: 65
+        - fact: zone.window_open
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.idle
+
+actions:
+  - id: hvac_off
+    type: callback
+    symbol: app_hvac_all_off
+
+  - id: run_heater
+    type: callback
+    symbol: app_run_heater
+
+  - id: run_compressor
+    type: callback
+    symbol: app_run_compressor
+
+  - id: run_dehumidifier
+    type: callback
+    symbol: app_run_dehumidifier

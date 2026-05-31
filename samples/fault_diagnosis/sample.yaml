@@ -1,0 +1,11 @@
+sample:
+  name: zproj Fault Diagnosis Solver
+  description: >
+    Root-cause fault diagnosis using weighted evidence accumulation.
+    Maps observed symptom flags to candidate causes with confidence
+    scoring.  Demonstrates a motor-drive diagnostic solver with
+    6 symptom inputs and 4 candidate diagnoses.
+common:
+  tags: zproj solver diagnostics fault-tree motor-drive
+  harness: console
+  platform_allow: native_sim

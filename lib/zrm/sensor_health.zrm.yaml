@@ -1,0 +1,100 @@
+# SPDX-License-Identifier: MIT
+# zrm://sensor_health — Reusable sensor health monitoring pattern
+#
+# Import this into any model that needs generic sensor validity checking.
+# Your model should define facts matching the sensor.*.valid and
+# sensor.*.value naming convention, or override these templates.
+
+zrm_version: 0.1
+model: _include_sensor_health
+
+facts:
+  - id: sensor.primary_valid
+    type: bool
+    source: diagnostics
+    safety_relevant: true
+    description: "Primary sensor health flag"
+
+  - id: sensor.primary_value
+    type: int32
+    source: sensor
+    stale_after_ms: 100
+    safety_relevant: true
+
+  - id: sensor.backup_valid
+    type: bool
+    source: diagnostics
+    description: "Backup/redundant sensor health flag"
+
+  - id: sensor.backup_value
+    type: int32
+    source: sensor
+    stale_after_ms: 100
+
+  - id: sensor.disagreement
+    type: bool
+    source: computed
+    description: "True when primary and backup disagree beyond tolerance"
+
+rules:
+  - id: inc.sensor_primary_stale
+    class: safety_guard
+    when:
+      all:
+        - fact: sensor.primary_value
+          op: stale
+          value: 100
+    then:
+      action: inc_sensor_fault
+      explanation: "Primary sensor data stale."
+      criticality: safety_critical
+
+  - id: inc.sensor_primary_invalid
+    class: safety_guard
+    when:
+      all:
+        - fact: sensor.primary_valid
+          op: "=="
+          value: false
+    then:
+      action: inc_sensor_fault
+      explanation: "Primary sensor reports invalid."
+      criticality: safety_critical
+
+  - id: inc.sensor_check_disagreement
+    class: inference
+    when:
+      all:
+        - fact: sensor.primary_valid
+          op: "=="
+          value: true
+        - fact: sensor.backup_valid
+          op: "=="
+          value: true
+    then:
+      compute:
+        # disagreement = |primary - backup| > tolerance (handled by condition)
+        - target: sensor.disagreement
+          op: assign
+          left_literal: 0
+
+  - id: inc.sensor_cross_check
+    class: constraint
+    when:
+      all:
+        - fact: sensor.disagreement
+          op: "=="
+          value: true
+    then:
+      action: inc_sensor_disagree
+      explanation: "Primary and backup sensors disagree beyond tolerance."
+
+actions:
+  - id: inc_sensor_fault
+    type: callback
+    symbol: app_sensor_fault_handler
+    safe_state_action: true
+
+  - id: inc_sensor_disagree
+    type: callback
+    symbol: app_sensor_disagree_handler

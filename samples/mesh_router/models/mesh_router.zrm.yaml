@@ -1,0 +1,307 @@
+zrm_version: 0.1
+model: mesh_router_policy
+
+target:
+  rtos: zephyr
+  profile: static_c
+
+system:
+  item: thread_mesh_router
+  safety_context: network_infrastructure
+
+facts:
+  # --- Link metrics (fed from Thread/802.15.4 stack) ---
+  - id: link.parent_lqi
+    type: uint32
+    unit: lqi_x100
+    range: [0, 25500]
+    source: mac_layer
+    stale_after_ms: 5000
+    description: "Parent link quality indicator x100"
+
+  - id: link.parent_rssi
+    type: int32
+    unit: dbm
+    range: [-128, 0]
+    source: mac_layer
+    stale_after_ms: 5000
+
+  - id: link.neighbor_count
+    type: uint32
+    range: [0, 32]
+    source: mle
+    stale_after_ms: 10000
+
+  - id: link.route_cost
+    type: uint32
+    range: [0, 255]
+    source: routing_table
+    description: "Cost to border router via current parent"
+
+  - id: link.alt_route_cost
+    type: uint32
+    range: [0, 255]
+    source: routing_table
+    description: "Cost via best alternative parent"
+
+  # --- Queue / congestion ---
+  - id: queue.depth
+    type: uint32
+    range: [0, 256]
+    source: tx_queue
+
+  - id: queue.drop_count
+    type: uint32
+    range: [0, 2000000000]
+    source: tx_queue
+
+  # --- Node role ---
+  - id: node.is_router
+    type: bool
+    source: thread_stack
+
+  - id: node.is_leader
+    type: bool
+    source: thread_stack
+
+  - id: node.child_count
+    type: uint32
+    range: [0, 511]
+    source: thread_stack
+
+  - id: node.battery_pct
+    type: uint32
+    unit: percent
+    range: [0, 100]
+    source: fuel_gauge
+
+  # --- Computed by zproj ---
+  - id: calc.link_margin
+    type: int32
+    source: computed
+    description: "RSSI headroom above -100 dBm threshold"
+
+  - id: calc.parent_score
+    type: int32
+    source: computed
+    description: "Composite parent quality score"
+
+  - id: calc.congestion_level
+    type: uint32
+    range: [0, 100]
+    source: computed
+
+  - id: calc.should_switch
+    type: bool
+    source: computed
+    description: "True if alt parent is significantly better"
+
+modes:
+  - id: mode.nominal
+  - id: mode.degraded_link
+  - id: mode.congested
+  - id: mode.parent_search
+  - id: mode.low_power
+  - id: mode.isolated
+
+rules:
+  # ====== PHASE 1: COMPUTE DERIVED METRICS ======
+
+  - id: "01_compute.link_margin"
+    class: inference
+    when:
+      all:
+        - fact: link.parent_rssi
+          op: "!="
+          value: 0
+    then:
+      compute:
+        # link_margin = rssi - (-100)  i.e. headroom above -100 dBm
+        - target: calc.link_margin
+          op: add
+          left: link.parent_rssi
+          right_literal: 100
+
+        # parent_score = (lqi/100) + link_margin*2 - route_cost*3
+        # Step 1: score = lqi / 100
+        - target: calc.parent_score
+          op: div
+          left: link.parent_lqi
+          right_literal: 100
+        # Step 2: score += link_margin * 2
+        - target: calc.parent_score
+          op: accumulate
+          left: calc.link_margin
+          right_literal: 2
+          scale: 1
+        # Step 3: score -= route_cost * 3
+        - target: calc.parent_score
+          op: accumulate
+          left: link.route_cost
+          right_literal: -3
+          scale: 1
+
+        # congestion_level = (queue.depth * 100) / 256
+        - target: calc.congestion_level
+          op: scale
+          left: queue.depth
+          right_literal: 100
+          scale: 256
+
+        # should_switch = (alt_cost + 2 < route_cost)?
+        # We compute: diff = route_cost - alt_route_cost
+        # The condition check in the next rule handles the threshold
+        - target: calc.should_switch
+          op: assign
+          left_literal: 0
+      explanation: "Compute link margin, parent score, congestion."
+
+  # ====== PHASE 2: LINK QUALITY REASONING ======
+
+  - id: "10_link.isolated"
+    class: safety_guard
+    when:
+      all:
+        - fact: link.neighbor_count
+          op: "=="
+          value: 0
+    then:
+      set_mode: mode.isolated
+      action: start_discovery
+      explanation: "No neighbors — start network discovery."
+      criticality: safety_critical
+
+  - id: "11_link.degraded"
+    class: mode_guard
+    when:
+      all:
+        - fact: calc.link_margin
+          op: "<"
+          value: 10
+        - fact: link.neighbor_count
+          op: ">"
+          value: 0
+    then:
+      set_mode: mode.degraded_link
+      action: increase_tx_power
+      explanation: "Link margin < 10 dB — boost TX power."
+
+  # ====== PHASE 3: PARENT SELECTION REASONING ======
+
+  - id: "20_route.switch_parent"
+    class: inference
+    when:
+      all:
+        - fact: link.alt_route_cost
+          op: "<"
+          value: 200
+        - fact: link.route_cost
+          op: ">"
+          value: 5
+    then:
+      compute:
+        # Compute cost delta: if alt is 3+ cheaper, flag switch
+        # should_switch = (route_cost - alt_route_cost) > 2  ? 1 : 0
+        # We approximate: set to 1 if route_cost > alt+2
+        - target: calc.should_switch
+          op: assign
+          left_literal: 1
+      explanation: "Alternative parent has significantly better route."
+
+  - id: "21_route.do_switch"
+    class: obligation
+    when:
+      all:
+        - fact: calc.should_switch
+          op: "=="
+          value: 1
+    then:
+      set_mode: mode.parent_search
+      action: switch_parent
+      explanation: "Initiating parent switch to lower-cost route."
+
+  # ====== PHASE 4: CONGESTION MANAGEMENT ======
+
+  - id: "30_congestion.high"
+    class: mode_guard
+    when:
+      all:
+        - fact: calc.congestion_level
+          op: ">"
+          value: 75
+    then:
+      set_mode: mode.congested
+      action: reduce_tx_rate
+      explanation: "Queue > 75% — throttle TX rate."
+
+  - id: "31_congestion.critical"
+    class: safety_guard
+    when:
+      all:
+        - fact: calc.congestion_level
+          op: ">"
+          value: 95
+    then:
+      action: drop_low_priority
+      explanation: "Queue > 95% — dropping low-priority frames."
+
+  # ====== PHASE 5: POWER MANAGEMENT ======
+
+  - id: "40_power.low"
+    class: mode_guard
+    when:
+      all:
+        - fact: node.battery_pct
+          op: "<"
+          value: 15
+        - fact: node.is_router
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.low_power
+      action: request_sleepy
+      explanation: "Battery < 15% — request sleepy end-device mode."
+
+  # ====== PHASE 6: NOMINAL ======
+
+  - id: "50_nominal"
+    class: inference
+    when:
+      all:
+        - fact: calc.link_margin
+          op: ">="
+          value: 10
+        - fact: calc.congestion_level
+          op: "<="
+          value: 75
+        - fact: link.neighbor_count
+          op: ">"
+          value: 0
+    then:
+      set_mode: mode.nominal
+      explanation: "All metrics healthy — nominal operation."
+
+actions:
+  - id: start_discovery
+    type: callback
+    symbol: app_start_network_discovery
+
+  - id: increase_tx_power
+    type: callback
+    symbol: app_increase_tx_power
+
+  - id: switch_parent
+    type: callback
+    symbol: app_switch_parent
+
+  - id: reduce_tx_rate
+    type: callback
+    symbol: app_reduce_tx_rate
+
+  - id: drop_low_priority
+    type: callback
+    symbol: app_drop_low_priority
+
+  - id: request_sleepy
+    type: callback
+    symbol: app_request_sleepy_mode

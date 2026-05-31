@@ -1,0 +1,11 @@
+sample:
+  name: zproj Kalman Filter Solver
+  description: >
+    A 1-D Kalman filter implemented entirely in ZRM compute expressions.
+    Demonstrates predict/update cycle with fixed-point Kalman gain
+    calculation, covariance tracking, and sensor fusion — a common
+    numerical solver pattern for embedded navigation and estimation.
+common:
+  tags: zproj solver kalman filter estimation sensor-fusion
+  harness: console
+  platform_allow: native_sim

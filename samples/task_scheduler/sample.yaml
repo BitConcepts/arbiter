@@ -1,0 +1,11 @@
+sample:
+  name: zproj Task Scheduler Solver
+  description: >
+    Priority-and-deadline-aware task scheduler implemented as a ZRM
+    reasoning model.  Computes urgency scores combining static priority
+    with deadline proximity, selects the best ready task, and detects
+    deadline misses — demonstrating embedded scheduling as a solver.
+common:
+  tags: zproj solver scheduler deadline priority real-time
+  harness: console
+  platform_allow: native_sim

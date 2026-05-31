@@ -1,0 +1,288 @@
+zrm_version: 0.1
+model: power_budget
+target:
+  rtos: zephyr
+  profile: static_c
+
+system:
+  item: power_budget_allocator
+  safety_context: energy_management
+
+# Power budget solver for battery-constrained embedded systems.
+# 4 subsystems compete for a limited power budget.  The solver
+# allocates milliwatts based on priority, sheds low-priority loads
+# when the budget is exceeded, and triggers brownout protection.
+# All power values in milliwatts (mW).
+
+facts:
+  # --- Battery/supply ---
+  - id: in.budget_mw
+    type: int32
+    unit: mW
+    range: [0, 50000]
+    source: power_supply
+    safety_relevant: true
+
+  - id: in.enable
+    type: bool
+    source: command
+
+  - id: in.battery_pct
+    type: int32
+    unit: percent
+    range: [0, 100]
+    source: fuel_gauge
+    safety_relevant: true
+
+  # --- Subsystem 0: radio (high priority) ---
+  - id: sub0.demand_mw
+    type: int32
+    range: [0, 20000]
+    source: application
+  - id: sub0.priority
+    type: int32
+    range: [0, 100]
+    default: 90
+  - id: sub0.alloc_mw
+    type: int32
+    source: computed
+
+  # --- Subsystem 1: sensors (medium priority) ---
+  - id: sub1.demand_mw
+    type: int32
+    range: [0, 10000]
+    source: application
+  - id: sub1.priority
+    type: int32
+    range: [0, 100]
+    default: 70
+  - id: sub1.alloc_mw
+    type: int32
+    source: computed
+
+  # --- Subsystem 2: display (low priority) ---
+  - id: sub2.demand_mw
+    type: int32
+    range: [0, 15000]
+    source: application
+  - id: sub2.priority
+    type: int32
+    range: [0, 100]
+    default: 40
+  - id: sub2.alloc_mw
+    type: int32
+    source: computed
+
+  # --- Subsystem 3: actuator (critical) ---
+  - id: sub3.demand_mw
+    type: int32
+    range: [0, 25000]
+    source: application
+  - id: sub3.priority
+    type: int32
+    range: [0, 100]
+    default: 95
+  - id: sub3.alloc_mw
+    type: int32
+    source: computed
+
+  # --- Solver state ---
+  - id: budget.total_demand
+    type: int32
+    source: computed
+  - id: budget.remaining
+    type: int32
+    source: computed
+  - id: budget.overcommit
+    type: int32
+    source: computed
+
+modes:
+  - id: mode.idle
+  - id: mode.normal
+  - id: mode.shedding
+  - id: mode.brownout
+
+rules:
+  - id: "01_idle"
+    class: mode_guard
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.idle
+
+  - id: "02_brownout"
+    class: safety_guard
+    when:
+      all:
+        - fact: in.battery_pct
+          op: "<"
+          value: 5
+    then:
+      set_mode: mode.brownout
+      compute:
+        - target: sub0.alloc_mw
+          op: assign
+          left_literal: 0
+        - target: sub1.alloc_mw
+          op: assign
+          left_literal: 0
+        - target: sub2.alloc_mw
+          op: assign
+          left_literal: 0
+        - target: sub3.alloc_mw
+          op: assign
+          left_literal: 0
+      action: brownout_shutdown
+      explanation: "Battery critical — all loads shed."
+      criticality: safety_critical
+
+  # ===== SUM DEMANDS =====
+  - id: "10_sum_demand"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: in.battery_pct
+          op: ">="
+          value: 5
+    then:
+      compute:
+        - target: budget.total_demand
+          op: add
+          left: sub0.demand_mw
+          right: sub1.demand_mw
+        - target: budget.total_demand
+          op: add
+          left: budget.total_demand
+          right: sub2.demand_mw
+        - target: budget.total_demand
+          op: add
+          left: budget.total_demand
+          right: sub3.demand_mw
+        - target: budget.overcommit
+          op: sub
+          left: budget.total_demand
+          right: in.budget_mw
+
+  # ===== NORMAL: BUDGET SUFFICIENT =====
+  - id: "20_normal"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: budget.overcommit
+          op: "<="
+          value: 0
+    then:
+      set_mode: mode.normal
+      compute:
+        - target: sub0.alloc_mw
+          op: assign
+          left: sub0.demand_mw
+        - target: sub1.alloc_mw
+          op: assign
+          left: sub1.demand_mw
+        - target: sub2.alloc_mw
+          op: assign
+          left: sub2.demand_mw
+        - target: sub3.alloc_mw
+          op: assign
+          left: sub3.demand_mw
+        - target: budget.remaining
+          op: sub
+          left: in.budget_mw
+          right: budget.total_demand
+      explanation: "Budget sufficient — full allocation."
+
+  # ===== SHEDDING: OVER BUDGET =====
+  - id: "30_shed_display"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: budget.overcommit
+          op: ">"
+          value: 0
+    then:
+      set_mode: mode.shedding
+      compute:
+        - target: sub2.alloc_mw
+          op: assign
+          left_literal: 0
+        - target: sub0.alloc_mw
+          op: assign
+          left: sub0.demand_mw
+        - target: sub1.alloc_mw
+          op: assign
+          left: sub1.demand_mw
+        - target: sub3.alloc_mw
+          op: assign
+          left: sub3.demand_mw
+        - target: budget.remaining
+          op: add
+          left: sub0.demand_mw
+          right: sub1.demand_mw
+        - target: budget.remaining
+          op: add
+          left: budget.remaining
+          right: sub3.demand_mw
+        - target: budget.remaining
+          op: sub
+          left: in.budget_mw
+          right: budget.remaining
+      explanation: "Over budget — display shed."
+
+  - id: "31_shed_sensors"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: budget.remaining
+          op: "<"
+          value: 0
+    then:
+      compute:
+        - target: sub1.alloc_mw
+          op: assign
+          left_literal: 0
+        - target: budget.remaining
+          op: sub
+          left: in.budget_mw
+          right: sub0.demand_mw
+        - target: budget.remaining
+          op: sub
+          left: budget.remaining
+          right: sub3.demand_mw
+      explanation: "Still over budget — sensors also shed."
+
+  - id: "40_apply"
+    class: obligation
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+    then:
+      action: apply_power_config
+      explanation: "Apply computed power allocations."
+
+actions:
+  - id: apply_power_config
+    type: callback
+    symbol: app_apply_power_config
+
+  - id: brownout_shutdown
+    type: callback
+    symbol: app_brownout_shutdown

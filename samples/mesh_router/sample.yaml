@@ -1,0 +1,11 @@
+sample:
+  name: zproj Mesh Network Router
+  description: >
+    Thread/OpenThread-inspired mesh routing reasoning engine. zproj
+    computes link margin, parent quality scores, and congestion levels,
+    then reasons about parent selection, TX power, rate limiting, and
+    power management. Demonstrates compute + reasoning, not just policy.
+common:
+  tags: zproj reasoning compute mesh thread openthread routing
+  harness: console
+  platform_allow: native_sim

@@ -1,0 +1,273 @@
+zrm_version: 0.1
+model: hydraulic_press_interlock
+
+target:
+  rtos: zephyr
+  profile: static_c
+  safety_profile: zrm_safety_strict_v0
+
+system:
+  item: hydraulic_press_controller
+  safety_context: industrial_forming
+
+facts:
+  - id: press.ram_position_mm
+    type: int32
+    unit: mm_x10
+    range: [0, 6000]
+    source: linear_encoder
+    stale_after_ms: 10
+    safety_relevant: true
+
+  - id: press.pressure_bar
+    type: uint32
+    unit: bar_x10
+    range: [0, 35000]
+    source: pressure_transducer
+    stale_after_ms: 20
+    safety_relevant: true
+
+  - id: press.force_kn
+    type: uint32
+    unit: kn_x10
+    range: [0, 50000]
+    source: load_cell
+    stale_after_ms: 20
+    safety_relevant: true
+
+  - id: press.oil_temp_c
+    type: int32
+    unit: celsius_x10
+    range: [-200, 900]
+    source: thermocouple
+    stale_after_ms: 5000
+
+  - id: press.cycle_count
+    type: uint32
+    range: [0, 2000000000]
+    source: counter
+
+  - id: guard.closed
+    type: bool
+    source: safety_switch
+    safety_relevant: true
+
+  - id: guard.locked
+    type: bool
+    source: solenoid_feedback
+    safety_relevant: true
+
+  - id: twohand.left
+    type: bool
+    source: safety_switch
+    safety_relevant: true
+
+  - id: twohand.right
+    type: bool
+    source: safety_switch
+    safety_relevant: true
+
+  - id: press.estop
+    type: bool
+    source: safety_relay
+    safety_relevant: true
+
+  - id: press.cycle_start
+    type: bool
+    source: hmi
+
+modes:
+  - id: mode.idle
+  - id: mode.guard_check
+  - id: mode.approach
+  - id: mode.pressing
+  - id: mode.hold
+  - id: mode.retract
+  - id: mode.overpressure_fault
+  - id: mode.guard_fault
+  - id: mode.thermal_fault
+  - id: mode.estop
+
+hazards:
+  - id: haz.crush_injury
+    severity: catastrophic
+    description: Ram closes on operator body or limb.
+  - id: haz.hydraulic_burst
+    severity: critical
+    description: Overpressure causes hose or cylinder failure.
+  - id: haz.uncontrolled_descent
+    severity: catastrophic
+    description: Ram descends without command due to valve failure.
+
+safety_goals:
+  - id: sg.prevent_crush
+    hazard: haz.crush_injury
+    integrity_target: SIL_3_ready
+    safe_state: mode.idle
+  - id: sg.prevent_burst
+    hazard: haz.hydraulic_burst
+    integrity_target: SIL_2_ready
+    safe_state: mode.idle
+
+rules:
+  # --- E-stop (highest priority) ---
+  - id: rule.estop
+    class: safety_guard
+    safety_goal: sg.prevent_crush
+    when:
+      all:
+        - fact: press.estop
+          op: "=="
+          value: true
+    then:
+      set_mode: mode.estop
+      action: dump_pressure
+      explanation: "E-stop active — dump hydraulic pressure immediately."
+      criticality: safety_critical
+
+  # --- Guard interlock ---
+  - id: rule.guard_open
+    class: safety_guard
+    safety_goal: sg.prevent_crush
+    when:
+      any:
+        - fact: guard.closed
+          op: "=="
+          value: false
+        - fact: guard.locked
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.guard_fault
+      action: hold_retract
+      explanation: "Guard not closed+locked — cannot press."
+      criticality: safety_critical
+
+  # --- Two-hand control ---
+  - id: rule.twohand_release
+    class: safety_guard
+    safety_goal: sg.prevent_crush
+    when:
+      any:
+        - fact: twohand.left
+          op: "=="
+          value: false
+        - fact: twohand.right
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.idle
+      action: hold_retract
+      explanation: "Two-hand control released — operator may be in zone."
+      criticality: safety_critical
+
+  # --- Overpressure ---
+  - id: rule.overpressure
+    class: safety_guard
+    safety_goal: sg.prevent_burst
+    when:
+      all:
+        - fact: press.pressure_bar
+          op: ">"
+          value: 30000
+    then:
+      set_mode: mode.overpressure_fault
+      action: open_relief
+      explanation: "Pressure > 3000 bar — open relief valve."
+      criticality: safety_critical
+
+  # --- Overforce ---
+  - id: rule.overforce
+    class: safety_guard
+    when:
+      all:
+        - fact: press.force_kn
+          op: ">"
+          value: 45000
+    then:
+      set_mode: mode.overpressure_fault
+      action: dump_pressure
+      explanation: "Force > 4500 kN — exceeds press rating."
+      criticality: safety_critical
+
+  # --- Oil temperature ---
+  - id: rule.oil_overtemp
+    class: mode_guard
+    when:
+      all:
+        - fact: press.oil_temp_c
+          op: ">"
+          value: 700
+    then:
+      set_mode: mode.thermal_fault
+      action: stop_pump
+      explanation: "Oil > 70°C — stop pump to prevent seal damage."
+
+  # --- Position limit (bottom of stroke) ---
+  - id: rule.bottom_limit
+    class: constraint
+    when:
+      all:
+        - fact: press.ram_position_mm
+          op: ">="
+          value: 5900
+    then:
+      action: stop_advance
+      explanation: "Ram at bottom of stroke — stop advance."
+
+  # --- Cycle start ---
+  - id: rule.ready_to_press
+    class: inference
+    when:
+      all:
+        - fact: press.cycle_start
+          op: "=="
+          value: true
+        - fact: guard.closed
+          op: "=="
+          value: true
+        - fact: guard.locked
+          op: "=="
+          value: true
+        - fact: twohand.left
+          op: "=="
+          value: true
+        - fact: twohand.right
+          op: "=="
+          value: true
+        - fact: press.estop
+          op: "=="
+          value: false
+        - fact: press.pressure_bar
+          op: "<="
+          value: 30000
+    then:
+      set_mode: mode.approach
+      explanation: "All interlocks satisfied — begin approach stroke."
+
+actions:
+  - id: dump_pressure
+    type: callback
+    symbol: app_dump_pressure
+    must_complete_within_ms: 10
+    safe_state_action: true
+
+  - id: hold_retract
+    type: callback
+    symbol: app_hold_retract
+    must_complete_within_ms: 50
+    safe_state_action: true
+
+  - id: open_relief
+    type: callback
+    symbol: app_open_relief_valve
+    must_complete_within_ms: 5
+    safe_state_action: true
+
+  - id: stop_pump
+    type: callback
+    symbol: app_stop_pump
+
+  - id: stop_advance
+    type: callback
+    symbol: app_stop_advance

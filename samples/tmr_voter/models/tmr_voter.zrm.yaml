@@ -1,0 +1,354 @@
+zrm_version: 0.1
+model: tmr_voter
+
+imports:
+  - zrm://safety_common
+
+target:
+  rtos: zephyr
+  profile: static_c
+  safety_profile: zrm_safety_strict_v0
+
+system:
+  item: triple_modular_redundancy_voter
+  safety_context: sil_3_safety_function
+
+facts:
+  # --- Three independent sensor channels ---
+  - id: ch.a_value
+    type: int32
+    source: sensor_a
+    stale_after_ms: 50
+    safety_relevant: true
+
+  - id: ch.b_value
+    type: int32
+    source: sensor_b
+    stale_after_ms: 50
+    safety_relevant: true
+
+  - id: ch.c_value
+    type: int32
+    source: sensor_c
+    stale_after_ms: 50
+    safety_relevant: true
+
+  - id: ch.a_valid
+    type: bool
+    source: diagnostics_a
+    safety_relevant: true
+
+  - id: ch.b_valid
+    type: bool
+    source: diagnostics_b
+    safety_relevant: true
+
+  - id: ch.c_valid
+    type: bool
+    source: diagnostics_c
+    safety_relevant: true
+
+  # --- Computed by voter ---
+  - id: vote.result
+    type: int32
+    source: computed
+    safety_relevant: true
+    description: "Voted output value (median of valid channels)"
+
+  - id: vote.valid_count
+    type: uint32
+    range: [0, 3]
+    source: computed
+    safety_relevant: true
+
+  - id: vote.ab_agree
+    type: bool
+    source: computed
+
+  - id: vote.ac_agree
+    type: bool
+    source: computed
+
+  - id: vote.bc_agree
+    type: bool
+    source: computed
+
+  - id: vote.ab_delta
+    type: int32
+    source: computed
+
+  - id: vote.ac_delta
+    type: int32
+    source: computed
+
+  - id: vote.bc_delta
+    type: int32
+    source: computed
+
+  - id: vote.tolerance
+    type: int32
+    default: 100
+    description: "Max allowed disagreement between channels"
+
+modes:
+  - id: mode.tmr_ok
+  - id: mode.dual_degraded
+  - id: mode.single_channel
+  - id: mode.no_valid_channel
+  - id: mode.voter_fault
+
+hazards:
+  - id: haz.incorrect_output
+    severity: catastrophic
+    description: "Voter produces incorrect value due to common-cause failure."
+
+safety_goals:
+  - id: sg.correct_vote
+    hazard: haz.incorrect_output
+    integrity_target: SIL_3_ready
+    safe_state: mode.no_valid_channel
+
+rules:
+  # ====== COUNT VALID CHANNELS ======
+  - id: "01_vote.count_valid"
+    class: inference
+    when:
+      all:
+        - fact: vote.tolerance
+          op: ">"
+          value: 0
+    then:
+      compute:
+        # Count valid channels: start at 0, add 1 for each valid
+        - target: vote.valid_count
+          op: assign
+          left_literal: 0
+
+  - id: "02_vote.count_a"
+    class: inference
+    when:
+      all:
+        - fact: ch.a_valid
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: vote.valid_count
+          op: add
+          left: vote.valid_count
+          right_literal: 1
+
+  - id: "03_vote.count_b"
+    class: inference
+    when:
+      all:
+        - fact: ch.b_valid
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: vote.valid_count
+          op: add
+          left: vote.valid_count
+          right_literal: 1
+
+  - id: "04_vote.count_c"
+    class: inference
+    when:
+      all:
+        - fact: ch.c_valid
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: vote.valid_count
+          op: add
+          left: vote.valid_count
+          right_literal: 1
+
+  # ====== COMPUTE DELTAS ======
+  - id: "10_vote.deltas"
+    class: inference
+    when:
+      all:
+        - fact: vote.valid_count
+          op: ">="
+          value: 2
+    then:
+      compute:
+        - target: vote.ab_delta
+          op: sub
+          left: ch.a_value
+          right: ch.b_value
+        - target: vote.ab_delta
+          op: abs
+          left: vote.ab_delta
+        - target: vote.ac_delta
+          op: sub
+          left: ch.a_value
+          right: ch.c_value
+        - target: vote.ac_delta
+          op: abs
+          left: vote.ac_delta
+        - target: vote.bc_delta
+          op: sub
+          left: ch.b_value
+          right: ch.c_value
+        - target: vote.bc_delta
+          op: abs
+          left: vote.bc_delta
+
+  # ====== 2-of-3 VOTING (median selection) ======
+  - id: "20_vote.ab_agree"
+    class: inference
+    when:
+      all:
+        - fact: vote.ab_delta
+          op: "<="
+          value: 100
+        - fact: ch.a_valid
+          op: "=="
+          value: true
+        - fact: ch.b_valid
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: vote.ab_agree
+          op: assign
+          left_literal: 1
+        # Use average of agreeing pair: (a+b)/2
+        - target: vote.result
+          op: add
+          left: ch.a_value
+          right: ch.b_value
+        - target: vote.result
+          op: div
+          left: vote.result
+          right_literal: 2
+
+  - id: "21_vote.ac_agree"
+    class: inference
+    when:
+      all:
+        - fact: vote.ac_delta
+          op: "<="
+          value: 100
+        - fact: ch.a_valid
+          op: "=="
+          value: true
+        - fact: ch.c_valid
+          op: "=="
+          value: true
+        - fact: vote.ab_agree
+          op: "=="
+          value: false
+    then:
+      compute:
+        - target: vote.ac_agree
+          op: assign
+          left_literal: 1
+        - target: vote.result
+          op: add
+          left: ch.a_value
+          right: ch.c_value
+        - target: vote.result
+          op: div
+          left: vote.result
+          right_literal: 2
+
+  - id: "22_vote.bc_agree"
+    class: inference
+    when:
+      all:
+        - fact: vote.bc_delta
+          op: "<="
+          value: 100
+        - fact: ch.b_valid
+          op: "=="
+          value: true
+        - fact: ch.c_valid
+          op: "=="
+          value: true
+        - fact: vote.ab_agree
+          op: "=="
+          value: false
+        - fact: vote.ac_agree
+          op: "=="
+          value: false
+    then:
+      compute:
+        - target: vote.bc_agree
+          op: assign
+          left_literal: 1
+        - target: vote.result
+          op: add
+          left: ch.b_value
+          right: ch.c_value
+        - target: vote.result
+          op: div
+          left: vote.result
+          right_literal: 2
+
+  # ====== MODE DETERMINATION ======
+  - id: "30_mode.tmr_ok"
+    class: mode_guard
+    when:
+      all:
+        - fact: vote.valid_count
+          op: "=="
+          value: 3
+    then:
+      set_mode: mode.tmr_ok
+      explanation: "All 3 channels valid — full TMR."
+
+  - id: "31_mode.dual"
+    class: mode_guard
+    when:
+      all:
+        - fact: vote.valid_count
+          op: "=="
+          value: 2
+    then:
+      set_mode: mode.dual_degraded
+      action: report_channel_loss
+      explanation: "1 channel lost — operating on 2-of-3."
+
+  - id: "32_mode.single"
+    class: safety_guard
+    safety_goal: sg.correct_vote
+    when:
+      all:
+        - fact: vote.valid_count
+          op: "=="
+          value: 1
+    then:
+      set_mode: mode.single_channel
+      action: report_channel_loss
+      explanation: "Only 1 valid channel — no voting possible, degraded."
+      criticality: safety_critical
+
+  - id: "33_mode.none"
+    class: safety_guard
+    safety_goal: sg.correct_vote
+    when:
+      all:
+        - fact: vote.valid_count
+          op: "=="
+          value: 0
+    then:
+      set_mode: mode.no_valid_channel
+      action: enter_safe_state
+      explanation: "No valid channels — enter safe state."
+      criticality: safety_critical
+
+actions:
+  - id: report_channel_loss
+    type: callback
+    symbol: app_report_channel_loss
+
+  - id: enter_safe_state
+    type: callback
+    symbol: app_enter_safe_state
+    must_complete_within_ms: 10
+    safe_state_action: true

@@ -1,0 +1,319 @@
+zrm_version: 0.1
+model: fault_diagnosis
+target:
+  rtos: zephyr
+  profile: static_c
+
+system:
+  item: fault_diagnosis_solver
+  safety_context: diagnostics
+
+# Root-cause fault diagnosis solver.
+# Maps observed symptom flags to candidate causes using weighted
+# evidence accumulation.  Each symptom contributes a confidence
+# delta (x1000) toward one or more diagnoses.  The diagnosis with
+# the highest accumulated confidence wins.
+#
+# Use case: embedded motor drive diagnostics — 6 symptom inputs,
+# 4 candidate diagnoses.
+
+includes:
+  - lib/zrm/sensor_health.zrm.yaml
+
+facts:
+  # --- Symptom inputs (bool flags) ---
+  - id: sym.overcurrent
+    type: bool
+    source: diagnostics
+    safety_relevant: true
+  - id: sym.overtemp
+    type: bool
+    source: diagnostics
+    safety_relevant: true
+  - id: sym.vibration_high
+    type: bool
+    source: diagnostics
+  - id: sym.speed_deviation
+    type: bool
+    source: diagnostics
+  - id: sym.voltage_sag
+    type: bool
+    source: diagnostics
+  - id: sym.comm_timeout
+    type: bool
+    source: diagnostics
+
+  - id: in.enable
+    type: bool
+    source: command
+
+  # --- Diagnosis confidence accumulators (x1000) ---
+  # diag0: winding_short
+  - id: diag0.confidence
+    type: int32
+    range: [0, 10000]
+    source: computed
+  # diag1: bearing_failure
+  - id: diag1.confidence
+    type: int32
+    range: [0, 10000]
+    source: computed
+  # diag2: supply_fault
+  - id: diag2.confidence
+    type: int32
+    range: [0, 10000]
+    source: computed
+  # diag3: encoder_fault
+  - id: diag3.confidence
+    type: int32
+    range: [0, 10000]
+    source: computed
+
+  # --- Solver output ---
+  - id: result.best_confidence
+    type: int32
+    source: computed
+  - id: result.diagnosis_id
+    type: int32
+    range: [-1, 3]
+    default: -1
+    source: computed
+
+modes:
+  - id: mode.idle
+  - id: mode.analyzing
+  - id: mode.diagnosed
+  - id: mode.no_fault
+
+rules:
+  - id: "01_idle"
+    class: mode_guard
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: false
+    then:
+      set_mode: mode.idle
+
+  # ===== RESET ACCUMULATORS =====
+  - id: "10_reset"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+    then:
+      set_mode: mode.analyzing
+      compute:
+        - target: diag0.confidence
+          op: assign
+          left_literal: 0
+        - target: diag1.confidence
+          op: assign
+          left_literal: 0
+        - target: diag2.confidence
+          op: assign
+          left_literal: 0
+        - target: diag3.confidence
+          op: assign
+          left_literal: 0
+
+  # ===== EVIDENCE ACCUMULATION =====
+  # overcurrent -> winding_short(+400), supply_fault(+200)
+  - id: "20_ev.overcurrent"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: sym.overcurrent
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: diag0.confidence
+          op: add
+          left: diag0.confidence
+          right_literal: 400
+        - target: diag2.confidence
+          op: add
+          left: diag2.confidence
+          right_literal: 200
+
+  # overtemp -> winding_short(+300), bearing_failure(+350)
+  - id: "21_ev.overtemp"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: sym.overtemp
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: diag0.confidence
+          op: add
+          left: diag0.confidence
+          right_literal: 300
+        - target: diag1.confidence
+          op: add
+          left: diag1.confidence
+          right_literal: 350
+
+  # vibration_high -> bearing_failure(+500)
+  - id: "22_ev.vibration"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: sym.vibration_high
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: diag1.confidence
+          op: add
+          left: diag1.confidence
+          right_literal: 500
+
+  # speed_deviation -> encoder_fault(+450), bearing_failure(+150)
+  - id: "23_ev.speed_dev"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: sym.speed_deviation
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: diag3.confidence
+          op: add
+          left: diag3.confidence
+          right_literal: 450
+        - target: diag1.confidence
+          op: add
+          left: diag1.confidence
+          right_literal: 150
+
+  # voltage_sag -> supply_fault(+500), winding_short(+100)
+  - id: "24_ev.voltage_sag"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: sym.voltage_sag
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: diag2.confidence
+          op: add
+          left: diag2.confidence
+          right_literal: 500
+        - target: diag0.confidence
+          op: add
+          left: diag0.confidence
+          right_literal: 100
+
+  # comm_timeout -> encoder_fault(+300), supply_fault(+100)
+  - id: "25_ev.comm_timeout"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: sym.comm_timeout
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: diag3.confidence
+          op: add
+          left: diag3.confidence
+          right_literal: 300
+        - target: diag2.confidence
+          op: add
+          left: diag2.confidence
+          right_literal: 100
+
+  # ===== SELECT BEST DIAGNOSIS =====
+  - id: "30_select"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+    then:
+      compute:
+        - target: result.best_confidence
+          op: assign
+          left_literal: 0
+        - target: result.diagnosis_id
+          op: assign
+          left_literal: -1
+        - target: result.best_confidence
+          op: max
+          left: result.best_confidence
+          right: diag0.confidence
+        - target: result.best_confidence
+          op: max
+          left: result.best_confidence
+          right: diag1.confidence
+        - target: result.best_confidence
+          op: max
+          left: result.best_confidence
+          right: diag2.confidence
+        - target: result.best_confidence
+          op: max
+          left: result.best_confidence
+          right: diag3.confidence
+      explanation: "Select diagnosis with highest confidence."
+
+  # ===== NO FAULT =====
+  - id: "40_no_fault"
+    class: inference
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: result.best_confidence
+          op: "<="
+          value: 0
+    then:
+      set_mode: mode.no_fault
+
+  # ===== REPORT =====
+  - id: "50_report"
+    class: obligation
+    when:
+      all:
+        - fact: in.enable
+          op: "=="
+          value: true
+        - fact: result.best_confidence
+          op: ">"
+          value: 0
+    then:
+      set_mode: mode.diagnosed
+      action: report_diagnosis
+      explanation: "Report top diagnosis."
+
+actions:
+  - id: report_diagnosis
+    type: callback
+    symbol: app_report_diagnosis

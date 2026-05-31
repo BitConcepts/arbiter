@@ -1,0 +1,4 @@
+tests:
+  zproj.eval:
+    tags: zproj unit
+    platform_allow: native_sim
