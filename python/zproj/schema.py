@@ -16,7 +16,8 @@ _SCHEMA_PATH = Path(__file__).resolve().parent.parent.parent / "schema" / "zrm.s
 
 def load_schema() -> dict[str, Any]:
     """Load the ZRM JSON schema."""
-    return json.loads(_SCHEMA_PATH.read_text(encoding="utf-8"))
+    result: dict[str, Any] = json.loads(_SCHEMA_PATH.read_text(encoding="utf-8"))
+    return result
 
 
 def validate_schema(
