@@ -61,6 +61,12 @@ jobs:
     env:
       # native_sim uses host GCC; skip cross-compiler toolchain lookup.
       ZEPHYR_TOOLCHAIN_VARIANT: host
+      # Tell Zephyr's module system where arbiter lives. west skips
+      # cloning the manifest project to its declared module path, so
+      # ZEPHYR_EXTRA_MODULES is the clean solution. Now that the
+      # Kconfig symbol (ARBITER) and CMake guard (CONFIG_ARBITER) match,
+      # and sources use CMAKE_CURRENT_LIST_DIR, this resolves fully.
+      ZEPHYR_EXTRA_MODULES: ${{ github.workspace }}/app
     steps:
       - uses: actions/checkout@v4
         with:
@@ -103,18 +109,6 @@ jobs:
         if: steps.cache-west.outputs.cache-hit != 'true'
         run: west update --narrow -o=--depth=1
 
-      # west treats the manifest project as already-present at app/ and will
-      # NOT clone it to modules/lib/arbiter/ (its declared path).  Copy it
-      # there so Zephyr CMake can discover the module's Kconfig + cmake files.
-      # Runs unconditionally (idempotent) so a restored cache that predates
-      # this step still gets the directory populated correctly.
-      - name: Place arbiter at canonical module path
-        run: |
-          mkdir -p modules/lib
-          if [ ! -d modules/lib/arbiter ]; then
-            cp -rp app modules/lib/arbiter
-          fi
-
       # native_sim/native targets 32-bit by default; gcc-multilib provides
       # the 32-bit glibc headers (bits/libc-header-start.h) on ubuntu-latest.
       - name: Install native_sim build dependencies
@@ -127,11 +121,11 @@ jobs:
       # (host tools: DTC, cmake config files). The minimal bundle is ~10 MB
       # and contains no cross-compiler — only the cmake registration files.
       # setup.sh -c writes ~/.cmake/packages/Zephyr-sdk/ so CMake finds it.
-      # SDK 0.17.0 matches pinned Zephyr v4.4.0 (update this if west.yml
-      # revision ever changes). sdk-version file does not exist in v4.4.0.
+      # SDK 1.0.1 matches pinned Zephyr v4.4.0 (Zephyr v4.4.0 requires >= 1.0.0).
+      # sdk-version file does not exist in v4.4.0; version is hardcoded here.
       - name: Install Zephyr SDK (minimal, cmake files only)
         env:
-          SDK_VER: "0.17.0"
+          SDK_VER: "1.0.1"
         run: |
           wget -q \
             "https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${SDK_VER}/zephyr-sdk-${SDK_VER}_linux-x86_64_minimal.tar.xz" \
@@ -139,19 +133,6 @@ jobs:
           mkdir -p ~/zephyr-sdk
           tar -xf /tmp/zephyr-sdk-minimal.tar.xz --strip-components=1 -C ~/zephyr-sdk
           ~/zephyr-sdk/setup.sh -c
-
-      - name: Debug — module discovery
-        run: |
-          echo "=== west list ==="
-          west list
-          echo "=== modules/ ==="
-          ls -la modules/ 2>/dev/null || echo "(no modules/ dir)"
-          echo "=== modules/lib/ ==="
-          ls -la modules/lib/ 2>/dev/null || echo "(no modules/lib/)"
-          echo "=== modules/lib/arbiter/ ==="
-          ls modules/lib/arbiter/ 2>/dev/null || echo "(no arbiter module)"
-          echo "=== zephyr/module.yml in arbiter? ==="
-          cat modules/lib/arbiter/zephyr/module.yml 2>/dev/null || echo "(not found)"
 
       # Unit tests run as native executables on native_sim.
       - name: Twister — unit tests
