@@ -34,6 +34,8 @@ dev = [
     "pytest>=7.0",
     "mypy>=1.0",
     "ruff>=0.1",
+    "types-PyYAML>=6.0",
+    "types-jsonschema>=4.17",
 ]
 
 [project.scripts]
@@ -53,6 +55,11 @@ select = ["E", "F", "W", "I", "N", "UP"]
 python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = ["click.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests/python"]
