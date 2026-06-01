@@ -21,17 +21,17 @@
 #include <arbiter/arbiter.h>
 #include "arbiter_model.h"
 
-#define _POSIX_C_SOURCE 200809L
-#include <time.h>
+struct timespec;
+extern int clock_gettime(int clk_id, struct timespec *tp);
+#ifndef CLOCK_MONOTONIC_RAW
+#define CLOCK_MONOTONIC_RAW 4
+#endif
+
 static inline uint64_t bench_ns(void)
 {
 	struct timespec ts;
 
-#if defined(CLOCK_MONOTONIC_RAW)
 	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-#else
-	clock_gettime(CLOCK_MONOTONIC, &ts);
-#endif
 	return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
 }
 

@@ -13,23 +13,23 @@
 #include <arbiter/arbiter.h>
 #include "arbiter_model.h"
 
-/* Use CLOCK_MONOTONIC_RAW via the real glibc clock_gettime.
- * On native_sim, Zephyr only overrides clock_gettime when
- * CONFIG_POSIX_CLOCK_SELECTION=y. With our minimal prj.conf that
- * flag is off, so clock_gettime resolves to glibc and returns real
- * host time with nanosecond resolution.
+/* Real host time via glibc clock_gettime (not Zephyr's simulated clock).
+ * Zephyr's POSIX wrapper doesn't define CLOCK_MONOTONIC_RAW without
+ * CONFIG_POSIX_CLOCK_SELECTION=y, so hardcode the Linux clockid values.
+ * CLOCK_MONOTONIC_RAW (4) gives nanosecond-resolution real host time.
  */
-#define _POSIX_C_SOURCE 200809L
-#include <time.h>
+struct timespec;  /* forward declare for glibc signature */
+extern int clock_gettime(int clk_id, struct timespec *tp);
+
+#ifndef CLOCK_MONOTONIC_RAW
+#define CLOCK_MONOTONIC_RAW 4
+#endif
+
 static inline uint64_t bench_ns(void)
 {
 	struct timespec ts;
 
-#if defined(CLOCK_MONOTONIC_RAW)
 	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-#else
-	clock_gettime(CLOCK_MONOTONIC, &ts);
-#endif
 	return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
 }
 
