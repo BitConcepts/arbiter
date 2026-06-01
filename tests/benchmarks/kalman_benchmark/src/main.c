@@ -19,6 +19,7 @@
  * flag is off, so clock_gettime resolves to glibc and returns real
  * host time with nanosecond resolution.
  */
+#define _POSIX_C_SOURCE 200809L
 #include <time.h>
 static inline uint64_t bench_ns(void)
 {

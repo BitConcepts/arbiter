@@ -21,6 +21,7 @@
 #include <arbiter/arbiter.h>
 #include "arbiter_model.h"
 
+#define _POSIX_C_SOURCE 200809L
 #include <time.h>
 static inline uint64_t bench_ns(void)
 {
