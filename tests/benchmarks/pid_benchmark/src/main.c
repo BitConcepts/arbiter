@@ -125,9 +125,6 @@ int main(void)
 	LOG_INF("Iterations: %d  (warmup: %d)", BENCH_ITERATIONS,
 		WARMUP_ITERATIONS);
 
-	timing_init();
-	timing_start();
-
 	/* ----- Hand-coded PID benchmark ----- */
 	struct hand_pid hpid;
 
@@ -144,15 +141,15 @@ int main(void)
 	hand_pid_init(&hpid);
 	plant_h = 0;
 
-	timing_t t0 = timing_counter_get();
+	uint32_t t0_ms = k_uptime_get_32();
 
 	for (int i = 0; i < BENCH_ITERATIONS; i++) {
 		hand_pid_tick(&hpid, 10000, plant_h);
 		plant_h += hpid.output / 10;
 	}
 
-	timing_t t1 = timing_counter_get();
-	uint64_t hand_ns = timing_cycles_to_ns(timing_cycles_get(&t0, &t1));
+	uint32_t t1_ms = k_uptime_get_32();
+	uint64_t hand_ns = (uint64_t)(t1_ms - t0_ms) * 1000000ULL;
 	uint64_t hand_per_tick_ns = hand_ns / BENCH_ITERATIONS;
 
 	LOG_INF("--- Hand-coded PID ---");
@@ -201,7 +198,7 @@ int main(void)
 	ARBITER_set_u32(&ARBITER_ctx, F_DT_MS, 10);
 	plant_z = 0;
 
-	timing_t t2 = timing_counter_get();
+	uint32_t t2_ms = k_uptime_get_32();
 
 	for (int i = 0; i < BENCH_ITERATIONS; i++) {
 		ARBITER_set_i32(&ARBITER_ctx, F_SETPOINT, 10000);
@@ -217,8 +214,8 @@ int main(void)
 		plant_z += ARBITER_ctx.fact_values[F_OUTPUT].value / 10;
 	}
 
-	timing_t t3 = timing_counter_get();
-	uint64_t ARBITER_ns = timing_cycles_to_ns(timing_cycles_get(&t2, &t3));
+	uint32_t t3_ms = k_uptime_get_32();
+	uint64_t ARBITER_ns = (uint64_t)(t3_ms - t2_ms) * 1000000ULL;
 	uint64_t ARBITER_per_tick_ns = ARBITER_ns / BENCH_ITERATIONS;
 
 	LOG_INF("--- arbiter Engine PID ---");
@@ -254,7 +251,7 @@ int main(void)
 	LOG_INF("    shell inspection, and runtime watchdog integration.");
 	LOG_INF("  Hand-coded adds: nothing — it's just math.");
 
-	timing_stop();
+	/* timing_stop() not needed — using k_uptime, not timing API */
 
 	return 0;
 }

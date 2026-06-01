@@ -117,8 +117,10 @@ int main(void)
 	LOG_INF("Iterations: %d  (warmup: %d)", BENCH_ITERATIONS,
 		WARMUP_ITERATIONS);
 
-	timing_init();
-	timing_start();
+	/* Use k_uptime_get_32() (real-time ms counter) instead of the
+	 * timing API: native_sim's timing_counter_get() measures simulated
+	 * Zephyr clock ticks which do NOT advance during CPU-bound loops.
+	 */
 
 	/* ----- Hand-coded Kalman benchmark ----- */
 	struct hand_kf hkf;
@@ -140,7 +142,7 @@ int main(void)
 	true_val = 0;
 	prng_seed = 42;
 
-	timing_t t0 = timing_counter_get();
+	uint32_t t0_ms = k_uptime_get_32();
 
 	for (int i = 0; i < BENCH_ITERATIONS; i++) {
 		if (i < 600) {
@@ -149,8 +151,8 @@ int main(void)
 		hand_kf_tick(&hkf, true_val + prng_noise(3000));
 	}
 
-	timing_t t1 = timing_counter_get();
-	uint64_t hand_ns = timing_cycles_to_ns(timing_cycles_get(&t0, &t1));
+	uint32_t t1_ms = k_uptime_get_32();
+	uint64_t hand_ns = (uint64_t)(t1_ms - t0_ms) * 1000000ULL;
 	uint64_t hand_per_tick = hand_ns / BENCH_ITERATIONS;
 
 	LOG_INF("--- Hand-coded Kalman ---");
@@ -197,7 +199,7 @@ int main(void)
 	true_val = 0;
 	prng_seed = 42;
 
-	timing_t t2 = timing_counter_get();
+	uint32_t t2_ms = k_uptime_get_32();
 
 	for (int i = 0; i < BENCH_ITERATIONS; i++) {
 		if (i < 600) {
@@ -217,8 +219,8 @@ int main(void)
 		ARBITER_eval(&ARBITER_generated_model, &snap, &result, NULL);
 	}
 
-	timing_t t3 = timing_counter_get();
-	uint64_t ARBITER_ns = timing_cycles_to_ns(timing_cycles_get(&t2, &t3));
+	uint32_t t3_ms = k_uptime_get_32();
+	uint64_t ARBITER_ns = (uint64_t)(t3_ms - t2_ms) * 1000000ULL;
 	uint64_t ARBITER_per_tick = ARBITER_ns / BENCH_ITERATIONS;
 
 	LOG_INF("--- arbiter Engine Kalman ---");
@@ -247,7 +249,7 @@ int main(void)
 		(unsigned)(sizeof(struct ARBITER_ctx) - sizeof(struct hand_kf)));
 	LOG_INF("  ROM: compare .elf sizes (see README)");
 
-	timing_stop();
+	/* timing_stop() not needed — we're using k_uptime, not timing API */
 
 	return 0;
 }
