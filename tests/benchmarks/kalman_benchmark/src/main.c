@@ -142,6 +142,15 @@ int main(void)
 	LOG_INF("Iterations: %d  (warmup: %d)", BENCH_ITERATIONS,
 		WARMUP_ITERATIONS);
 
+#ifdef CONFIG_NATIVE_SIMULATOR
+	/* Debug: verify get_host_us_time() returns a non-zero advancing value */
+	uint64_t dbg0 = bench_ns();
+	uint64_t dbg1 = bench_ns();
+	LOG_INF("bench_ns debug: t0_hi=%u t0_lo=%u dt_ns=%llu",
+		(uint32_t)(dbg0 >> 32), (uint32_t)(dbg0 & 0xFFFFFFFF),
+		dbg1 - dbg0);
+#endif
+
 	/* ----- Hand-coded Kalman benchmark ----- */
 	struct hand_kf hkf;
 	int32_t true_val = 0;
