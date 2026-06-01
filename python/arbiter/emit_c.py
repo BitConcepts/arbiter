@@ -219,7 +219,9 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
     lines.append("};")
     lines.append("")
 
-    # Expressions table
+    # Expressions table — only emit the array when there are entries.
+    # Never emit a pointer variable: a pointer's value is not a constant
+    # expression in C, so it cannot be used in a static struct initializer.
     expressions = getattr(model, "expressions", [])
     if expressions:
         lines.append("static const struct ARBITER_expr_def model_expressions[] = {")
@@ -235,9 +237,8 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
                 f".scale = {e['scale']} }},"
             )
         lines.append("};")
-    else:
-        lines.append("static const struct ARBITER_expr_def *model_expressions = NULL;")
-    lines.append("")
+        lines.append("")
+    # If no expressions, we emit nothing here and use NULL directly below.
 
     # Mode names
     if model.modes and emit_trace_strings:
@@ -257,6 +258,7 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
     schema_bytes = ", ".join(f"0x{schema_hex[j:j+2]}" for j in range(0, 64, 2))
 
     expr_count_total = len(getattr(model, "expressions", []))
+    exprs_field = "model_expressions" if expressions else "NULL"
     lines.extend([
         "const struct ARBITER_model ARBITER_generated_model = {",
         f'\t.name = "{model.name}",',
@@ -272,7 +274,7 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
         "\t.rules = model_rules,",
         "\t.conditions = model_conditions,",
         "\t.actions = model_actions,",
-        "\t.expressions = model_expressions,",
+        f"\t.expressions = {exprs_field},",
         "\t.mode_names = model_mode_names,",
         "};",
         "",

@@ -200,8 +200,9 @@ def test_emit_c_rules_have_expr_start_and_count():
     assert ".expr_count = 1" in src
 
 
-def test_emit_c_no_exprs_emits_null_pointer():
-    """A model with no compute expressions should emit a NULL pointer."""
+def test_emit_c_no_exprs_uses_null_directly():
+    """When there are no expressions, the model struct must use NULL directly
+    (not a pointer variable — pointer variables are not constant expressions)."""
     data = {
         "arb_version": 0.1,
         "model": "no_exprs",
@@ -215,7 +216,9 @@ def test_emit_c_no_exprs_emits_null_pointer():
     }
     model = canonicalize(data)
     src = emit_c_source(model)
-    assert "model_expressions = NULL" in src
+    # The array symbol must not be declared when empty (pointer var is not constexpr).
+    assert "model_expressions[]" not in src
+    assert ".expressions = NULL" in src
     assert ".expr_count = 0" in src
 
 

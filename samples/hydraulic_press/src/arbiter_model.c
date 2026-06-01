@@ -56,8 +56,6 @@ static const struct ARBITER_rule_def model_rules[] = {
 	{ .id = 7, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 14, .condition_count = 2, .action_start = 1, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 5, .safety_critical = true, .name = "rule.twohand_release", .explanation = "Two-hand control released — operator may be in zone." },
 };
 
-static const struct ARBITER_expr_def *model_expressions = NULL;
-
 static const char *model_mode_names[] = {
 	"mode.approach",
 	"mode.estop",
@@ -85,6 +83,6 @@ const struct ARBITER_model ARBITER_generated_model = {
 	.rules = model_rules,
 	.conditions = model_conditions,
 	.actions = model_actions,
-	.expressions = model_expressions,
+	.expressions = NULL,
 	.mode_names = model_mode_names,
 };

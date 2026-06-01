@@ -32,8 +32,6 @@ static const struct ARBITER_rule_def model_rules[] = {
 	{ .id = 3, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 4, .condition_count = 2, .action_start = 0, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 4, .safety_critical = true, .name = "rule.thermal_shutdown", .explanation = "Temperature out of safe range." },
 };
 
-static const struct ARBITER_expr_def *model_expressions = NULL;
-
 static const char *model_mode_names[] = {
 	"mode.charging",
 	"mode.critical",
@@ -56,6 +54,6 @@ const struct ARBITER_model ARBITER_generated_model = {
 	.rules = model_rules,
 	.conditions = model_conditions,
 	.actions = model_actions,
-	.expressions = model_expressions,
+	.expressions = NULL,
 	.mode_names = model_mode_names,
 };
