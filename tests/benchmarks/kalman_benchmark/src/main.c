@@ -13,24 +13,21 @@
 #include <arbiter/arbiter.h>
 #include "arbiter_model.h"
 
-/* Real host time via glibc clock_gettime (not Zephyr's simulated clock).
- * Zephyr's POSIX wrapper doesn't define CLOCK_MONOTONIC_RAW without
- * CONFIG_POSIX_CLOCK_SELECTION=y, so hardcode the Linux clockid values.
- * CLOCK_MONOTONIC_RAW (4) gives nanosecond-resolution real host time.
+/* Real host time via glibc clock_gettime bypassing Zephyr's POSIX override.
+ * Define our own timespec-compatible struct (Linux 32-bit: long,long = 8 bytes)
+ * and declare clock_gettime with it. glibc's clock_gettime(4, ...) returns
+ * CLOCK_MONOTONIC_RAW with nanosecond resolution.
  */
-struct timespec;  /* forward declare for glibc signature */
-extern int clock_gettime(int clk_id, struct timespec *tp);
-
-#ifndef CLOCK_MONOTONIC_RAW
-#define CLOCK_MONOTONIC_RAW 4
-#endif
+struct bench_ts { long tv_sec; long tv_nsec; };
+extern int clock_gettime(int, struct bench_ts *);
 
 static inline uint64_t bench_ns(void)
 {
-	struct timespec ts;
+	struct bench_ts ts;
 
-	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-	return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+	clock_gettime(4 /* CLOCK_MONOTONIC_RAW */, &ts);
+	return (uint64_t)(unsigned long)ts.tv_sec * 1000000000ULL +
+		(uint64_t)(unsigned long)ts.tv_nsec;
 }
 
 LOG_MODULE_REGISTER(kf_bench, LOG_LEVEL_INF);

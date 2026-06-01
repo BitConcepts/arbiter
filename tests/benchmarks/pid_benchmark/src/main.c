@@ -21,18 +21,16 @@
 #include <arbiter/arbiter.h>
 #include "arbiter_model.h"
 
-struct timespec;
-extern int clock_gettime(int clk_id, struct timespec *tp);
-#ifndef CLOCK_MONOTONIC_RAW
-#define CLOCK_MONOTONIC_RAW 4
-#endif
+struct bench_ts { long tv_sec; long tv_nsec; };
+extern int clock_gettime(int, struct bench_ts *);
 
 static inline uint64_t bench_ns(void)
 {
-	struct timespec ts;
+	struct bench_ts ts;
 
-	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-	return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+	clock_gettime(4 /* CLOCK_MONOTONIC_RAW */, &ts);
+	return (uint64_t)(unsigned long)ts.tv_sec * 1000000000ULL +
+		(uint64_t)(unsigned long)ts.tv_nsec;
 }
 
 LOG_MODULE_REGISTER(pid_bench, LOG_LEVEL_INF);
