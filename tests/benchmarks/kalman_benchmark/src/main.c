@@ -160,7 +160,9 @@ int main(void)
 	uint64_t hand_per_tick = hand_ns / BENCH_ITERATIONS;
 
 	LOG_INF("--- Hand-coded Kalman ---");
-	LOG_INF("  Total: %llu ns  (%llu ns/tick)", hand_ns, hand_per_tick);
+	/* Print in ms (uint32) to avoid any %llu 32-bit printing issues */
+	LOG_INF("  Total: %u ms  (%u ns/tick)",
+		(uint32_t)(hand_ns / 1000000ULL), (uint32_t)hand_per_tick);
 	LOG_INF("  RAM (struct): %u bytes", (unsigned)sizeof(struct hand_kf));
 	LOG_INF("  Final estimate: %d (true: %d)", hkf.x_est, true_val);
 
@@ -228,7 +230,8 @@ int main(void)
 	uint64_t ARBITER_per_tick = ARBITER_ns / BENCH_ITERATIONS;
 
 	LOG_INF("--- arbiter Engine Kalman ---");
-	LOG_INF("  Total: %llu ns  (%llu ns/tick)", ARBITER_ns, ARBITER_per_tick);
+	LOG_INF("  Total: %u ms  (%u ns/tick)",
+		(uint32_t)(ARBITER_ns / 1000000ULL), (uint32_t)ARBITER_per_tick);
 	LOG_INF("  RAM (ctx): %u bytes", (unsigned)sizeof(struct ARBITER_ctx));
 	LOG_INF("  Final estimate: %d (true: %d)",
 		zctx.fact_values[F_X_EST].value, true_val);
@@ -247,8 +250,9 @@ int main(void)
 			       / hand_per_tick;
 	}
 
-	LOG_INF("  Overhead: %llu%% (%llu vs %llu ns/tick)",
-		overhead_pct, ARBITER_per_tick, hand_per_tick);
+	LOG_INF("  Overhead: %u%% (%u vs %u ns/tick)",
+		(uint32_t)overhead_pct, (uint32_t)ARBITER_per_tick,
+		(uint32_t)hand_per_tick);
 	LOG_INF("  RAM delta: %u bytes",
 		(unsigned)(sizeof(struct ARBITER_ctx) - sizeof(struct hand_kf)));
 	LOG_INF("  ROM: compare .elf sizes (see README)");
