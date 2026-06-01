@@ -1,5 +1,15 @@
 # Change Ledger
 
+## 2026-05-31T23:59 — Fix Zephyr CMake source filename casing
+- **Author**: Oz
+- **Type**: fix
+- **REQs affected**: REQ-BUILD-001, REQ-ARCH-016
+- **Summary**: Updated root and subsystem CMake source references from
+  legacy uppercase filenames (`ARBITER_*.c`) to the actual lowercase
+  repository filenames (`arbiter_*.c`). This fixes Twister CMake generate
+  failures on Linux case-sensitive filesystems.
+- **Status**: complete
+
 ## 2026-05-31T23:44 — Fix Zephyr module CMake source path resolution
 - **Author**: Oz
 - **Type**: fix

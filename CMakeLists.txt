@@ -3,18 +3,18 @@
 if(CONFIG_ARBITER)
   zephyr_library()
   zephyr_library_sources(
-    ${CMAKE_CURRENT_LIST_DIR}/lib/ARBITER_engine.c
-    ${CMAKE_CURRENT_LIST_DIR}/lib/ARBITER_fact_store.c
-    ${CMAKE_CURRENT_LIST_DIR}/lib/ARBITER_eval.c
-    ${CMAKE_CURRENT_LIST_DIR}/lib/ARBITER_trace.c
+    ${CMAKE_CURRENT_LIST_DIR}/lib/arbiter_engine.c
+    ${CMAKE_CURRENT_LIST_DIR}/lib/arbiter_fact_store.c
+    ${CMAKE_CURRENT_LIST_DIR}/lib/arbiter_eval.c
+    ${CMAKE_CURRENT_LIST_DIR}/lib/arbiter_trace.c
   )
 
   zephyr_library_sources_ifdef(CONFIG_ARBITER_BLOB_LOADER
-    ${CMAKE_CURRENT_LIST_DIR}/lib/ARBITER_blob.c
+    ${CMAKE_CURRENT_LIST_DIR}/lib/arbiter_blob.c
   )
 
   zephyr_library_sources_ifdef(CONFIG_ARBITER_ACTION_DISPATCHER
-    ${CMAKE_CURRENT_LIST_DIR}/lib/ARBITER_action.c
+    ${CMAKE_CURRENT_LIST_DIR}/lib/arbiter_action.c
   )
 
   zephyr_include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
