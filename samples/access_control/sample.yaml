@@ -8,3 +8,10 @@ common:
   tags: arbiter reasoning cors auth security api iot
   harness: console
   platform_allow: native_sim
+tests:
+  sample.arbiter.access-control:
+    tags: arbiter sample
+    platform_allow: native_sim
+    harness: console
+    build_only: true
+

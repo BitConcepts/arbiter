@@ -9,3 +9,10 @@ common:
   tags: arbiter reasoning firewall security network iot
   harness: console
   platform_allow: native_sim
+tests:
+  sample.arbiter.firewall-policy:
+    tags: arbiter sample
+    platform_allow: native_sim
+    harness: console
+    build_only: true
+

@@ -8,3 +8,10 @@ common:
   tags: arbiter reasoning safety tmr voter sil functional-safety
   harness: console
   platform_allow: native_sim
+tests:
+  sample.arbiter.tmr-voter:
+    tags: arbiter sample
+    platform_allow: native_sim
+    harness: console
+    build_only: true
+

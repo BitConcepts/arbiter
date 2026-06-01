@@ -9,3 +9,10 @@ common:
   tags: arbiter solver scheduler deadline priority real-time
   harness: console
   platform_allow: native_sim
+tests:
+  sample.arbiter.task-scheduler:
+    tags: arbiter sample solver
+    platform_allow: native_sim
+    harness: console
+    build_only: true
+

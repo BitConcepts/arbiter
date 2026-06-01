@@ -9,3 +9,10 @@ common:
   tags: arbiter reasoning sequencer valve process-control batch
   harness: console
   platform_allow: native_sim
+tests:
+  sample.arbiter.valve-sequencer:
+    tags: arbiter sample
+    platform_allow: native_sim
+    harness: console
+    build_only: true
+

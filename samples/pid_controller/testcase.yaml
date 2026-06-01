@@ -1,6 +1,0 @@
-tests:
-  sample.arbiter.pid-controller:
-    tags: arbiter sample
-    platform_allow: native_sim
-    harness: console
-    build_only: true
