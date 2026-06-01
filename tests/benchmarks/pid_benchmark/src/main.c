@@ -23,10 +23,11 @@
 
 #ifdef CONFIG_NATIVE_SIMULATOR
 #include <time.h>
+#include <sys/syscall.h>
 static inline uint64_t bench_ns(void)
 {
 	struct timespec ts;
-	clock_gettime(CLOCK_MONOTONIC, &ts);
+	syscall(__NR_clock_gettime, CLOCK_MONOTONIC, &ts);
 	return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
 }
 #else
