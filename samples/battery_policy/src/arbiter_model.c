@@ -26,11 +26,13 @@ static const struct ARBITER_action_def model_actions[] = {
 };
 
 static const struct ARBITER_rule_def model_rules[] = {
-	{ .id = 0, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 0, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "rule.charging", .explanation = "Charger connected and battery not full." },
-	{ .id = 1, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 2, .condition_count = 1, .action_start = 1, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = true, .name = "rule.critical_battery", .explanation = "Battery critically low, disabling load." },
-	{ .id = 2, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 3, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "rule.low_battery", .explanation = "Battery voltage below 3.3V threshold." },
-	{ .id = 3, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 4, .condition_count = 2, .action_start = 0, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 4, .safety_critical = true, .name = "rule.thermal_shutdown", .explanation = "Temperature out of safe range." },
+	{ .id = 0, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 0, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "rule.charging", .explanation = "Charger connected and battery not full." },
+	{ .id = 1, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 2, .condition_count = 1, .action_start = 1, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = true, .name = "rule.critical_battery", .explanation = "Battery critically low, disabling load." },
+	{ .id = 2, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 3, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "rule.low_battery", .explanation = "Battery voltage below 3.3V threshold." },
+	{ .id = 3, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 4, .condition_count = 2, .action_start = 0, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 4, .safety_critical = true, .name = "rule.thermal_shutdown", .explanation = "Temperature out of safe range." },
 };
+
+static const struct ARBITER_expr_def *model_expressions = NULL;
 
 static const char *model_mode_names[] = {
 	"mode.charging",
@@ -48,10 +50,12 @@ const struct ARBITER_model ARBITER_generated_model = {
 	.rule_count = 4,
 	.condition_count = 6,
 	.action_count = 2,
+	.expr_count = 0,
 	.mode_count = 5,
 	.facts = model_facts,
 	.rules = model_rules,
 	.conditions = model_conditions,
 	.actions = model_actions,
+	.expressions = model_expressions,
 	.mode_names = model_mode_names,
 };

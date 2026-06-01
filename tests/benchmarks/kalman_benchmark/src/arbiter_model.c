@@ -39,12 +39,25 @@ static const struct ARBITER_action_def model_actions[] = {
 };
 
 static const struct ARBITER_rule_def model_rules[] = {
-	{ .id = 0, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 0, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = true, .name = "01_fault.sensor", .explanation = "Sensor fault — hold last estimate." },
-	{ .id = 1, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 2, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "02_check.disabled", .explanation = NULL },
-	{ .id = 2, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 3, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = false, .name = "10_predict", .explanation = "Predict: propagate state and covariance." },
-	{ .id = 3, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 5, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "20_update.gain", .explanation = "Update: compute Kalman gain." },
-	{ .id = 4, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 7, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "30_update.state", .explanation = "Update: correct state estimate and covariance." },
-	{ .id = 5, .rule_class = ARBITER_RULE_OBLIGATION, .condition_start = 9, .condition_count = 1, .action_start = 0, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "40_output", .explanation = "Publish filtered estimate." },
+	{ .id = 0, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 0, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = true, .name = "01_fault.sensor", .explanation = "Sensor fault — hold last estimate." },
+	{ .id = 1, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 2, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "02_check.disabled", .explanation = NULL },
+	{ .id = 2, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 3, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 0, .expr_count = 2, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = false, .name = "10_predict", .explanation = "Predict: propagate state and covariance." },
+	{ .id = 3, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 5, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 2, .expr_count = 3, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "20_update.gain", .explanation = "Update: compute Kalman gain." },
+	{ .id = 4, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 7, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 5, .expr_count = 5, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "30_update.state", .explanation = "Update: correct state estimate and covariance." },
+	{ .id = 5, .rule_class = ARBITER_RULE_OBLIGATION, .condition_start = 9, .condition_count = 1, .action_start = 0, .action_count = 1, .expr_start = 10, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "40_output", .explanation = "Publish filtered estimate." },
+};
+
+static const struct ARBITER_expr_def model_expressions[] = {
+	{ .target_fact_id = 11, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 10, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 9, .op = ARBITER_EXPR_ADD, .left_fact_id = 7, .left_literal = 0, .right_fact_id = 12, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 4, .op = ARBITER_EXPR_ADD, .left_fact_id = 9, .left_literal = 0, .right_fact_id = 13, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 6, .op = ARBITER_EXPR_SCALE, .left_fact_id = 9, .left_literal = 0, .right_fact_id = 65535, .right_literal = 1000, .scale = 1 },
+	{ .target_fact_id = 6, .op = ARBITER_EXPR_DIV, .left_fact_id = 6, .left_literal = 0, .right_fact_id = 4, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 5, .op = ARBITER_EXPR_SUB, .left_fact_id = 1, .left_literal = 0, .right_fact_id = 11, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 3, .op = ARBITER_EXPR_SCALE, .left_fact_id = 6, .left_literal = 0, .right_fact_id = 5, .right_literal = 0, .scale = 1000 },
+	{ .target_fact_id = 10, .op = ARBITER_EXPR_ADD, .left_fact_id = 11, .left_literal = 0, .right_fact_id = 3, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 8, .op = ARBITER_EXPR_SUB, .left_fact_id = 65535, .left_literal = 1000, .right_fact_id = 6, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 7, .op = ARBITER_EXPR_SCALE, .left_fact_id = 8, .left_literal = 0, .right_fact_id = 9, .right_literal = 0, .scale = 1000 },
 };
 
 static const char *model_mode_names[] = {
@@ -61,10 +74,12 @@ const struct ARBITER_model ARBITER_generated_model = {
 	.rule_count = 6,
 	.condition_count = 10,
 	.action_count = 1,
+	.expr_count = 10,
 	.mode_count = 3,
 	.facts = model_facts,
 	.rules = model_rules,
 	.conditions = model_conditions,
 	.actions = model_actions,
+	.expressions = model_expressions,
 	.mode_names = model_mode_names,
 };

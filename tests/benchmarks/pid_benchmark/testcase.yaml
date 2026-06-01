@@ -1,7 +1,9 @@
 tests:
   benchmark.arbiter.pid:
     tags: arbiter benchmark
-    platform_allow: native_sim
+    platform_allow:
+      - native_sim
+      - qemu_x86
     harness: console
     extra_args: CONF_FILE=prj.conf
     harness_config:

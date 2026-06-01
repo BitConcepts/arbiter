@@ -48,17 +48,21 @@ static const struct ARBITER_action_def model_actions[] = {
 };
 
 static const struct ARBITER_rule_def model_rules[] = {
-	{ .id = 0, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 0, .condition_count = 1, .action_start = 1, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = true, .name = "01_boot.hash_fail", .explanation = "Firmware image hash mismatch — tampered binary." },
-	{ .id = 1, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 1, .condition_count = 1, .action_start = 1, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = true, .name = "02_boot.signature_fail", .explanation = "Code signature invalid — unsigned or forged firmware." },
-	{ .id = 2, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 2, .condition_count = 1, .action_start = 1, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = true, .name = "03_boot.rollback", .explanation = "Anti-rollback check failed — downgrade attempt." },
-	{ .id = 3, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 3, .condition_count = 1, .action_start = 2, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = true, .name = "10_runtime.code_tampered", .explanation = "Code region hash mismatch at runtime — quarantine." },
-	{ .id = 4, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 4, .condition_count = 1, .action_start = 2, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = true, .name = "11_runtime.stack_smash", .explanation = "Stack canary violation — possible exploit." },
-	{ .id = 5, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 5, .condition_count = 1, .action_start = 3, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = false, .name = "12_runtime.heap_corrupt", .explanation = "Heap integrity check failed — degraded mode." },
-	{ .id = 6, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 6, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "20_threat.score", .explanation = NULL },
-	{ .id = 7, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 7, .condition_count = 1, .action_start = 2, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "21_threat.elevated", .explanation = "Threat score > 50 — quarantine." },
-	{ .id = 8, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 8, .condition_count = 3, .action_start = 0, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 5, .safety_critical = false, .name = "30_update.check", .explanation = "OTA update: trusted source, hash verified — approve." },
-	{ .id = 9, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 11, .condition_count = 2, .action_start = 4, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = true, .name = "31_update.reject", .explanation = "OTA from untrusted source — reject." },
-	{ .id = 10, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 13, .condition_count = 3, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 4, .safety_critical = false, .name = "40_normal", .explanation = NULL },
+	{ .id = 0, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 0, .condition_count = 1, .action_start = 1, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = true, .name = "01_boot.hash_fail", .explanation = "Firmware image hash mismatch — tampered binary." },
+	{ .id = 1, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 1, .condition_count = 1, .action_start = 1, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = true, .name = "02_boot.signature_fail", .explanation = "Code signature invalid — unsigned or forged firmware." },
+	{ .id = 2, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 2, .condition_count = 1, .action_start = 1, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = true, .name = "03_boot.rollback", .explanation = "Anti-rollback check failed — downgrade attempt." },
+	{ .id = 3, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 3, .condition_count = 1, .action_start = 2, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = true, .name = "10_runtime.code_tampered", .explanation = "Code region hash mismatch at runtime — quarantine." },
+	{ .id = 4, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 4, .condition_count = 1, .action_start = 2, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = true, .name = "11_runtime.stack_smash", .explanation = "Stack canary violation — possible exploit." },
+	{ .id = 5, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 5, .condition_count = 1, .action_start = 3, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = false, .name = "12_runtime.heap_corrupt", .explanation = "Heap integrity check failed — degraded mode." },
+	{ .id = 6, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 6, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 0, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "20_threat.score", .explanation = NULL },
+	{ .id = 7, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 7, .condition_count = 1, .action_start = 2, .action_count = 1, .expr_start = 1, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "21_threat.elevated", .explanation = "Threat score > 50 — quarantine." },
+	{ .id = 8, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 8, .condition_count = 3, .action_start = 0, .action_count = 1, .expr_start = 1, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 5, .safety_critical = false, .name = "30_update.check", .explanation = "OTA update: trusted source, hash verified — approve." },
+	{ .id = 9, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 11, .condition_count = 2, .action_start = 4, .action_count = 1, .expr_start = 1, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = true, .name = "31_update.reject", .explanation = "OTA from untrusted source — reject." },
+	{ .id = 10, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 13, .condition_count = 3, .action_start = 0, .action_count = 0, .expr_start = 1, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 4, .safety_critical = false, .name = "40_normal", .explanation = NULL },
+};
+
+static const struct ARBITER_expr_def model_expressions[] = {
+	{ .target_fact_id = 4, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
 };
 
 static const char *model_mode_names[] = {
@@ -78,10 +82,12 @@ const struct ARBITER_model ARBITER_generated_model = {
 	.rule_count = 11,
 	.condition_count = 16,
 	.action_count = 5,
+	.expr_count = 1,
 	.mode_count = 6,
 	.facts = model_facts,
 	.rules = model_rules,
 	.conditions = model_conditions,
 	.actions = model_actions,
+	.expressions = model_expressions,
 	.mode_names = model_mode_names,
 };

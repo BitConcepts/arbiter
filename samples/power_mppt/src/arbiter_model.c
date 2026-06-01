@@ -42,15 +42,32 @@ static const struct ARBITER_action_def model_actions[] = {
 };
 
 static const struct ARBITER_rule_def model_rules[] = {
-	{ .id = 0, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 0, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "01_night", .explanation = "Panel voltage < 5V — night mode, disable converter." },
-	{ .id = 1, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 1, .condition_count = 1, .action_start = 0, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = true, .name = "02_overtemp", .explanation = "Battery > 50°C — stop charging." },
-	{ .id = 2, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 2, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = false, .name = "05_float", .explanation = "Battery >= 95% SoC — float charge mode." },
-	{ .id = 3, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 4, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 5, .safety_critical = false, .name = "10_mppt.compute_power", .explanation = "Compute panel power and deltas for P&O." },
-	{ .id = 4, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 6, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "20_mppt.power_increased", .explanation = "Power increased — continue same direction." },
-	{ .id = 5, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 7, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "21_mppt.power_decreased", .explanation = "Power decreased — reverse perturb direction." },
-	{ .id = 6, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 8, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "30_mppt.step_up", .explanation = NULL },
-	{ .id = 7, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 10, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "31_mppt.step_down", .explanation = NULL },
-	{ .id = 8, .rule_class = ARBITER_RULE_OBLIGATION, .condition_start = 12, .condition_count = 1, .action_start = 1, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "40_actuate", .explanation = "Apply computed duty cycle to converter PWM." },
+	{ .id = 0, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 0, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 0, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "01_night", .explanation = "Panel voltage < 5V — night mode, disable converter." },
+	{ .id = 1, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 1, .condition_count = 1, .action_start = 0, .action_count = 1, .expr_start = 1, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = true, .name = "02_overtemp", .explanation = "Battery > 50°C — stop charging." },
+	{ .id = 2, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 2, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 2, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = false, .name = "05_float", .explanation = "Battery >= 95% SoC — float charge mode." },
+	{ .id = 3, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 4, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 3, .expr_count = 5, .safety_goal_id = UINT16_MAX, .set_mode = 5, .safety_critical = false, .name = "10_mppt.compute_power", .explanation = "Compute panel power and deltas for P&O." },
+	{ .id = 4, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 6, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 8, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "20_mppt.power_increased", .explanation = "Power increased — continue same direction." },
+	{ .id = 5, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 7, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 9, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "21_mppt.power_decreased", .explanation = "Power decreased — reverse perturb direction." },
+	{ .id = 6, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 8, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 10, .expr_count = 2, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "30_mppt.step_up", .explanation = NULL },
+	{ .id = 7, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 10, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 12, .expr_count = 2, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "31_mppt.step_down", .explanation = NULL },
+	{ .id = 8, .rule_class = ARBITER_RULE_OBLIGATION, .condition_start = 12, .condition_count = 1, .action_start = 1, .action_count = 1, .expr_start = 14, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "40_actuate", .explanation = "Apply computed duty cycle to converter PWM." },
+};
+
+static const struct ARBITER_expr_def model_expressions[] = {
+	{ .target_fact_id = 6, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 6, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 6, .op = ARBITER_EXPR_CLAMP, .left_fact_id = 6, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 300 },
+	{ .target_fact_id = 11, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 12, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 10, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 7, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 7, .op = ARBITER_EXPR_SCALE, .left_fact_id = 12, .left_literal = 0, .right_fact_id = 9, .right_literal = 0, .scale = 1000 },
+	{ .target_fact_id = 3, .op = ARBITER_EXPR_SUB, .left_fact_id = 7, .left_literal = 0, .right_fact_id = 10, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 4, .op = ARBITER_EXPR_SUB, .left_fact_id = 12, .left_literal = 0, .right_fact_id = 11, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 5, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 5, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 5, .op = ARBITER_EXPR_NEGATE, .left_fact_id = 5, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 6, .op = ARBITER_EXPR_ADD, .left_fact_id = 6, .left_literal = 0, .right_fact_id = 8, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 6, .op = ARBITER_EXPR_CLAMP, .left_fact_id = 6, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 950 },
+	{ .target_fact_id = 6, .op = ARBITER_EXPR_SUB, .left_fact_id = 6, .left_literal = 0, .right_fact_id = 8, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 6, .op = ARBITER_EXPR_CLAMP, .left_fact_id = 6, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 950 },
 };
 
 static const char *model_mode_names[] = {
@@ -70,10 +87,12 @@ const struct ARBITER_model ARBITER_generated_model = {
 	.rule_count = 9,
 	.condition_count = 13,
 	.action_count = 2,
+	.expr_count = 14,
 	.mode_count = 6,
 	.facts = model_facts,
 	.rules = model_rules,
 	.conditions = model_conditions,
 	.actions = model_actions,
+	.expressions = model_expressions,
 	.mode_names = model_mode_names,
 };

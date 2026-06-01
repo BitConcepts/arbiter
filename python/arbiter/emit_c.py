@@ -33,6 +33,17 @@ _ACTION_TYPE_MAP = {
     "raise_fault": "ARBITER_ACTION_RAISE_FAULT", "clear_fault": "ARBITER_ACTION_CLEAR_FAULT",
 }
 
+_EXPR_OP_MAP = {
+    "add": "ARBITER_EXPR_ADD", "sub": "ARBITER_EXPR_SUB",
+    "mul": "ARBITER_EXPR_MUL", "div": "ARBITER_EXPR_DIV",
+    "mod": "ARBITER_EXPR_MOD", "abs": "ARBITER_EXPR_ABS",
+    "negate": "ARBITER_EXPR_NEGATE", "min": "ARBITER_EXPR_MIN",
+    "max": "ARBITER_EXPR_MAX", "clamp": "ARBITER_EXPR_CLAMP",
+    "shift_r": "ARBITER_EXPR_SHIFT_R", "shift_l": "ARBITER_EXPR_SHIFT_L",
+    "scale": "ARBITER_EXPR_SCALE", "accumulate": "ARBITER_EXPR_ACCUMULATE",
+    "assign": "ARBITER_EXPR_ASSIGN",
+}
+
 
 def _c_str(s: str | None) -> str:
     return f'"{s}"' if s else "NULL"
@@ -190,10 +201,13 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
         raw_expl = then.get("explanation") if isinstance(then, dict) else None
         explanation = _c_str(raw_expl) if emit_trace_strings else "NULL"
 
+        expr_start = r.get("_expr_start", 0)
+        expr_count = r.get("_expr_count", 0)
         lines.append(
             f"\t{{ .id = {i}, .rule_class = {rclass}, "
             f".condition_start = {cond_offset}, .condition_count = {cond_count}, "
             f".action_start = {action_start}, .action_count = {action_count}, "
+            f".expr_start = {expr_start}, .expr_count = {expr_count}, "
             f".safety_goal_id = UINT16_MAX, .set_mode = {set_mode}, "
             f".safety_critical = {safety_critical}, "
             f".name = {name}, .explanation = {explanation} }},"
@@ -203,6 +217,26 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
     if not model.rules:
         lines.append("\t{ 0 },  /* empty */")
     lines.append("};")
+    lines.append("")
+
+    # Expressions table
+    expressions = getattr(model, "expressions", [])
+    if expressions:
+        lines.append("static const struct ARBITER_expr_def model_expressions[] = {")
+        for e in expressions:
+            op_enum = _EXPR_OP_MAP.get(e.get("op", "assign"), "ARBITER_EXPR_ASSIGN")
+            lines.append(
+                f"\t{{ .target_fact_id = {e['target_fact_id']}, "
+                f".op = {op_enum}, "
+                f".left_fact_id = {e['left_fact_id']}, "
+                f".left_literal = {e['left_literal']}, "
+                f".right_fact_id = {e['right_fact_id']}, "
+                f".right_literal = {e['right_literal']}, "
+                f".scale = {e['scale']} }},"
+            )
+        lines.append("};")
+    else:
+        lines.append("static const struct ARBITER_expr_def *model_expressions = NULL;")
     lines.append("")
 
     # Mode names
@@ -222,6 +256,7 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
     schema_hex = model.schema_hash[:64].ljust(64, "0")
     schema_bytes = ", ".join(f"0x{schema_hex[j:j+2]}" for j in range(0, 64, 2))
 
+    expr_count_total = len(getattr(model, "expressions", []))
     lines.extend([
         "const struct ARBITER_model ARBITER_generated_model = {",
         f'\t.name = "{model.name}",',
@@ -231,11 +266,13 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
         f"\t.rule_count = {model.max_rules},",
         f"\t.condition_count = {model.max_conditions},",
         f"\t.action_count = {model.max_actions},",
+        f"\t.expr_count = {expr_count_total},",
         f"\t.mode_count = {len([m for m in model.modes if isinstance(m, dict)])},",
         "\t.facts = model_facts,",
         "\t.rules = model_rules,",
         "\t.conditions = model_conditions,",
         "\t.actions = model_actions,",
+        "\t.expressions = model_expressions,",
         "\t.mode_names = model_mode_names,",
         "};",
         "",

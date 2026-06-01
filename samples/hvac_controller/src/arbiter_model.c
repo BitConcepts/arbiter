@@ -47,14 +47,24 @@ static const struct ARBITER_action_def model_actions[] = {
 };
 
 static const struct ARBITER_rule_def model_rules[] = {
-	{ .id = 0, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 0, .condition_count = 1, .action_start = 0, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 6, .safety_critical = false, .name = "01_window.open", .explanation = "Window open — HVAC off to save energy." },
-	{ .id = 1, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 1, .condition_count = 3, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 5, .safety_critical = false, .name = "05_setback", .explanation = "Unoccupied & off-schedule — setback mode." },
-	{ .id = 2, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 4, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "10_compute.error", .explanation = NULL },
-	{ .id = 3, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 5, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 4, .safety_critical = false, .name = "15_peak.shed", .explanation = "Peak pricing — limiting demand to 50%." },
-	{ .id = 4, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 7, .condition_count = 2, .action_start = 3, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "20_mode.heating", .explanation = "Heating demand > 5%." },
-	{ .id = 5, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 9, .condition_count = 2, .action_start = 1, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "21_mode.cooling", .explanation = "Cooling demand > 5%." },
-	{ .id = 6, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 11, .condition_count = 3, .action_start = 2, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = false, .name = "22_mode.dehumidify", .explanation = "Humidity > 65% and no temp demand — dehumidify." },
-	{ .id = 7, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 14, .condition_count = 4, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = false, .name = "23_mode.idle", .explanation = NULL },
+	{ .id = 0, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 0, .condition_count = 1, .action_start = 0, .action_count = 1, .expr_start = 0, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 6, .safety_critical = false, .name = "01_window.open", .explanation = "Window open — HVAC off to save energy." },
+	{ .id = 1, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 1, .condition_count = 3, .action_start = 0, .action_count = 0, .expr_start = 1, .expr_count = 2, .safety_goal_id = UINT16_MAX, .set_mode = 5, .safety_critical = false, .name = "05_setback", .explanation = "Unoccupied & off-schedule — setback mode." },
+	{ .id = 2, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 4, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 3, .expr_count = 3, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "10_compute.error", .explanation = NULL },
+	{ .id = 3, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 5, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 6, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 4, .safety_critical = false, .name = "15_peak.shed", .explanation = "Peak pricing — limiting demand to 50%." },
+	{ .id = 4, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 7, .condition_count = 2, .action_start = 3, .action_count = 1, .expr_start = 7, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "20_mode.heating", .explanation = "Heating demand > 5%." },
+	{ .id = 5, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 9, .condition_count = 2, .action_start = 1, .action_count = 1, .expr_start = 7, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "21_mode.cooling", .explanation = "Cooling demand > 5%." },
+	{ .id = 6, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 11, .condition_count = 3, .action_start = 2, .action_count = 1, .expr_start = 7, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = false, .name = "22_mode.dehumidify", .explanation = "Humidity > 65% and no temp demand — dehumidify." },
+	{ .id = 7, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 14, .condition_count = 4, .action_start = 0, .action_count = 0, .expr_start = 7, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = false, .name = "23_mode.idle", .explanation = NULL },
+};
+
+static const struct ARBITER_expr_def model_expressions[] = {
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 2, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 1, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 8, .op = ARBITER_EXPR_SUB, .left_fact_id = 8, .left_literal = 0, .right_fact_id = 65535, .right_literal = 30, .scale = 1 },
+	{ .target_fact_id = 1, .op = ARBITER_EXPR_SUB, .left_fact_id = 8, .left_literal = 0, .right_fact_id = 9, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_SCALE, .left_fact_id = 1, .left_literal = 0, .right_fact_id = 65535, .right_literal = 100, .scale = 50 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_CLAMP, .left_fact_id = 0, .left_literal = 0, .right_fact_id = 65535, .right_literal = -100, .scale = 100 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_CLAMP, .left_fact_id = 0, .left_literal = 0, .right_fact_id = 65535, .right_literal = -50, .scale = 50 },
 };
 
 static const char *model_mode_names[] = {
@@ -75,10 +85,12 @@ const struct ARBITER_model ARBITER_generated_model = {
 	.rule_count = 8,
 	.condition_count = 18,
 	.action_count = 4,
+	.expr_count = 7,
 	.mode_count = 7,
 	.facts = model_facts,
 	.rules = model_rules,
 	.conditions = model_conditions,
 	.actions = model_actions,
+	.expressions = model_expressions,
 	.mode_names = model_mode_names,
 };

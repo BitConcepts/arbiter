@@ -46,3 +46,6 @@ coverage.xml
 # specsmith machine-local state
 .chronomemory/
 .specsmith/*.bak
+
+twister-results-*/
+

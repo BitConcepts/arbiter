@@ -12,6 +12,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/timing/timing.h>
 #include <arbiter/arbiter.h>
+#include "arbiter_model.h"
 
 LOG_MODULE_REGISTER(kf_bench, LOG_LEVEL_INF);
 
@@ -67,17 +68,23 @@ static void hand_kf_tick(struct hand_kf *kf, int32_t measurement)
 /*  arbiter Kalman filter (engine-based)                                */
 /* ------------------------------------------------------------------ */
 
-extern const struct ARBITER_model ARBITER_generated_model;
+/* Fact indices from generated header — canonical alphabetical order. */
+#define F_ENABLE       ARBITER_FACT_IN_ENABLE
+#define F_MEASUREMENT  ARBITER_FACT_IN_MEASUREMENT
+#define F_SENSOR_VALID ARBITER_FACT_IN_SENSOR_VALID
+#define F_CORRECTION   ARBITER_FACT_KF_CORRECTION
+#define F_DENOM        ARBITER_FACT_KF_DENOM
+#define F_INNOVATION   ARBITER_FACT_KF_INNOVATION
+#define F_K_GAIN       ARBITER_FACT_KF_K_GAIN
+#define F_P_EST        ARBITER_FACT_KF_P_EST
+#define F_P_FACTOR     ARBITER_FACT_KF_P_FACTOR
+#define F_P_PRED       ARBITER_FACT_KF_P_PRED
+#define F_X_EST        ARBITER_FACT_KF_X_EST
+#define F_X_PRED       ARBITER_FACT_KF_X_PRED
+#define F_Q            ARBITER_FACT_PARAM_Q
+#define F_R            ARBITER_FACT_PARAM_R
 
 static struct ARBITER_ctx zctx;
-
-/* Fact indices matching kalman model canonical order */
-enum {
-	F_MEASUREMENT = 0, F_ENABLE, F_SENSOR_VALID,
-	F_CORRECTION, F_DENOM, F_INNOVATION, F_K_GAIN,
-	F_P_EST, F_P_FACTOR, F_P_PRED, F_X_EST, F_X_PRED,
-	F_Q, F_R,
-};
 
 void app_publish_estimate(void)
 {
@@ -88,8 +95,12 @@ void app_publish_estimate(void)
 /*  Benchmark harness                                                 */
 /* ------------------------------------------------------------------ */
 
-#define BENCH_ITERATIONS  1000
-#define WARMUP_ITERATIONS 100
+/* Increase iterations so native_sim (1 MHz timing clock) yields non-zero
+ * nanosecond counts. On real hardware or QEMU the loop completes faster
+ * but still reports meaningful relative numbers.
+ */
+#define BENCH_ITERATIONS  100000
+#define WARMUP_ITERATIONS 1000
 
 /* Crude PRNG for deterministic noisy measurements */
 static uint32_t prng_seed = 42;

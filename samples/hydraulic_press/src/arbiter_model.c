@@ -46,15 +46,17 @@ static const struct ARBITER_action_def model_actions[] = {
 };
 
 static const struct ARBITER_rule_def model_rules[] = {
-	{ .id = 0, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 0, .condition_count = 1, .action_start = 3, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "rule.bottom_limit", .explanation = "Ram at bottom of stroke — stop advance." },
-	{ .id = 1, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 1, .condition_count = 1, .action_start = 0, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = true, .name = "rule.estop", .explanation = "E-stop active — dump hydraulic pressure immediately." },
-	{ .id = 2, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 2, .condition_count = 2, .action_start = 1, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = true, .name = "rule.guard_open", .explanation = "Guard not closed+locked — cannot press." },
-	{ .id = 3, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 4, .condition_count = 1, .action_start = 4, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 9, .safety_critical = false, .name = "rule.oil_overtemp", .explanation = "Oil > 70°C — stop pump to prevent seal damage." },
-	{ .id = 4, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 5, .condition_count = 1, .action_start = 0, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 6, .safety_critical = true, .name = "rule.overforce", .explanation = "Force > 4500 kN — exceeds press rating." },
-	{ .id = 5, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 6, .condition_count = 1, .action_start = 2, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 6, .safety_critical = true, .name = "rule.overpressure", .explanation = "Pressure > 3000 bar — open relief valve." },
-	{ .id = 6, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 7, .condition_count = 7, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "rule.ready_to_press", .explanation = "All interlocks satisfied — begin approach stroke." },
-	{ .id = 7, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 14, .condition_count = 2, .action_start = 1, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 5, .safety_critical = true, .name = "rule.twohand_release", .explanation = "Two-hand control released — operator may be in zone." },
+	{ .id = 0, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 0, .condition_count = 1, .action_start = 3, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "rule.bottom_limit", .explanation = "Ram at bottom of stroke — stop advance." },
+	{ .id = 1, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 1, .condition_count = 1, .action_start = 0, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = true, .name = "rule.estop", .explanation = "E-stop active — dump hydraulic pressure immediately." },
+	{ .id = 2, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 2, .condition_count = 2, .action_start = 1, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = true, .name = "rule.guard_open", .explanation = "Guard not closed+locked — cannot press." },
+	{ .id = 3, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 4, .condition_count = 1, .action_start = 4, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 9, .safety_critical = false, .name = "rule.oil_overtemp", .explanation = "Oil > 70°C — stop pump to prevent seal damage." },
+	{ .id = 4, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 5, .condition_count = 1, .action_start = 0, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 6, .safety_critical = true, .name = "rule.overforce", .explanation = "Force > 4500 kN — exceeds press rating." },
+	{ .id = 5, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 6, .condition_count = 1, .action_start = 2, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 6, .safety_critical = true, .name = "rule.overpressure", .explanation = "Pressure > 3000 bar — open relief valve." },
+	{ .id = 6, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 7, .condition_count = 7, .action_start = 0, .action_count = 0, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "rule.ready_to_press", .explanation = "All interlocks satisfied — begin approach stroke." },
+	{ .id = 7, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 14, .condition_count = 2, .action_start = 1, .action_count = 1, .expr_start = 0, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 5, .safety_critical = true, .name = "rule.twohand_release", .explanation = "Two-hand control released — operator may be in zone." },
 };
+
+static const struct ARBITER_expr_def *model_expressions = NULL;
 
 static const char *model_mode_names[] = {
 	"mode.approach",
@@ -77,10 +79,12 @@ const struct ARBITER_model ARBITER_generated_model = {
 	.rule_count = 8,
 	.condition_count = 16,
 	.action_count = 5,
+	.expr_count = 0,
 	.mode_count = 10,
 	.facts = model_facts,
 	.rules = model_rules,
 	.conditions = model_conditions,
 	.actions = model_actions,
+	.expressions = model_expressions,
 	.mode_names = model_mode_names,
 };

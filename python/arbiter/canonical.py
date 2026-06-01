@@ -20,6 +20,7 @@ class CanonicalModel:
     conditions: list[dict[str, Any]]
     actions: list[dict[str, Any]]
     modes: list[dict[str, Any]]
+    expressions: list[dict[str, Any]] = field(default_factory=list)
     hazards: list[dict[str, Any]] = field(default_factory=list)
     safety_goals: list[dict[str, Any]] = field(default_factory=list)
     model_hash: str = ""
@@ -46,6 +47,10 @@ class CanonicalModel:
     def max_actions(self) -> int:
         return len(self.actions)
 
+    @property
+    def max_expressions(self) -> int:
+        return len(self.expressions)
+
 
 def canonicalize(data: dict[str, Any]) -> CanonicalModel:
     """Canonicalize a parsed ARB model.
@@ -70,16 +75,32 @@ def canonicalize(data: dict[str, Any]) -> CanonicalModel:
     actions = sorted(data.get("actions", []), key=lambda a: a.get("id", ""))
     action_id_map = {a["id"]: i for i, a in enumerate(actions)}
 
-    # Sort rules by id and flatten conditions
-    rules = sorted(data.get("rules", []), key=lambda r: r.get("id", ""))
-    rule_id_map = {r["id"]: i for i, r in enumerate(rules)}
+    # Sort rules by id and flatten conditions + expressions
+    rules_raw = sorted(data.get("rules", []), key=lambda r: r.get("id", ""))
+    rule_id_map = {r["id"]: i for i, r in enumerate(rules_raw)}
 
-    # Flatten condition trees from all rules
+    # Flatten condition trees and compute expressions from all rules.
+    # Annotate each rule dict with expr_start / expr_count so the emitter
+    # can write them into the rules table without a second pass.
     conditions: list[dict[str, Any]] = []
-    for rule in rules:
+    expressions: list[dict[str, Any]] = []
+    rules: list[dict[str, Any]] = []
+    for rule in rules_raw:
         when = rule.get("when", {})
         if isinstance(when, dict):
             _flatten_conditions(when, conditions, fact_id_map)
+
+        expr_start = len(expressions)
+        rule_exprs = _flatten_expressions(
+            rule.get("then", {}), fact_id_map
+        )
+        expressions.extend(rule_exprs)
+
+        # Attach start/count to a copy of the rule so we don't mutate input.
+        annotated = dict(rule)
+        annotated["_expr_start"] = expr_start
+        annotated["_expr_count"] = len(rule_exprs)
+        rules.append(annotated)
 
     model = CanonicalModel(
         name=data.get("model", "unnamed"),
@@ -89,6 +110,7 @@ def canonicalize(data: dict[str, Any]) -> CanonicalModel:
         conditions=conditions,
         actions=actions,
         modes=modes,
+        expressions=expressions,
         hazards=data.get("hazards", []),
         safety_goals=data.get("safety_goals", []),
         fact_id_map=fact_id_map,
@@ -104,6 +126,73 @@ def canonicalize(data: dict[str, Any]) -> CanonicalModel:
     model.schema_hash = hashlib.sha256(b"zrm_schema_v0.1").hexdigest()
 
     return model
+
+
+_UINT16_MAX = 65535  # UINT16_MAX sentinel for "use literal"
+
+_EXPR_OP_ALIASES: dict[str, str] = {
+    "assign": "assign", "add": "add", "sub": "sub", "mul": "mul",
+    "div": "div", "mod": "mod", "abs": "abs", "negate": "negate",
+    "min": "min", "max": "max", "clamp": "clamp",
+    "shift_r": "shift_r", "shift_l": "shift_l",
+    "scale": "scale", "accumulate": "accumulate",
+}
+
+
+def _flatten_expressions(
+    then: Any,
+    fact_id_map: dict[str, int],
+) -> list[dict[str, Any]]:
+    """Extract compute expressions from a rule's then block.
+
+    Each entry maps to an ``ARBITER_expr_def`` with resolved fact indices.
+    ``UINT16_MAX`` (65535) signals "use the literal instead of a fact".
+    """
+    if not isinstance(then, dict):
+        return []
+    compute = then.get("compute", [])
+    if not isinstance(compute, list):
+        return []
+
+    out: list[dict[str, Any]] = []
+    for expr in compute:
+        if not isinstance(expr, dict):
+            continue
+
+        target = expr.get("target", "")
+        target_id = fact_id_map.get(target, 0)
+
+        # Left operand
+        left_name = expr.get("left")
+        if left_name is not None and left_name in fact_id_map:
+            left_fact_id = fact_id_map[left_name]
+            left_literal: int = 0
+        else:
+            left_fact_id = _UINT16_MAX
+            left_literal = int(expr.get("left_literal", 0))
+
+        # Right operand
+        right_name = expr.get("right")
+        if right_name is not None and right_name in fact_id_map:
+            right_fact_id = fact_id_map[right_name]
+            right_literal: int = 0
+        else:
+            right_fact_id = _UINT16_MAX
+            right_literal = int(expr.get("right_literal", 0))
+
+        op = _EXPR_OP_ALIASES.get(expr.get("op", "assign"), "assign")
+        scale = int(expr.get("scale", 1))
+
+        out.append({
+            "target_fact_id": target_id,
+            "op": op,
+            "left_fact_id": left_fact_id,
+            "left_literal": left_literal,
+            "right_fact_id": right_fact_id,
+            "right_literal": right_literal,
+            "scale": scale,
+        })
+    return out
 
 
 def _flatten_conditions(

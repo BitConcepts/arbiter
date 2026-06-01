@@ -40,14 +40,25 @@ static const struct ARBITER_action_def model_actions[] = {
 };
 
 static const struct ARBITER_rule_def model_rules[] = {
-	{ .id = 0, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 0, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "01_zone.free", .explanation = "Free zone, no human — full speed (2000 mm/s)." },
-	{ .id = 1, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 2, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 4, .safety_critical = false, .name = "02_zone.reduced", .explanation = "Reduced speed zone — 500 mm/s max." },
-	{ .id = 2, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 3, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "03_zone.collaborative", .explanation = "Collaborative zone or human detected — 250 mm/s, 30% force." },
-	{ .id = 3, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 5, .condition_count = 2, .action_start = 0, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = true, .name = "10_proximity.close", .explanation = "Human < 500mm — protective stop." },
-	{ .id = 4, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 7, .condition_count = 3, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "11_proximity.near", .explanation = "Human 500-1000mm — speed proportional to distance." },
-	{ .id = 5, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 10, .condition_count = 2, .action_start = 0, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = true, .name = "20_overspeed", .explanation = "TCP speed > limit while human present — stop." },
-	{ .id = 6, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 12, .condition_count = 2, .action_start = 0, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = true, .name = "21_overtorque", .explanation = "Joint torque > 80% rated during collaboration — stop." },
-	{ .id = 7, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 14, .condition_count = 1, .action_start = 0, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = true, .name = "30_zone.stop", .explanation = "Safety zone = STOP." },
+	{ .id = 0, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 0, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 0, .expr_count = 2, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "01_zone.free", .explanation = "Free zone, no human — full speed (2000 mm/s)." },
+	{ .id = 1, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 2, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 2, .expr_count = 2, .safety_goal_id = UINT16_MAX, .set_mode = 4, .safety_critical = false, .name = "02_zone.reduced", .explanation = "Reduced speed zone — 500 mm/s max." },
+	{ .id = 2, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 3, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 4, .expr_count = 2, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "03_zone.collaborative", .explanation = "Collaborative zone or human detected — 250 mm/s, 30% force." },
+	{ .id = 3, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 5, .condition_count = 2, .action_start = 0, .action_count = 1, .expr_start = 6, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = true, .name = "10_proximity.close", .explanation = "Human < 500mm — protective stop." },
+	{ .id = 4, .rule_class = ARBITER_RULE_MODE_GUARD, .condition_start = 7, .condition_count = 3, .action_start = 0, .action_count = 0, .expr_start = 7, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "11_proximity.near", .explanation = "Human 500-1000mm — speed proportional to distance." },
+	{ .id = 5, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 10, .condition_count = 2, .action_start = 0, .action_count = 1, .expr_start = 8, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = true, .name = "20_overspeed", .explanation = "TCP speed > limit while human present — stop." },
+	{ .id = 6, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 12, .condition_count = 2, .action_start = 0, .action_count = 1, .expr_start = 8, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = true, .name = "21_overtorque", .explanation = "Joint torque > 80% rated during collaboration — stop." },
+	{ .id = 7, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 14, .condition_count = 1, .action_start = 0, .action_count = 1, .expr_start = 8, .expr_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = true, .name = "30_zone.stop", .explanation = "Safety zone = STOP." },
+};
+
+static const struct ARBITER_expr_def model_expressions[] = {
+	{ .target_fact_id = 1, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 2000, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 100, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 1, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 500, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 60, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 1, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 250, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 30, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 1, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 1, .op = ARBITER_EXPR_DIV, .left_fact_id = 4, .left_literal = 0, .right_fact_id = 65535, .right_literal = 4, .scale = 1 },
 };
 
 static const char *model_mode_names[] = {
@@ -66,10 +77,12 @@ const struct ARBITER_model ARBITER_generated_model = {
 	.rule_count = 8,
 	.condition_count = 15,
 	.action_count = 1,
+	.expr_count = 8,
 	.mode_count = 5,
 	.facts = model_facts,
 	.rules = model_rules,
 	.conditions = model_conditions,
 	.actions = model_actions,
+	.expressions = model_expressions,
 	.mode_names = model_mode_names,
 };

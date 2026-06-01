@@ -46,17 +46,31 @@ static const struct ARBITER_action_def model_actions[] = {
 };
 
 static const struct ARBITER_rule_def model_rules[] = {
-	{ .id = 0, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 0, .condition_count = 1, .action_start = 0, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = true, .name = "01_fw.blocklist", .explanation = "Source on blocklist — drop and log." },
-	{ .id = 1, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 1, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "02_fw.allowlist", .explanation = "Source on allowlist — accept." },
-	{ .id = 2, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 2, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "10_fw.established", .explanation = "Established connection, no anomaly — accept." },
-	{ .id = 3, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 4, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "20_fw.syn_flood_score", .explanation = "Compute SYN flood risk from packet rate." },
-	{ .id = 4, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 5, .condition_count = 1, .action_start = 1, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = true, .name = "21_fw.syn_flood_active", .explanation = "SYN flood detected (score > 500) — enable SYN cookies, drop." },
-	{ .id = 5, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 6, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "30_fw.allow_coap", .explanation = "CoAP (UDP/5683) — accept and log." },
-	{ .id = 6, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 8, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "31_fw.allow_mqtt", .explanation = "MQTT-TLS (TCP/8883) — accept." },
-	{ .id = 7, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 10, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "32_fw.allow_dns", .explanation = "DNS query (<=512 bytes) — accept." },
-	{ .id = 8, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 12, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "33_fw.icmp_flood", .explanation = "ICMP rate > 10 pps — drop (ping flood)." },
-	{ .id = 9, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 14, .condition_count = 1, .action_start = 2, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "40_fw.dpi_anomaly", .explanation = "Payload anomaly — drop and log for analysis." },
-	{ .id = 10, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 15, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "99_fw.default_deny", .explanation = "Default deny — no rule matched." },
+	{ .id = 0, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 0, .condition_count = 1, .action_start = 0, .action_count = 1, .expr_start = 0, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = true, .name = "01_fw.blocklist", .explanation = "Source on blocklist — drop and log." },
+	{ .id = 1, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 1, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 1, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "02_fw.allowlist", .explanation = "Source on allowlist — accept." },
+	{ .id = 2, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 2, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 2, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "10_fw.established", .explanation = "Established connection, no anomaly — accept." },
+	{ .id = 3, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 4, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 3, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "20_fw.syn_flood_score", .explanation = "Compute SYN flood risk from packet rate." },
+	{ .id = 4, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 5, .condition_count = 1, .action_start = 1, .action_count = 1, .expr_start = 4, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = true, .name = "21_fw.syn_flood_active", .explanation = "SYN flood detected (score > 500) — enable SYN cookies, drop." },
+	{ .id = 5, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 6, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 5, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "30_fw.allow_coap", .explanation = "CoAP (UDP/5683) — accept and log." },
+	{ .id = 6, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 8, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 6, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "31_fw.allow_mqtt", .explanation = "MQTT-TLS (TCP/8883) — accept." },
+	{ .id = 7, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 10, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 7, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "32_fw.allow_dns", .explanation = "DNS query (<=512 bytes) — accept." },
+	{ .id = 8, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 12, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 8, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "33_fw.icmp_flood", .explanation = "ICMP rate > 10 pps — drop (ping flood)." },
+	{ .id = 9, .rule_class = ARBITER_RULE_SAFETY_GUARD, .condition_start = 14, .condition_count = 1, .action_start = 2, .action_count = 1, .expr_start = 9, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "40_fw.dpi_anomaly", .explanation = "Payload anomaly — drop and log for analysis." },
+	{ .id = 10, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 15, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 10, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "99_fw.default_deny", .explanation = "Default deny — no rule matched." },
+};
+
+static const struct ARBITER_expr_def model_expressions[] = {
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 5, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 1, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 1, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 7, .op = ARBITER_EXPR_SCALE, .left_fact_id = 12, .left_literal = 0, .right_fact_id = 65535, .right_literal = 100, .scale = 1000 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 2, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 4, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 1, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 1, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 2, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 5, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 2, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
 };
 
 static const char *model_mode_names[] = {
@@ -74,10 +88,12 @@ const struct ARBITER_model ARBITER_generated_model = {
 	.rule_count = 11,
 	.condition_count = 16,
 	.action_count = 3,
+	.expr_count = 11,
 	.mode_count = 4,
 	.facts = model_facts,
 	.rules = model_rules,
 	.conditions = model_conditions,
 	.actions = model_actions,
+	.expressions = model_expressions,
 	.mode_names = model_mode_names,
 };

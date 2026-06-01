@@ -46,18 +46,35 @@ static const struct ARBITER_action_def model_actions[] = {
 };
 
 static const struct ARBITER_rule_def model_rules[] = {
-	{ .id = 0, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 0, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = false, .name = "01_cors.preflight", .explanation = "OPTIONS request — CORS preflight." },
-	{ .id = 1, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 1, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "02_cors.allow_origin", .explanation = "Same-origin or allowed origin — CORS pass." },
-	{ .id = 2, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 3, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "03_cors.block_origin", .explanation = "Blocked origin — 403." },
-	{ .id = 3, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 4, .condition_count = 1, .action_start = 0, .action_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = false, .name = "10_rate.check", .explanation = "Client > 60 req/min — 429 Too Many Requests." },
-	{ .id = 4, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 5, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "20_auth.public_path", .explanation = "Public path — no auth required." },
-	{ .id = 5, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 6, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "21_auth.health_check", .explanation = "Health check GET — always allowed." },
-	{ .id = 6, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 8, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "22_auth.no_token", .explanation = "Auth-required path but no token — 401." },
-	{ .id = 7, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 10, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "23_auth.invalid_token", .explanation = "Invalid/expired token — 401." },
-	{ .id = 8, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 12, .condition_count = 2, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "24_auth.admin_check", .explanation = "Admin path requires admin role — 403." },
-	{ .id = 9, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 14, .condition_count = 3, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "25_auth.valid_token", .explanation = "Valid token, authorized — allow." },
-	{ .id = 10, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 17, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "30_risk.compute", .explanation = NULL },
-	{ .id = 11, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 18, .condition_count = 1, .action_start = 0, .action_count = 0, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "40_payload.too_large", .explanation = "Payload > 64KB — rejected." },
+	{ .id = 0, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 0, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 0, .expr_count = 2, .safety_goal_id = UINT16_MAX, .set_mode = 1, .safety_critical = false, .name = "01_cors.preflight", .explanation = "OPTIONS request — CORS preflight." },
+	{ .id = 1, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 1, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 2, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "02_cors.allow_origin", .explanation = "Same-origin or allowed origin — CORS pass." },
+	{ .id = 2, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 3, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 3, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "03_cors.block_origin", .explanation = "Blocked origin — 403." },
+	{ .id = 3, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 4, .condition_count = 1, .action_start = 0, .action_count = 1, .expr_start = 4, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 3, .safety_critical = false, .name = "10_rate.check", .explanation = "Client > 60 req/min — 429 Too Many Requests." },
+	{ .id = 4, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 5, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 5, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "20_auth.public_path", .explanation = "Public path — no auth required." },
+	{ .id = 5, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 6, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 6, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "21_auth.health_check", .explanation = "Health check GET — always allowed." },
+	{ .id = 6, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 8, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 7, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "22_auth.no_token", .explanation = "Auth-required path but no token — 401." },
+	{ .id = 7, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 10, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 8, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "23_auth.invalid_token", .explanation = "Invalid/expired token — 401." },
+	{ .id = 8, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 12, .condition_count = 2, .action_start = 0, .action_count = 0, .expr_start = 9, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "24_auth.admin_check", .explanation = "Admin path requires admin role — 403." },
+	{ .id = 9, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 14, .condition_count = 3, .action_start = 0, .action_count = 0, .expr_start = 10, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 0, .safety_critical = false, .name = "25_auth.valid_token", .explanation = "Valid token, authorized — allow." },
+	{ .id = 10, .rule_class = ARBITER_RULE_INFERENCE, .condition_start = 17, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 11, .expr_count = 2, .safety_goal_id = UINT16_MAX, .set_mode = UINT16_MAX, .safety_critical = false, .name = "30_risk.compute", .explanation = NULL },
+	{ .id = 11, .rule_class = ARBITER_RULE_CONSTRAINT, .condition_start = 18, .condition_count = 1, .action_start = 0, .action_count = 0, .expr_start = 13, .expr_count = 1, .safety_goal_id = UINT16_MAX, .set_mode = 2, .safety_critical = false, .name = "40_payload.too_large", .explanation = "Payload > 64KB — rejected." },
+};
+
+static const struct ARBITER_expr_def model_expressions[] = {
+	{ .target_fact_id = 3, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 1, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 2, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 2, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 1, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 3, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 4, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 1, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 1, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 2, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 2, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 3, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 1, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
+	{ .target_fact_id = 1, .op = ARBITER_EXPR_SCALE, .left_fact_id = 4, .left_literal = 0, .right_fact_id = 65535, .right_literal = 100, .scale = 120 },
+	{ .target_fact_id = 1, .op = ARBITER_EXPR_CLAMP, .left_fact_id = 1, .left_literal = 0, .right_fact_id = 65535, .right_literal = 0, .scale = 100 },
+	{ .target_fact_id = 0, .op = ARBITER_EXPR_ASSIGN, .left_fact_id = 65535, .left_literal = 3, .right_fact_id = 65535, .right_literal = 0, .scale = 1 },
 };
 
 static const char *model_mode_names[] = {
@@ -75,10 +92,12 @@ const struct ARBITER_model ARBITER_generated_model = {
 	.rule_count = 12,
 	.condition_count = 19,
 	.action_count = 1,
+	.expr_count = 14,
 	.mode_count = 4,
 	.facts = model_facts,
 	.rules = model_rules,
 	.conditions = model_conditions,
 	.actions = model_actions,
+	.expressions = model_expressions,
 	.mode_names = model_mode_names,
 };

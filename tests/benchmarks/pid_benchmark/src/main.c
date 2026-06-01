@@ -20,6 +20,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/timing/timing.h>
 #include <arbiter/arbiter.h>
+#include "arbiter_model.h"
 
 LOG_MODULE_REGISTER(pid_bench, LOG_LEVEL_INF);
 
@@ -83,17 +84,25 @@ static void hand_pid_tick(struct hand_pid *p, int32_t setpoint,
 /*  arbiter PID (engine-based)                                          */
 /* ------------------------------------------------------------------ */
 
-extern const struct ARBITER_model ARBITER_generated_model;
+/* Fact indices from generated header — canonical alphabetical order. */
+#define F_KD           ARBITER_FACT_GAIN_KD
+#define F_KI           ARBITER_FACT_GAIN_KI
+#define F_KP           ARBITER_FACT_GAIN_KP
+#define F_DT_MS        ARBITER_FACT_IN_DT_MS
+#define F_ENABLE       ARBITER_FACT_IN_ENABLE
+#define F_PROCESS_VALUE ARBITER_FACT_IN_PROCESS_VALUE
+#define F_SENSOR_VALID ARBITER_FACT_IN_SENSOR_VALID
+#define F_SETPOINT     ARBITER_FACT_IN_SETPOINT
+#define F_ABS_ERROR    ARBITER_FACT_PID_ABS_ERROR
+#define F_D_TERM       ARBITER_FACT_PID_D_TERM
+#define F_ERROR        ARBITER_FACT_PID_ERROR
+#define F_ERROR_PREV   ARBITER_FACT_PID_ERROR_PREV
+#define F_I_TERM       ARBITER_FACT_PID_I_TERM
+#define F_OUTPUT       ARBITER_FACT_PID_OUTPUT
+#define F_OUTPUT_RAW   ARBITER_FACT_PID_OUTPUT_RAW
+#define F_P_TERM       ARBITER_FACT_PID_P_TERM
 
 static struct ARBITER_ctx ARBITER_ctx;
-
-/* Fact indices (must match canonical order from pid_engine model) */
-enum {
-	F_KD = 0, F_KI, F_KP,
-	F_DT_MS, F_ENABLE, F_PROCESS_VALUE, F_SENSOR_VALID, F_SETPOINT,
-	F_ABS_ERROR, F_D_TERM, F_ERROR, F_ERROR_PREV,
-	F_I_TERM, F_OUTPUT, F_OUTPUT_RAW, F_P_TERM,
-};
 
 void app_update_actuator(void)
 {
@@ -104,8 +113,11 @@ void app_update_actuator(void)
 /*  Benchmark harness                                                 */
 /* ------------------------------------------------------------------ */
 
-#define BENCH_ITERATIONS  1000
-#define WARMUP_ITERATIONS 100
+/* Increase iterations so native_sim (1 MHz timing clock) yields non-zero
+ * nanosecond counts.
+ */
+#define BENCH_ITERATIONS  100000
+#define WARMUP_ITERATIONS 1000
 
 int main(void)
 {
