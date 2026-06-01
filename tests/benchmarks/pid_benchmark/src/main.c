@@ -22,13 +22,10 @@
 #include "arbiter_model.h"
 
 #ifdef CONFIG_NATIVE_SIMULATOR
-#include <time.h>
-extern int nsi_host_clock_gettime(int clk_id, struct timespec *tp);
+extern uint64_t get_host_us_time(void);
 static inline uint64_t bench_ns(void)
 {
-	struct timespec ts;
-	nsi_host_clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
-	return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+	return get_host_us_time() * 1000ULL;
 }
 #else
 #include <zephyr/timing/timing.h>

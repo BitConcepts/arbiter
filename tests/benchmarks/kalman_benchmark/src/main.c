@@ -19,23 +19,15 @@
  * Zephyr kernel ticks which do NOT advance during CPU-bound loops.
  */
 #ifdef CONFIG_NATIVE_SIMULATOR
-/* native_sim replaces clock_gettime() AND syscall() with versions that
- * return simulated Zephyr time (stuck at 0 during CPU-bound loops).
- * nsi_host_clock_gettime() is native_sim's own escape hatch to the real
- * host OS clock, bypassing all simulated-time interception.
+/* native_sim's get_host_us_time() (defined in timer_model.c, compiled into
+ * the same native_sim binary) calls CLOCK_MONOTONIC_RAW directly from the
+ * OS timer model — it is the real host time in µs and is not intercepted
+ * by any simulated-time override.
  */
-#include <time.h>
-/* nsi_host_clock_gettime maps CLOCK_MONOTONIC to simulated time.
- * CLOCK_PROCESS_CPUTIME_ID measures actual CPU time consumed by this
- * process — it is OS-maintained, not interceptable by user-space time
- * simulation, and gives the true benchmark execution time.
- */
-extern int nsi_host_clock_gettime(int clk_id, struct timespec *tp);
+extern uint64_t get_host_us_time(void);
 static inline uint64_t bench_ns(void)
 {
-	struct timespec ts;
-	nsi_host_clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
-	return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+	return get_host_us_time() * 1000ULL;
 }
 #else
 /* On real hardware fall back to Zephyr timing API */
