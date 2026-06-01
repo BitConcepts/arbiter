@@ -1,5 +1,16 @@
 # Change Ledger
 
+## 2026-06-01T00:04 — Fix ZRMB header length and CRC offset
+- **Author**: Oz
+- **Type**: fix
+- **REQs affected**: REQ-BUILD-001, REQ-ARCH-006, REQ-ARCH-023
+- **Summary**: Corrected the binary blob header length from 80 to 84 bytes
+  (the actual size of magic/version/flags/lengths/two hashes/crc32), updated
+  the CRC offset from 76 to 80 in the emitter, and fixed the blob unit test
+  fixture lengths. This removes Linux `-Werror` array-initializer failures
+  and aligns runtime loader validation with emitted blobs.
+- **Status**: complete
+
 ## 2026-06-01T00:00 — Fix public/generated header include casing
 - **Author**: Oz
 - **Type**: fix

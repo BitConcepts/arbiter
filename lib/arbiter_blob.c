@@ -9,7 +9,7 @@ LOG_MODULE_DECLARE(arbiter, CONFIG_ARBITER_LOG_LEVEL);
 
 #define ZRMB_MAGIC      0x424D525A /* "ZRMB" little-endian */
 #define ZRMB_VERSION    1
-#define ZRMB_HEADER_LEN 80 /* magic(4)+ver(2)+flags(2)+hlen(4)+tlen(4)+mhash(32)+shash(32)+crc(4) */
+#define ZRMB_HEADER_LEN 84 /* magic(4)+ver(2)+flags(2)+hlen(4)+tlen(4)+mhash(32)+shash(32)+crc(4) */
 
 struct zrmb_header {
 	uint32_t magic;
@@ -81,7 +81,7 @@ int ARBITER_blob_load(const uint8_t *blob, size_t blob_len,
 	}
 
 	/* Validate CRC over everything except the CRC field itself.
-	 * CRC field is at offset 76 (4 bytes before end of header).
+	 * CRC field is at offset 80 (4 bytes before end of header).
 	 */
 	uint32_t crc = compute_crc32(blob, offsetof(struct zrmb_header, crc32));
 	uint32_t crc_rest = compute_crc32(

@@ -32,7 +32,7 @@ def emit_blob(model: CanonicalModel) -> bytes:
     header += ZRMB_MAGIC
     header += struct.pack("<H", ZRMB_VERSION)
     header += struct.pack("<H", 0)  # flags
-    header += struct.pack("<I", 80)  # header_len
+    header += struct.pack("<I", 84)  # header_len
     header += struct.pack("<I", 0)   # total_len placeholder
     header += model_hash_bytes
     header += schema_hash_bytes
@@ -66,6 +66,6 @@ def emit_blob(model: CanonicalModel) -> bytes:
     # CRC over everything except the CRC field (last 4 bytes of header)
     blob = bytes(header[:-4]) + bytes(sections)
     crc = zlib.crc32(blob) & 0xFFFFFFFF
-    struct.pack_into("<I", header, 76, crc)  # crc32
+    struct.pack_into("<I", header, 80, crc)  # crc32
 
     return bytes(header) + bytes(sections)
