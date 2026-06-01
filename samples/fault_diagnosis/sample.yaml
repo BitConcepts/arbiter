@@ -7,12 +7,10 @@ sample:
     6 symptom inputs and 4 candidate diagnoses.
 common:
   tags: arbiter solver diagnostics fault-tree motor-drive
-  harness: console
   platform_allow: native_sim
 tests:
   sample.arbiter.fault-diagnosis:
     tags: arbiter sample solver
     platform_allow: native_sim
-    harness: console
     build_only: true
 

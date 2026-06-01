@@ -7,12 +7,10 @@ sample:
     setpoint + sensor values and provides an actuator callback.
 common:
   tags: arbiter reasoning compute pid engine motion-control
-  harness: console
   platform_allow: native_sim
 tests:
   sample.arbiter.pid-controller:
     tags: arbiter sample
     platform_allow: native_sim
-    harness: console
     build_only: true
 

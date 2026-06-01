@@ -3,12 +3,10 @@ sample:
   description: Demonstrates arbiter battery management policy evaluation.
 common:
   tags: arbiter reasoning safety
-  harness: console
   platform_allow: native_sim
 tests:
   sample.arbiter.battery-policy:
     tags: arbiter sample
     platform_allow: native_sim
-    harness: console
     build_only: true
 

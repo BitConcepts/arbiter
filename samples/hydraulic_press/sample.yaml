@@ -6,12 +6,10 @@ sample:
     and position-based stroke control. Uses strict safety profile.
 common:
   tags: arbiter reasoning safety hydraulic press interlock iec-62061
-  harness: console
   platform_allow: native_sim
 tests:
   sample.arbiter.hydraulic-press:
     tags: arbiter sample
     platform_allow: native_sim
-    harness: console
     build_only: true
 

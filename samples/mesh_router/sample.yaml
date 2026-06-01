@@ -7,12 +7,10 @@ sample:
     power management. Demonstrates compute + reasoning, not just policy.
 common:
   tags: arbiter reasoning compute mesh thread openthread routing
-  harness: console
   platform_allow: native_sim
 tests:
   sample.arbiter.mesh-router:
     tags: arbiter sample
     platform_allow: native_sim
-    harness: console
     build_only: true
 

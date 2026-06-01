@@ -6,12 +6,10 @@ sample:
     shedding, and dehumidification mode selection.
 common:
   tags: arbiter reasoning compute hvac climate iot building
-  harness: console
   platform_allow: native_sim
 tests:
   sample.arbiter.hvac-controller:
     tags: arbiter sample
     platform_allow: native_sim
-    harness: console
     build_only: true
 

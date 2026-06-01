@@ -7,12 +7,10 @@ sample:
     are too close — demonstrating motion planning as reasoning.
 common:
   tags: arbiter solver motion-planning navigation obstacle-avoidance
-  harness: console
   platform_allow: native_sim
 tests:
   sample.arbiter.motion-planner:
     tags: arbiter sample solver
     platform_allow: native_sim
-    harness: console
     build_only: true
 

@@ -7,12 +7,10 @@ sample:
     is critical — a common embedded energy management pattern.
 common:
   tags: arbiter solver power-management battery load-shedding
-  harness: console
   platform_allow: native_sim
 tests:
   sample.arbiter.power-budget:
     tags: arbiter sample solver
     platform_allow: native_sim
-    harness: console
     build_only: true
 
