@@ -21,20 +21,10 @@
 #include <arbiter/arbiter.h>
 #include "arbiter_model.h"
 
-#ifdef CONFIG_NATIVE_SIMULATOR
-extern uint64_t get_host_us_time(void);
 static inline uint64_t bench_ns(void)
 {
-	return get_host_us_time() * 1000ULL;
+	return (uint64_t)k_uptime_get() * 1000000ULL;
 }
-#else
-#include <zephyr/timing/timing.h>
-static inline uint64_t bench_ns(void)
-{
-	return (uint64_t)k_cycle_get_64() * 1000ULL /
-		(sys_clock_hw_cycles_per_sec() / 1000000ULL);
-}
-#endif
 
 LOG_MODULE_REGISTER(pid_bench, LOG_LEVEL_INF);
 

@@ -13,31 +13,15 @@
 #include <arbiter/arbiter.h>
 #include "arbiter_model.h"
 
-/* On native_sim the firmware is a native Linux binary: use POSIX
- * clock_gettime(CLOCK_MONOTONIC) for real nanosecond timing.
- * Zephyr's timing API and k_uptime_get_32() both measure simulated
- * Zephyr kernel ticks which do NOT advance during CPU-bound loops.
+/* Use k_uptime_get() which returns simulated time in ms.
+ * With CONFIG_NATIVE_SIM_SLOWDOWN_TO_REAL_TIME=y the simulated clock
+ * is tied to the real host clock, so k_uptime_get() gives true elapsed ms.
+ * Multiply by 1,000,000 to convert to nanoseconds.
  */
-#ifdef CONFIG_NATIVE_SIMULATOR
-/* native_sim's get_host_us_time() (defined in timer_model.c, compiled into
- * the same native_sim binary) calls CLOCK_MONOTONIC_RAW directly from the
- * OS timer model — it is the real host time in µs and is not intercepted
- * by any simulated-time override.
- */
-extern uint64_t get_host_us_time(void);
 static inline uint64_t bench_ns(void)
 {
-	return get_host_us_time() * 1000ULL;
+	return (uint64_t)k_uptime_get() * 1000000ULL;
 }
-#else
-/* On real hardware fall back to Zephyr timing API */
-#include <zephyr/timing/timing.h>
-static inline uint64_t bench_ns(void)
-{
-	return (uint64_t)k_cycle_get_64() * 1000ULL /
-		(sys_clock_hw_cycles_per_sec() / 1000000ULL);
-}
-#endif
 
 LOG_MODULE_REGISTER(kf_bench, LOG_LEVEL_INF);
 
@@ -141,15 +125,6 @@ int main(void)
 	LOG_INF("=== arbiter Kalman Filter Benchmark ===");
 	LOG_INF("Iterations: %d  (warmup: %d)", BENCH_ITERATIONS,
 		WARMUP_ITERATIONS);
-
-#ifdef CONFIG_NATIVE_SIMULATOR
-	/* Debug: verify get_host_us_time() returns a non-zero advancing value */
-	uint64_t dbg0 = bench_ns();
-	uint64_t dbg1 = bench_ns();
-	LOG_INF("bench_ns debug: t0_hi=%u t0_lo=%u dt_ns=%llu",
-		(uint32_t)(dbg0 >> 32), (uint32_t)(dbg0 & 0xFFFFFFFF),
-		dbg1 - dbg0);
-#endif
 
 	/* ----- Hand-coded Kalman benchmark ----- */
 	struct hand_kf hkf;
