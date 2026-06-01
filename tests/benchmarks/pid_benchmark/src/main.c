@@ -21,9 +21,17 @@
 #include <arbiter/arbiter.h>
 #include "arbiter_model.h"
 
+#include <time.h>
 static inline uint64_t bench_ns(void)
 {
-	return (uint64_t)k_uptime_get() * 1000000ULL;
+	struct timespec ts;
+
+#if defined(CLOCK_MONOTONIC_RAW)
+	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+#else
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+#endif
+	return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
 }
 
 LOG_MODULE_REGISTER(pid_bench, LOG_LEVEL_INF);

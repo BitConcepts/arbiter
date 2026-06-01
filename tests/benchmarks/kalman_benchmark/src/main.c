@@ -13,14 +13,23 @@
 #include <arbiter/arbiter.h>
 #include "arbiter_model.h"
 
-/* Use k_uptime_get() which returns simulated time in ms.
- * With CONFIG_NATIVE_SIM_SLOWDOWN_TO_REAL_TIME=y the simulated clock
- * is tied to the real host clock, so k_uptime_get() gives true elapsed ms.
- * Multiply by 1,000,000 to convert to nanoseconds.
+/* Use CLOCK_MONOTONIC_RAW via the real glibc clock_gettime.
+ * On native_sim, Zephyr only overrides clock_gettime when
+ * CONFIG_POSIX_CLOCK_SELECTION=y. With our minimal prj.conf that
+ * flag is off, so clock_gettime resolves to glibc and returns real
+ * host time with nanosecond resolution.
  */
+#include <time.h>
 static inline uint64_t bench_ns(void)
 {
-	return (uint64_t)k_uptime_get() * 1000000ULL;
+	struct timespec ts;
+
+#if defined(CLOCK_MONOTONIC_RAW)
+	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+#else
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+#endif
+	return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
 }
 
 LOG_MODULE_REGISTER(kf_bench, LOG_LEVEL_INF);
@@ -160,9 +169,8 @@ int main(void)
 	uint64_t hand_per_tick = hand_ns / BENCH_ITERATIONS;
 
 	LOG_INF("--- Hand-coded Kalman ---");
-	/* Print in ms (uint32) to avoid any %llu 32-bit printing issues */
 	LOG_INF("  Total: %u ms  (%u ns/tick)",
-		(uint32_t)(hand_ns / 1000000ULL), (uint32_t)hand_per_tick);
+		(unsigned)(hand_ns / 1000000ULL), (unsigned)hand_per_tick);
 	LOG_INF("  RAM (struct): %u bytes", (unsigned)sizeof(struct hand_kf));
 	LOG_INF("  Final estimate: %d (true: %d)", hkf.x_est, true_val);
 
@@ -231,7 +239,7 @@ int main(void)
 
 	LOG_INF("--- arbiter Engine Kalman ---");
 	LOG_INF("  Total: %u ms  (%u ns/tick)",
-		(uint32_t)(ARBITER_ns / 1000000ULL), (uint32_t)ARBITER_per_tick);
+		(unsigned)(ARBITER_ns / 1000000ULL), (unsigned)ARBITER_per_tick);
 	LOG_INF("  RAM (ctx): %u bytes", (unsigned)sizeof(struct ARBITER_ctx));
 	LOG_INF("  Final estimate: %d (true: %d)",
 		zctx.fact_values[F_X_EST].value, true_val);
