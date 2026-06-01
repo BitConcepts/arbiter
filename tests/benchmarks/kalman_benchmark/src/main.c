@@ -10,9 +10,31 @@
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/timing/timing.h>
 #include <arbiter/arbiter.h>
 #include "arbiter_model.h"
+
+/* On native_sim the firmware is a native Linux binary: use POSIX
+ * clock_gettime(CLOCK_MONOTONIC) for real nanosecond timing.
+ * Zephyr's timing API and k_uptime_get_32() both measure simulated
+ * Zephyr kernel ticks which do NOT advance during CPU-bound loops.
+ */
+#ifdef CONFIG_NATIVE_SIMULATOR
+#include <time.h>
+static inline uint64_t bench_ns(void)
+{
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+}
+#else
+/* On real hardware fall back to Zephyr timing API */
+#include <zephyr/timing/timing.h>
+static inline uint64_t bench_ns(void)
+{
+	return (uint64_t)k_cycle_get_64() * 1000ULL /
+		(sys_clock_hw_cycles_per_sec() / 1000000ULL);
+}
+#endif
 
 LOG_MODULE_REGISTER(kf_bench, LOG_LEVEL_INF);
 
@@ -117,11 +139,6 @@ int main(void)
 	LOG_INF("Iterations: %d  (warmup: %d)", BENCH_ITERATIONS,
 		WARMUP_ITERATIONS);
 
-	/* Use k_uptime_get_32() (real-time ms counter) instead of the
-	 * timing API: native_sim's timing_counter_get() measures simulated
-	 * Zephyr clock ticks which do NOT advance during CPU-bound loops.
-	 */
-
 	/* ----- Hand-coded Kalman benchmark ----- */
 	struct hand_kf hkf;
 	int32_t true_val = 0;
@@ -142,7 +159,7 @@ int main(void)
 	true_val = 0;
 	prng_seed = 42;
 
-	uint32_t t0_ms = k_uptime_get_32();
+	uint64_t t0_ns = bench_ns();
 
 	for (int i = 0; i < BENCH_ITERATIONS; i++) {
 		if (i < 600) {
@@ -151,8 +168,8 @@ int main(void)
 		hand_kf_tick(&hkf, true_val + prng_noise(3000));
 	}
 
-	uint32_t t1_ms = k_uptime_get_32();
-	uint64_t hand_ns = (uint64_t)(t1_ms - t0_ms) * 1000000ULL;
+	uint64_t t1_ns = bench_ns();
+	uint64_t hand_ns = t1_ns - t0_ns;
 	uint64_t hand_per_tick = hand_ns / BENCH_ITERATIONS;
 
 	LOG_INF("--- Hand-coded Kalman ---");
@@ -199,7 +216,7 @@ int main(void)
 	true_val = 0;
 	prng_seed = 42;
 
-	uint32_t t2_ms = k_uptime_get_32();
+	uint64_t t2_ns = bench_ns();
 
 	for (int i = 0; i < BENCH_ITERATIONS; i++) {
 		if (i < 600) {
@@ -219,8 +236,8 @@ int main(void)
 		ARBITER_eval(&ARBITER_generated_model, &snap, &result, NULL);
 	}
 
-	uint32_t t3_ms = k_uptime_get_32();
-	uint64_t ARBITER_ns = (uint64_t)(t3_ms - t2_ms) * 1000000ULL;
+	uint64_t t3_ns = bench_ns();
+	uint64_t ARBITER_ns = t3_ns - t2_ns;
 	uint64_t ARBITER_per_tick = ARBITER_ns / BENCH_ITERATIONS;
 
 	LOG_INF("--- arbiter Engine Kalman ---");

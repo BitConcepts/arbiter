@@ -18,9 +18,25 @@
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/timing/timing.h>
 #include <arbiter/arbiter.h>
 #include "arbiter_model.h"
+
+#ifdef CONFIG_NATIVE_SIMULATOR
+#include <time.h>
+static inline uint64_t bench_ns(void)
+{
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+}
+#else
+#include <zephyr/timing/timing.h>
+static inline uint64_t bench_ns(void)
+{
+	return (uint64_t)k_cycle_get_64() * 1000ULL /
+		(sys_clock_hw_cycles_per_sec() / 1000000ULL);
+}
+#endif
 
 LOG_MODULE_REGISTER(pid_bench, LOG_LEVEL_INF);
 
@@ -141,15 +157,15 @@ int main(void)
 	hand_pid_init(&hpid);
 	plant_h = 0;
 
-	uint32_t t0_ms = k_uptime_get_32();
+	uint64_t t0_ns = bench_ns();
 
 	for (int i = 0; i < BENCH_ITERATIONS; i++) {
 		hand_pid_tick(&hpid, 10000, plant_h);
 		plant_h += hpid.output / 10;
 	}
 
-	uint32_t t1_ms = k_uptime_get_32();
-	uint64_t hand_ns = (uint64_t)(t1_ms - t0_ms) * 1000000ULL;
+	uint64_t t1_ns = bench_ns();
+	uint64_t hand_ns = t1_ns - t0_ns;
 	uint64_t hand_per_tick_ns = hand_ns / BENCH_ITERATIONS;
 
 	LOG_INF("--- Hand-coded PID ---");
@@ -198,7 +214,7 @@ int main(void)
 	ARBITER_set_u32(&ARBITER_ctx, F_DT_MS, 10);
 	plant_z = 0;
 
-	uint32_t t2_ms = k_uptime_get_32();
+	uint64_t t2_ns = bench_ns();
 
 	for (int i = 0; i < BENCH_ITERATIONS; i++) {
 		ARBITER_set_i32(&ARBITER_ctx, F_SETPOINT, 10000);
@@ -214,8 +230,8 @@ int main(void)
 		plant_z += ARBITER_ctx.fact_values[F_OUTPUT].value / 10;
 	}
 
-	uint32_t t3_ms = k_uptime_get_32();
-	uint64_t ARBITER_ns = (uint64_t)(t3_ms - t2_ms) * 1000000ULL;
+	uint64_t t3_ns = bench_ns();
+	uint64_t ARBITER_ns = t3_ns - t2_ns;
 	uint64_t ARBITER_per_tick_ns = ARBITER_ns / BENCH_ITERATIONS;
 
 	LOG_INF("--- arbiter Engine PID ---");
