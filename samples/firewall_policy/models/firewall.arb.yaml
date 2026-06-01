@@ -1,9 +1,6 @@
 arb_version: 0.1
 model: embedded_firewall
 
-imports:
-  - ARB://network_common
-
 target:
   rtos: zephyr
   profile: static_c
@@ -13,7 +10,37 @@ system:
   safety_context: network_security
 
 facts:
-  # Inherits net.* from ARB://network_common, plus:
+  # Network packet facts (formerly imported from ARB://network_common):
+  - id: net.is_established
+    type: bool
+    source: packet_parser
+    description: "TCP connection is in ESTABLISHED state"
+
+  - id: net.dst_port
+    type: uint32
+    range: [0, 65535]
+    source: packet_parser
+    description: "Destination port"
+
+  - id: net.protocol
+    type: uint32
+    range: [0, 255]
+    source: packet_parser
+    description: "IP protocol number (1=TCP, 2=UDP, 3=ICMP)"
+
+  - id: net.packet_len
+    type: uint32
+    range: [0, 65535]
+    source: packet_parser
+    description: "Packet length in bytes"
+
+  - id: net.rate_pps
+    type: uint32
+    range: [0, 100000]
+    source: rate_counter
+    description: "Packet arrival rate (packets per second)"
+
+  # Firewall-specific facts:
   - id: fw.action
     type: enum
     source: computed
