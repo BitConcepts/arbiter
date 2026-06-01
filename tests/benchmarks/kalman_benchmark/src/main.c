@@ -19,17 +19,17 @@
  * Zephyr kernel ticks which do NOT advance during CPU-bound loops.
  */
 #ifdef CONFIG_NATIVE_SIMULATOR
-/* native_sim replaces the C-library's clock_gettime() with one that returns
- * simulated Zephyr time (stuck at 0 during CPU-bound loops). A raw Linux
- * syscall bypasses the intercept and reads the real CLOCK_MONOTONIC directly
- * from the kernel, giving true nanosecond-resolution wall-clock timing.
+/* native_sim replaces clock_gettime() AND syscall() with versions that
+ * return simulated Zephyr time (stuck at 0 during CPU-bound loops).
+ * nsi_host_clock_gettime() is native_sim's own escape hatch to the real
+ * host OS clock, bypassing all simulated-time interception.
  */
 #include <time.h>
-#include <sys/syscall.h>
+extern int nsi_host_clock_gettime(int clk_id, struct timespec *tp);
 static inline uint64_t bench_ns(void)
 {
 	struct timespec ts;
-	syscall(__NR_clock_gettime, CLOCK_MONOTONIC, &ts);
+	nsi_host_clock_gettime(CLOCK_MONOTONIC, &ts);
 	return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
 }
 #else
