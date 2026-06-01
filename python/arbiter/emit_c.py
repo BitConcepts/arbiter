@@ -52,7 +52,7 @@ def emit_c_header(model: CanonicalModel, emit_trace_strings: bool = True) -> str
         "",
         "#include <stdint.h>",
         "#include <stddef.h>",
-        "#include <arbiter/ARBITER_model.h>",
+        "#include <arbiter/arbiter_model.h>",
         "",
         f'#define ARBITER_MODEL_NAME "{model.name}"',
         f'#define ARBITER_MODEL_HASH "{model.model_hash}"',
@@ -87,7 +87,7 @@ def emit_c_header(model: CanonicalModel, emit_trace_strings: bool = True) -> str
     return "\n".join(lines)
 
 
-def emit_c_source(model: CanonicalModel, header_name: str = "ARBITER_model.h",
+def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
                   emit_trace_strings: bool = True) -> str:
     """Generate the C source file for a compiled ARB model."""
     lines = [

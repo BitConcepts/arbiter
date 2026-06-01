@@ -1,6 +1,7 @@
 # Build artifacts
 build/
 twister-out/
+twister-results-ci/
 generated/
 
 # Python

@@ -81,7 +81,7 @@ def compile_model(path: Path, options: CompileOptions) -> CompileResult:
         result.generated_files.append(str(options.out_h))
 
     if options.out_c:
-        header_name = options.out_h.name if options.out_h else "ARBITER_model.h"
+        header_name = options.out_h.name if options.out_h else "arbiter_model.h"
         source = emit_c_source(
             model, header_name=header_name,
             emit_trace_strings=options.emit_trace_strings,

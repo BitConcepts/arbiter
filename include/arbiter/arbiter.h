@@ -12,10 +12,10 @@
  * input snapshots, producing deterministic results and explanation traces.
  */
 
-#include <arbiter/ARBITER_version.h>
-#include <arbiter/ARBITER_model.h>
-#include <arbiter/ARBITER_result.h>
-#include <arbiter/ARBITER_trace.h>
+#include <arbiter/arbiter_version.h>
+#include <arbiter/arbiter_model.h>
+#include <arbiter/arbiter_result.h>
+#include <arbiter/arbiter_trace.h>
 
 #ifdef __cplusplus
 extern "C" {

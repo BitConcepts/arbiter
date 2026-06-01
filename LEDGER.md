@@ -1,5 +1,16 @@
 # Change Ledger
 
+## 2026-06-01T00:00 — Fix public/generated header include casing
+- **Author**: Oz
+- **Type**: fix
+- **REQs affected**: REQ-BUILD-001, REQ-ARCH-008, REQ-ARCH-022
+- **Summary**: Updated public header includes and generated C header output
+  from legacy uppercase header paths (`ARBITER_*.h`) to actual lowercase
+  repository header filenames (`arbiter_*.h`). Also changed the compiler's
+  fallback generated-header name to `arbiter_model.h`. This fixes Linux
+  case-sensitive compile failures in Twister.
+- **Status**: complete
+
 ## 2026-05-31T23:59 — Fix Zephyr CMake source filename casing
 - **Author**: Oz
 - **Type**: fix
