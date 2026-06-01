@@ -27,7 +27,7 @@ extern int nsi_host_clock_gettime(int clk_id, struct timespec *tp);
 static inline uint64_t bench_ns(void)
 {
 	struct timespec ts;
-	nsi_host_clock_gettime(CLOCK_MONOTONIC, &ts);
+	nsi_host_clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
 	return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
 }
 #else
