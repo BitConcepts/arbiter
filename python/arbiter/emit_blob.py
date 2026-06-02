@@ -278,6 +278,7 @@ def _pack_strings(model: CanonicalModel) -> tuple[bytes, list[int]]:
     seen: dict[str, int] = {}
 
     def _add(s: str | None) -> int:
+        nonlocal buf
         if s is None:
             return 0xFFFF
         if s in seen:
