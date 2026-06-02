@@ -243,6 +243,12 @@ jobs:
             --inline-logs -v \
             -O twister-out/benchmarks
 
+      # Parse benchmark timing and print summary table.
+      # No fail threshold yet — we need baseline data first.
+      - name: Benchmark timing summary
+        if: always()
+        run: python app/tools/parse_benchmark.py twister-out/benchmarks/
+
       # All 17 samples are build_only; CI proves they compile clean.
       - name: Twister — samples
         run: |

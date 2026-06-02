@@ -1,0 +1,42 @@
+{
+  "description": "Mode transition: condition triggers set_mode, last mode setter wins",
+  "model": {
+    "arb_version": 0.1,
+    "model": "vec_mode_trans",
+    "target": {"rtos": "zephyr"},
+    "facts": [
+      {"id": "level", "type": "int32", "default": 0}
+    ],
+    "modes": [
+      {"id": "mode.idle"},
+      {"id": "mode.active"},
+      {"id": "mode.critical"}
+    ],
+    "rules": [
+      {
+        "id": "rule.go_active",
+        "class": "mode_guard",
+        "when": {"all": [{"fact": "level", "op": ">", "value": 50}]},
+        "then": {"set_mode": "mode.active"}
+      },
+      {
+        "id": "rule.go_critical",
+        "class": "safety_guard",
+        "when": {"all": [{"fact": "level", "op": ">", "value": 90}]},
+        "then": {"set_mode": "mode.critical"}
+      }
+    ],
+    "actions": [],
+    "modes": [{"id": "mode.idle"}, {"id": "mode.active"}, {"id": "mode.critical"}]
+  },
+  "facts": {"level": 95},
+  "timestamps": {},
+  "snapshot_timestamp_ms": 0,
+  "expected": {
+    "fired_rules": ["rule.go_critical", "rule.go_active"],
+    "current_mode": "mode.active",
+    "raised_faults": [],
+    "requested_actions": [],
+    "fact_values": {"level": 95}
+  }
+}

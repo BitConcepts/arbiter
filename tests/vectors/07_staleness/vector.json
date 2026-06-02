@@ -1,0 +1,38 @@
+{
+  "description": "Staleness: fact with old timestamp fires stale rule, fresh fact fires not_stale rule",
+  "model": {
+    "arb_version": 0.1,
+    "model": "vec_staleness",
+    "target": {"rtos": "zephyr"},
+    "facts": [
+      {"id": "sensor.fresh", "type": "int32", "default": 0, "stale_after_ms": 500},
+      {"id": "sensor.old", "type": "int32", "default": 0, "stale_after_ms": 500}
+    ],
+    "rules": [
+      {
+        "id": "rule.old_is_stale",
+        "class": "safety_guard",
+        "when": {"all": [{"fact": "sensor.old", "op": "stale", "value": 500}]},
+        "then": {"explanation": "Old sensor data is stale"}
+      },
+      {
+        "id": "rule.fresh_is_ok",
+        "class": "inference",
+        "when": {"all": [{"fact": "sensor.fresh", "op": "not_stale", "value": 500}]},
+        "then": {"explanation": "Fresh sensor data is valid"}
+      }
+    ],
+    "actions": [],
+    "modes": []
+  },
+  "facts": {"sensor.old": 42, "sensor.fresh": 99},
+  "timestamps": {"sensor.old": 0, "sensor.fresh": 900},
+  "snapshot_timestamp_ms": 1000,
+  "expected": {
+    "fired_rules": ["rule.old_is_stale", "rule.fresh_is_ok"],
+    "current_mode": null,
+    "raised_faults": [],
+    "requested_actions": [],
+    "fact_values": {"sensor.old": 42, "sensor.fresh": 99}
+  }
+}

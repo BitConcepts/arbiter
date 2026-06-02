@@ -1,0 +1,44 @@
+{
+  "description": "Condition groups: any (one of many) and not (inversion) groups",
+  "model": {
+    "arb_version": 0.1,
+    "model": "vec_cond_groups",
+    "target": {"rtos": "zephyr"},
+    "facts": [
+      {"id": "flag_a", "type": "bool", "default": false},
+      {"id": "flag_b", "type": "bool", "default": false},
+      {"id": "flag_c", "type": "bool", "default": false}
+    ],
+    "rules": [
+      {
+        "id": "rule.any_flag",
+        "class": "inference",
+        "when": {"any": [
+          {"fact": "flag_a", "op": "==", "value": true},
+          {"fact": "flag_b", "op": "==", "value": true}
+        ]},
+        "then": {"explanation": "At least one flag is set"}
+      },
+      {
+        "id": "rule.not_c",
+        "class": "inference",
+        "when": {"not": [
+          {"fact": "flag_c", "op": "==", "value": true}
+        ]},
+        "then": {"explanation": "flag_c is NOT set"}
+      }
+    ],
+    "actions": [],
+    "modes": []
+  },
+  "facts": {"flag_a": 0, "flag_b": 1, "flag_c": 0},
+  "timestamps": {},
+  "snapshot_timestamp_ms": 0,
+  "expected": {
+    "fired_rules": ["rule.any_flag", "rule.not_c"],
+    "current_mode": null,
+    "raised_faults": [],
+    "requested_actions": [],
+    "fact_values": {"flag_a": 0, "flag_b": 1, "flag_c": 0}
+  }
+}

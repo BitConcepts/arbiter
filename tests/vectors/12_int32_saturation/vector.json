@@ -1,0 +1,47 @@
+{
+  "description": "INT32 saturation: add overflow clamps to INT32_MAX, sub underflow clamps to INT32_MIN",
+  "model": {
+    "arb_version": 0.1,
+    "model": "vec_saturation",
+    "target": {"rtos": "zephyr"},
+    "facts": [
+      {"id": "big", "type": "int32", "default": 0},
+      {"id": "one", "type": "int32", "default": 0},
+      {"id": "overflow_result", "type": "int32", "default": 0},
+      {"id": "small", "type": "int32", "default": 0},
+      {"id": "underflow_result", "type": "int32", "default": 0}
+    ],
+    "rules": [
+      {
+        "id": "rule.overflow",
+        "class": "inference",
+        "then": {
+          "compute": [
+            {"target": "overflow_result", "op": "add", "left": "big", "right": "one"}
+          ]
+        }
+      },
+      {
+        "id": "rule.underflow",
+        "class": "inference",
+        "then": {
+          "compute": [
+            {"target": "underflow_result", "op": "sub", "left": "small", "right": "one"}
+          ]
+        }
+      }
+    ],
+    "actions": [],
+    "modes": []
+  },
+  "facts": {"big": 2147483647, "small": -2147483648, "one": 1, "overflow_result": 0, "underflow_result": 0},
+  "timestamps": {},
+  "snapshot_timestamp_ms": 0,
+  "expected": {
+    "fired_rules": ["rule.overflow", "rule.underflow"],
+    "current_mode": null,
+    "raised_faults": [],
+    "requested_actions": [],
+    "fact_values": {"big": 2147483647, "small": -2147483648, "one": 1, "overflow_result": 2147483647, "underflow_result": -2147483648}
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "description": "Expression opcode: scale — target = (left * right) / scale",
+  "model": {
+    "arb_version": 0.1,
+    "model": "vec_expr_scale",
+    "target": {"rtos": "zephyr"},
+    "facts": [
+      {"id": "input_a", "type": "int32", "default": 0},
+      {"id": "input_b", "type": "int32", "default": 0},
+      {"id": "result", "type": "int32", "default": 0}
+    ],
+    "rules": [
+      {
+        "id": "rule.compute",
+        "class": "inference",
+        "then": {
+          "compute": [
+            {"target": "result", "op": "scale", "left": "input_a", "right": "input_b", "scale": 1000}
+          ]
+        }
+      }
+    ],
+    "actions": [],
+    "modes": []
+  },
+  "facts": {"input_a": 5000, "input_b": 2500, "result": 0},
+  "timestamps": {},
+  "snapshot_timestamp_ms": 0,
+  "expected": {
+    "fired_rules": ["rule.compute"],
+    "current_mode": null,
+    "raised_faults": [],
+    "requested_actions": [],
+    "fact_values": {"input_a": 5000, "input_b": 2500, "result": 12500}
+  }
+}

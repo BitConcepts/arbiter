@@ -1,0 +1,30 @@
+{
+  "description": "Basic evaluation: unconditional rule always fires",
+  "model": {
+    "arb_version": 0.1,
+    "model": "vec_basic_eval",
+    "target": {"rtos": "zephyr"},
+    "facts": [
+      {"id": "sensor.value", "type": "int32", "default": 0}
+    ],
+    "rules": [
+      {
+        "id": "rule.always_on",
+        "class": "inference",
+        "then": {"explanation": "Unconditional rule fires every tick"}
+      }
+    ],
+    "actions": [],
+    "modes": []
+  },
+  "facts": {"sensor.value": 42},
+  "timestamps": {},
+  "snapshot_timestamp_ms": 0,
+  "expected": {
+    "fired_rules": ["rule.always_on"],
+    "current_mode": null,
+    "raised_faults": [],
+    "requested_actions": [],
+    "fact_values": {"sensor.value": 42}
+  }
+}
