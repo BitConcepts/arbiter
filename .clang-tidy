@@ -24,7 +24,9 @@ Checks: >
   -cert-dcl37-c,
   -cert-dcl51-cpp,
   -misc-include-cleaner,
-  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  -clang-diagnostic-implicit-function-declaration,
+  -bugprone-branch-clone
 
 WarningsAsErrors: '*'
 

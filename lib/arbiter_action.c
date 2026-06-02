@@ -47,13 +47,9 @@ int ARBITER_dispatch_actions(const struct ARBITER_model *model,
 			break;
 
 		case ARBITER_ACTION_LOG:
-			LOG_INF("Action [log]: %s",
-				action->name ? action->name : "unnamed");
-			dispatched++;
-			break;
-
 		case ARBITER_ACTION_NOTIFY:
-			LOG_INF("Action [notify]: %s",
+			LOG_INF("Action [%s]: %s",
+				action->type == ARBITER_ACTION_LOG ? "log" : "notify",
 				action->name ? action->name : "unnamed");
 			dispatched++;
 			break;

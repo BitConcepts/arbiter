@@ -15,7 +15,6 @@ from .parser import parse_model
 from .schema import validate_schema
 from .validator import validate_model
 
-
 # Profile resource budgets
 PROFILE_LIMITS: dict[str, dict[str, int]] = {
     "nano":     {"max_facts": 8,   "max_rules": 8,   "max_trace": 0,   "index_bits": 8},

@@ -2,6 +2,7 @@
 
 #include <arbiter/arbiter.h>
 #include <string.h>
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_DECLARE(arbiter, CONFIG_ARBITER_LOG_LEVEL);
