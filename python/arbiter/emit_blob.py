@@ -26,11 +26,16 @@ Section table entry (8 bytes):
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import struct
 import zlib
 from typing import Any
 
 from .canonical import CanonicalModel
+
+# Flag bit indicating the blob carries an HMAC-SHA256 signature.
+BLOB_FLAG_SIGNED = 1 << 0
 
 # Section type constants
 SECTION_FACTS       = 1
@@ -48,7 +53,7 @@ _BLOB_VERSION = 1
 # Wire sizes for packed structs (all little-endian, uint16 indices)
 _FACT_ELEM_SIZE = 16   # id(2) + type(1) + pad(1) + range_min(4) + range_max(4) + default(4) + stale(2) + safety(1) + pad(1) => rearranged below
 _RULE_ELEM_SIZE = 20
-_COND_ELEM_SIZE = 12
+_COND_ELEM_SIZE = 8
 _EXPR_ELEM_SIZE = 20
 _ACTION_ELEM_SIZE = 12
 
@@ -191,13 +196,11 @@ def _pack_rules(model: CanonicalModel) -> bytes:
 def _pack_conditions(model: CanonicalModel) -> bytes:
     """Pack condition definitions.
 
-    Wire layout per condition (12 bytes):
+    Wire layout per condition (8 bytes):
       fact_id:     uint16 LE
       op:          uint8
       group:       uint8
       value:       int32 LE
-      group_index: uint16 LE
-      next:        uint16 LE
     """
     buf = bytearray()
     for c in model.conditions:
@@ -207,7 +210,7 @@ def _pack_conditions(model: CanonicalModel) -> bytes:
         val = c.get("value", 0)
         if isinstance(val, bool):
             val = 1 if val else 0
-        buf += struct.pack("<HBBiHH", fact_id, op, group, int(val), 0, 0xFFFF)
+        buf += struct.pack("<HBBi", fact_id, op, group, int(val))
     return bytes(buf)
 
 
@@ -349,7 +352,7 @@ def emit_blob(model: CanonicalModel) -> bytes:
     if model.rules:
         sections.append((SECTION_RULES, rules_data, len(model.rules), rule_elem))
 
-    cond_elem = 12
+    cond_elem = 8
     if model.conditions:
         sections.append((SECTION_CONDITIONS, cond_data, len(model.conditions), cond_elem))
 
@@ -408,3 +411,29 @@ def emit_blob(model: CanonicalModel) -> bytes:
     struct.pack_into("<I", blob, 80, crc)
 
     return bytes(blob)
+
+
+def sign_blob(blob_bytes: bytes, key_bytes: bytes) -> bytes:
+    """Append a 32-byte HMAC-SHA256 signature to a .zrmb blob.
+
+    Sets bit 0 of the flags field (offset 6-7) to indicate the blob is
+    signed.  The HMAC is computed over the entire blob (with the flag
+    already set), and the 32-byte digest is appended at the end.
+
+    The CRC-32 at bytes 80-83 is recomputed to cover the updated flags.
+    """
+    buf = bytearray(blob_bytes)
+
+    # Set BLOB_FLAG_SIGNED in the 16-bit LE flags at offset 6.
+    flags = struct.unpack_from("<H", buf, 6)[0]
+    flags |= BLOB_FLAG_SIGNED
+    struct.pack_into("<H", buf, 6, flags)
+
+    # Recompute CRC-32 with the updated flags (CRC field zeroed).
+    struct.pack_into("<I", buf, 80, 0)
+    crc = zlib.crc32(bytes(buf)) & 0xFFFFFFFF
+    struct.pack_into("<I", buf, 80, crc)
+
+    # Compute HMAC-SHA256 over the complete blob and append.
+    sig = hmac.new(key_bytes, bytes(buf), hashlib.sha256).digest()
+    return bytes(buf) + sig

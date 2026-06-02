@@ -55,3 +55,6 @@ arbiter-bench-ws/
 make_bench_sh.py
 bench_wsl.sh
 
+# Doxygen
+docs/api/html/
+

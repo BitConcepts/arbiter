@@ -168,6 +168,16 @@ config ARBITER_BLOB_LOADER
 	  Enable loading models from .zrmb binary blob format.
 	  Note: strict safety profile prefers generated C tables.
 
+config ARBITER_BLOB_SIGNING
+	bool "Enable blob HMAC-SHA256 signing and verification"
+	depends on ARBITER_BLOB_LOADER
+	default n
+	help
+	  Enable HMAC-SHA256 signature verification for .zrmb binary
+	  blobs. When enabled, signed blobs can be verified using
+	  ARBITER_blob_verify_signature() before loading. Requires
+	  the integrator to provide an arbiter_sha256() function.
+
 config ARBITER_HOT_SWAP
 	bool "Enable runtime model hot-swap"
 	default n

@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: MIT
+# Doxyfile for arbiter — deterministic reasoning engine
+
+PROJECT_NAME           = arbiter
+PROJECT_BRIEF          = "Deterministic reasoning and safety-policy engine for Zephyr RTOS"
+PROJECT_NUMBER         = 0.1.0
+
+INPUT                  = include/arbiter/
+RECURSIVE              = YES
+FILE_PATTERNS          = *.h *.c
+
+OUTPUT_DIRECTORY       = docs/api
+
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+
+OPTIMIZE_OUTPUT_FOR_C  = YES
+
+QUIET                  = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+
+TYPEDEF_HIDES_STRUCT   = YES
+SORT_MEMBER_DOCS       = YES
+
+# Preprocessor — define Kconfig symbols so Doxygen sees all branches
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+PREDEFINED             = CONFIG_ARBITER_STRINGS=1 \
+                         CONFIG_ARBITER_HOT_SWAP=1 \
+                         CONFIG_ARBITER_FPGA_OFFLOAD=0
+
+HAVE_DOT               = NO

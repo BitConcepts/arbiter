@@ -15,6 +15,7 @@ from .evaluator import ArbiterEvaluator
 from .parser import parse_model
 from .schema import validate_schema
 from .validator import validate_model
+from .emit_graph import emit_dot, emit_mermaid
 
 
 @click.group()
@@ -203,6 +204,43 @@ def eval(model: Path, facts: tuple[str, ...], timestamps: tuple[str, ...],
         if result.raised_faults:
             click.echo(f"Faults: {sorted(result.raised_faults)}")
         click.echo(f"Op count: {result.op_count}")
+
+
+@main.command()
+@click.argument("model", type=click.Path(exists=True, path_type=Path))
+@click.option("--out", type=click.Path(path_type=Path), required=True)
+@click.option(
+    "--format",
+    "fmt",
+    type=click.Choice(["mermaid", "dot"], case_sensitive=False),
+    default="mermaid",
+    help="Output format: mermaid (default) or dot (Graphviz).",
+)
+def graph(model: Path, out: Path, fmt: str) -> None:
+    """Generate a dependency graph from a .arb.yaml model."""
+    from .canonical import canonicalize
+
+    diag = DiagnosticCollector()
+    data = parse_model(model, diag)
+    if data is None:
+        click.echo(diag.format(), err=True)
+        sys.exit(1)
+
+    validate_schema(data, diag)
+    validate_model(data, diag)
+    if diag.has_errors():
+        click.echo(diag.format(), err=True)
+        sys.exit(1)
+
+    canonical = canonicalize(data)
+
+    if fmt == "dot":
+        output = emit_dot(canonical)
+    else:
+        output = emit_mermaid(canonical)
+
+    out.write_text(output, encoding="utf-8")
+    click.echo(f"\u2713 Graph written to {out} ({fmt})")
 
 
 @main.command("emit-tests")

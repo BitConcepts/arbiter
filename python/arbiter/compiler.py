@@ -163,7 +163,7 @@ def _build_resource_report(
     ptr_size = 4  # assume 32-bit target
     fact_def_size = idx_size + 4 + 12 + idx_size + 1 + (ptr_size if has_strings else 0)
     rule_def_size = idx_size * 8 + 1 + (ptr_size * 2 if has_strings else 0)
-    cond_def_size = idx_size + 4 + 4 + idx_size * 2
+    cond_def_size = idx_size + 4 + 4
     expr_def_size = idx_size * 3 + 12
     action_def_size = idx_size * 2 + 4 + ptr_size + idx_size + 1 + (ptr_size if has_strings else 0)
 

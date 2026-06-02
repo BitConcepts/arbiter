@@ -160,8 +160,7 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
             val = 1 if val else 0
         lines.append(
             f"\t{{ .fact_id = {c.get('fact_id', 0)}, .op = {op_enum}, "
-            f".value = {val}, .group = {grp}, "
-            f".group_index = 0, .next = UINT16_MAX }},"
+            f".value = {val}, .group = {grp} }},"
         )
     if not model.conditions:
         lines.append("\t{ 0 },  /* empty */")

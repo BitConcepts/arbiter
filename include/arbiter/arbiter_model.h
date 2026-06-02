@@ -126,8 +126,6 @@ struct ARBITER_condition_def {
 	enum ARBITER_op op;
 	int32_t value;
 	enum ARBITER_cond_group group;
-	arbiter_index_t group_index;
-	arbiter_index_t next;
 };
 
 /** Action definition (compiled model table entry). */
