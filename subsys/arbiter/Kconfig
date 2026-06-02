@@ -284,7 +284,7 @@ config ARBITER_FPGA_OFFLOAD
 	  to offload condition evaluation and expression execution
 	  to FPGA fabric. No implementation is shipped in v1.
 
-# ── Event-Driven Evaluation (REQ-ARCH-036) ───────────────────
+# ── Event-Driven Evaluation (REQ-ARCH-036) ───────────────
 
 config ARBITER_EVENT_DRIVEN
 	bool "Enable event-driven evaluation"
@@ -294,7 +294,7 @@ config ARBITER_EVENT_DRIVEN
 	  watched fact has been modified.  Uses static bitmasks —
 	  no dynamic allocation.
 
-# ── Multi-Model Composition (REQ-ARCH-037) ───────────────────
+# ── Multi-Model Composition (REQ-ARCH-037) ───────────────
 
 config ARBITER_COMPOSE
 	bool "Enable multi-model composition"
@@ -312,7 +312,7 @@ config ARBITER_MAX_MODELS
 	  Maximum number of model contexts that can be attached to a
 	  single fact bus.
 
-# ── State Machine Support (REQ-ARCH-039) ─────────────────────
+# ── State Machine Support (REQ-ARCH-039) ─────────────────
 
 config ARBITER_STATE_MACHINE
 	bool "Enable state machine support"
@@ -334,5 +334,36 @@ config ARBITER_MAX_TRANSITIONS
 	depends on ARBITER_STATE_MACHINE
 	help
 	  Maximum number of transition definitions per model.
+
+# ── Remote Trace Export (REQ-ARCH-038) ───────────────────
+
+config ARBITER_TRACE_EXPORT
+	bool "Enable remote trace export"
+	default n
+	help
+	  Serialize evaluation trace entries into binary frames and
+	  send them over a pluggable transport (UART, network, etc.)
+	  for remote analysis and debugging.
+
+# ── Zbus Integration (REQ-ARCH-042) ─────────────────────
+
+config ARBITER_ZBUS
+	bool "Enable zbus integration"
+	depends on ZBUS
+	default n
+	help
+	  Publish evaluation results and subscribe to fact updates
+	  via Zephyr zbus channels.
+
+# ── Grafana Metrics (REQ-ARCH-042) ──────────────────────
+
+config ARBITER_METRICS
+	bool "Enable runtime metrics (Zephyr stats)"
+	depends on STATS
+	default n
+	help
+	  Expose evaluation metrics (count, latency, faults, etc.)
+	  through the Zephyr stats subsystem for Grafana or other
+	  monitoring dashboards.
 
 endif # ARBITER

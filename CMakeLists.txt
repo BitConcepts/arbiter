@@ -33,6 +33,10 @@ if(CONFIG_ARBITER)
     ${CMAKE_CURRENT_LIST_DIR}/lib/arbiter_state.c
   )
 
+  zephyr_library_sources_ifdef(CONFIG_ARBITER_TRACE_EXPORT
+    ${CMAKE_CURRENT_LIST_DIR}/lib/arbiter_trace_export.c
+  )
+
   zephyr_include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
   add_subdirectory_ifdef(CONFIG_ARBITER ${CMAKE_CURRENT_LIST_DIR}/subsys/arbiter)
