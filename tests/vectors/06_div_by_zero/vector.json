@@ -1,0 +1,40 @@
+{
+  "description": "Division by zero: div and mod with zero divisor return 0 (safe default)",
+  "model": {
+    "arb_version": 0.1,
+    "model": "vec_div_zero",
+    "target": {"rtos": "zephyr"},
+    "facts": [
+      {"id": "divisor", "type": "int32", "default": 0},
+      {"id": "dividend", "type": "int32", "default": 0},
+      {"id": "div_result", "type": "int32", "default": -1},
+      {"id": "mod_result", "type": "int32", "default": -1},
+      {"id": "scale_result", "type": "int32", "default": -1}
+    ],
+    "rules": [
+      {
+        "id": "rule.divs",
+        "class": "inference",
+        "then": {
+          "compute": [
+            {"target": "div_result", "op": "div", "left": "dividend", "right": "divisor"},
+            {"target": "mod_result", "op": "mod", "left": "dividend", "right": "divisor"},
+            {"target": "scale_result", "op": "scale", "left": "dividend", "right": "divisor", "scale": 0}
+          ]
+        }
+      }
+    ],
+    "actions": [],
+    "modes": []
+  },
+  "facts": {"dividend": 100, "divisor": 0, "div_result": -1, "mod_result": -1, "scale_result": -1},
+  "timestamps": {},
+  "snapshot_timestamp_ms": 0,
+  "expected": {
+    "fired_rules": ["rule.divs"],
+    "current_mode": null,
+    "raised_faults": [],
+    "requested_actions": [],
+    "fact_values": {"dividend": 100, "divisor": 0, "div_result": 0, "mod_result": 0, "scale_result": 0}
+  }
+}

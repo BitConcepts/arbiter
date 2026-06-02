@@ -1,0 +1,37 @@
+{
+  "description": "Expression opcode: accumulate — target = target + (left * right) / scale",
+  "model": {
+    "arb_version": 0.1,
+    "model": "vec_expr_accum",
+    "target": {"rtos": "zephyr"},
+    "facts": [
+      {"id": "delta", "type": "int32", "default": 0},
+      {"id": "gain", "type": "int32", "default": 0},
+      {"id": "integrator", "type": "int32", "default": 0}
+    ],
+    "rules": [
+      {
+        "id": "rule.integrate",
+        "class": "inference",
+        "then": {
+          "compute": [
+            {"target": "integrator", "op": "assign", "left_literal": 100},
+            {"target": "integrator", "op": "accumulate", "left": "delta", "right": "gain", "scale": 10}
+          ]
+        }
+      }
+    ],
+    "actions": [],
+    "modes": []
+  },
+  "facts": {"delta": 50, "gain": 3, "integrator": 0},
+  "timestamps": {},
+  "snapshot_timestamp_ms": 0,
+  "expected": {
+    "fired_rules": ["rule.integrate"],
+    "current_mode": null,
+    "raised_faults": [],
+    "requested_actions": [],
+    "fact_values": {"delta": 50, "gain": 3, "integrator": 115}
+  }
+}

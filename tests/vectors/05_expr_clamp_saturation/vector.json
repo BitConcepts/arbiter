@@ -1,0 +1,35 @@
+{
+  "description": "Expression opcode: clamp with saturation — value exceeds hi bound, clamped to 100",
+  "model": {
+    "arb_version": 0.1,
+    "model": "vec_expr_clamp",
+    "target": {"rtos": "zephyr"},
+    "facts": [
+      {"id": "output", "type": "int32", "default": 0},
+      {"id": "raw_value", "type": "int32", "default": 0}
+    ],
+    "rules": [
+      {
+        "id": "rule.clamp_output",
+        "class": "inference",
+        "then": {
+          "compute": [
+            {"target": "output", "op": "clamp", "left": "raw_value", "right_literal": -100, "scale": 100}
+          ]
+        }
+      }
+    ],
+    "actions": [],
+    "modes": []
+  },
+  "facts": {"raw_value": 500, "output": 0},
+  "timestamps": {},
+  "snapshot_timestamp_ms": 0,
+  "expected": {
+    "fired_rules": ["rule.clamp_output"],
+    "current_mode": null,
+    "raised_faults": [],
+    "requested_actions": [],
+    "fact_values": {"raw_value": 500, "output": 100}
+  }
+}

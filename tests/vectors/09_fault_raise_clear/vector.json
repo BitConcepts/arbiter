@@ -1,0 +1,38 @@
+{
+  "description": "Fault management: raise_fault then clear_fault in same eval cycle",
+  "model": {
+    "arb_version": 0.1,
+    "model": "vec_faults",
+    "target": {"rtos": "zephyr"},
+    "facts": [
+      {"id": "error_flag", "type": "bool", "default": false},
+      {"id": "recovery_flag", "type": "bool", "default": false}
+    ],
+    "rules": [
+      {
+        "id": "rule.raise_error",
+        "class": "safety_guard",
+        "when": {"all": [{"fact": "error_flag", "op": "==", "value": true}]},
+        "then": {"raise_fault": "fault.hw_error", "explanation": "Hardware error detected"}
+      },
+      {
+        "id": "rule.clear_error",
+        "class": "inference",
+        "when": {"all": [{"fact": "recovery_flag", "op": "==", "value": true}]},
+        "then": {"clear_fault": "fault.hw_error", "explanation": "Recovery confirmed"}
+      }
+    ],
+    "actions": [],
+    "modes": []
+  },
+  "facts": {"error_flag": 1, "recovery_flag": 1},
+  "timestamps": {},
+  "snapshot_timestamp_ms": 0,
+  "expected": {
+    "fired_rules": ["rule.raise_error", "rule.clear_error"],
+    "current_mode": null,
+    "raised_faults": [],
+    "requested_actions": ["raise_fault:fault.hw_error", "clear_fault:fault.hw_error"],
+    "fact_values": {"error_flag": 1, "recovery_flag": 1}
+  }
+}

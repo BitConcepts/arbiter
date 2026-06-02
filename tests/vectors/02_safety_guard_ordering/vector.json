@@ -1,0 +1,40 @@
+{
+  "description": "Safety guard ordering: safety_guard fires before inference regardless of declaration order",
+  "model": {
+    "arb_version": 0.1,
+    "model": "vec_safety_ordering",
+    "target": {"rtos": "zephyr"},
+    "facts": [
+      {"id": "temp_c", "type": "int32", "default": 0}
+    ],
+    "rules": [
+      {
+        "id": "rule.inference_first_alpha",
+        "class": "inference",
+        "then": {"explanation": "Inference rule"}
+      },
+      {
+        "id": "rule.advisory_z",
+        "class": "advisory",
+        "then": {"explanation": "Advisory rule"}
+      },
+      {
+        "id": "rule.safety_override",
+        "class": "safety_guard",
+        "then": {"explanation": "Safety guard fires first"}
+      }
+    ],
+    "actions": [],
+    "modes": []
+  },
+  "facts": {"temp_c": 100},
+  "timestamps": {},
+  "snapshot_timestamp_ms": 0,
+  "expected": {
+    "fired_rules": ["rule.safety_override", "rule.inference_first_alpha", "rule.advisory_z"],
+    "current_mode": null,
+    "raised_faults": [],
+    "requested_actions": [],
+    "fact_values": {"temp_c": 100}
+  }
+}

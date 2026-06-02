@@ -1,0 +1,38 @@
+{
+  "description": "Delta operators: delta_gt fires when |current - prev| > threshold, delta_lt when < threshold",
+  "model": {
+    "arb_version": 0.1,
+    "model": "vec_delta_ops",
+    "target": {"rtos": "zephyr"},
+    "facts": [
+      {"id": "sensor.fast", "type": "int32", "default": 0},
+      {"id": "sensor.slow", "type": "int32", "default": 0}
+    ],
+    "rules": [
+      {
+        "id": "rule.big_change",
+        "class": "inference",
+        "when": {"all": [{"fact": "sensor.fast", "op": "delta_gt", "value": 50}]},
+        "then": {"explanation": "Large change detected on fast sensor"}
+      },
+      {
+        "id": "rule.small_change",
+        "class": "inference",
+        "when": {"all": [{"fact": "sensor.slow", "op": "delta_lt", "value": 10}]},
+        "then": {"explanation": "Small change on slow sensor"}
+      }
+    ],
+    "actions": [],
+    "modes": []
+  },
+  "facts": {"sensor.fast": 100, "sensor.slow": 5},
+  "timestamps": {},
+  "snapshot_timestamp_ms": 0,
+  "expected": {
+    "fired_rules": ["rule.big_change", "rule.small_change"],
+    "current_mode": null,
+    "raised_faults": [],
+    "requested_actions": [],
+    "fact_values": {"sensor.fast": 100, "sensor.slow": 5}
+  }
+}
