@@ -25,6 +25,7 @@ class CanonicalModel:
     transitions: list[dict[str, Any]] = field(default_factory=list)
     hazards: list[dict[str, Any]] = field(default_factory=list)
     safety_goals: list[dict[str, Any]] = field(default_factory=list)
+    version: str | None = None
     model_hash: str = ""
     schema_hash: str = ""
     compiler_version: str = "0.1.0"
@@ -122,6 +123,7 @@ def canonicalize(data: dict[str, Any]) -> CanonicalModel:
         transitions=transitions_flat,
         hazards=data.get("hazards", []),
         safety_goals=data.get("safety_goals", []),
+        version=data.get("version"),
         fact_id_map=fact_id_map,
         rule_id_map=rule_id_map,
         action_id_map=action_id_map,

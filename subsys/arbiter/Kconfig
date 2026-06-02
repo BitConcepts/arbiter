@@ -168,6 +168,14 @@ config ARBITER_BLOB_LOADER
 	  Enable loading models from .zrmb binary blob format.
 	  Note: strict safety profile prefers generated C tables.
 
+config ARBITER_HOT_SWAP
+	bool "Enable runtime model hot-swap"
+	default n
+	help
+	  Enable ARBITER_hot_swap() to replace the active model in a
+	  running context. Fact values are preserved where the fact
+	  index and type match between old and new models.
+
 config ARBITER_ACTION_DISPATCHER
 	bool "Enable automatic action dispatching"
 	default n

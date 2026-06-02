@@ -150,6 +150,35 @@ int ARBITER_get_requested_actions(const struct ARBITER_result *result,
 uint32_t ARBITER_get_last_eval_op_count(const struct ARBITER_ctx *ctx);
 
 /**
+ * @brief Check whether a model meets a minimum version requirement.
+ *
+ * @param model     Compiled model to check.
+ * @param min_major Minimum required major version.
+ * @param min_minor Minimum required minor version.
+ * @return ARBITER_OK if the model meets the requirement,
+ *         ARBITER_EMODEL if it does not,
+ *         ARBITER_EINVAL if model is NULL.
+ */
+int ARBITER_check_version(const struct ARBITER_model *model,
+			  uint8_t min_major, uint8_t min_minor);
+
+#if defined(CONFIG_ARBITER_HOT_SWAP) && CONFIG_ARBITER_HOT_SWAP
+/**
+ * @brief Hot-swap a running context to a new model.
+ *
+ * Validates the new model, preserves current fact values where the fact
+ * index and type match, and atomically swaps the model pointer.
+ *
+ * @param ctx       Initialized context.
+ * @param new_model New compiled model.
+ * @return ARBITER_OK on success, ARBITER_EINVAL on bad pointers,
+ *         ARBITER_EMODEL if the new model fails validation.
+ */
+int ARBITER_hot_swap(struct ARBITER_ctx *ctx,
+		    const struct ARBITER_model *new_model);
+#endif /* CONFIG_ARBITER_HOT_SWAP */
+
+/**
  * @brief Get the arbiter version string.
  */
 const char *ARBITER_version_string(void);
