@@ -21,6 +21,18 @@ if(CONFIG_ARBITER)
     ${CMAKE_CURRENT_LIST_DIR}/lib/arbiter_accel.c
   )
 
+  zephyr_library_sources_ifdef(CONFIG_ARBITER_EVENT_DRIVEN
+    ${CMAKE_CURRENT_LIST_DIR}/lib/arbiter_event.c
+  )
+
+  zephyr_library_sources_ifdef(CONFIG_ARBITER_COMPOSE
+    ${CMAKE_CURRENT_LIST_DIR}/lib/arbiter_compose.c
+  )
+
+  zephyr_library_sources_ifdef(CONFIG_ARBITER_STATE_MACHINE
+    ${CMAKE_CURRENT_LIST_DIR}/lib/arbiter_state.c
+  )
+
   zephyr_include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
   add_subdirectory_ifdef(CONFIG_ARBITER ${CMAKE_CURRENT_LIST_DIR}/subsys/arbiter)

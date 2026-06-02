@@ -5,6 +5,9 @@ from __future__ import annotations
 
 from .canonical import CanonicalModel
 
+# --- Header includes for state machine support ---
+_STATE_HEADER_INCLUDE = '#include <arbiter/arbiter_state.h>'
+
 _OP_MAP = {
     "==": "ARBITER_OP_EQ", "!=": "ARBITER_OP_NE",
     "<": "ARBITER_OP_LT", "<=": "ARBITER_OP_LE",
@@ -95,6 +98,24 @@ def emit_c_header(model: CanonicalModel, emit_trace_strings: bool = True) -> str
         lines.append(f"#define ARBITER_MODE_{safe_name} {idx}u")
 
     lines.append("")
+
+    # State defines (REQ-ARCH-039)
+    states = getattr(model, "states", [])
+    if states:
+        lines.append(_STATE_HEADER_INCLUDE)
+        lines.append("")
+        lines.append(f"#define ARBITER_MODEL_STATE_COUNT {len(states)}u")
+        transitions = getattr(model, "transitions", [])
+        lines.append(f"#define ARBITER_MODEL_TRANSITION_COUNT {len(transitions)}u")
+        lines.append("")
+        for st in states:
+            safe_name = st["id"].replace(".", "_").upper()
+            lines.append(f"#define ARBITER_STATE_{safe_name} {st['index']}u")
+        lines.append("")
+        lines.append("extern const struct ARBITER_state_def ARBITER_generated_states[];")
+        lines.append("extern const struct ARBITER_transition_def ARBITER_generated_transitions[];")
+        lines.append("")
+
     return "\n".join(lines)
 
 
@@ -279,5 +300,38 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
         "};",
         "",
     ])
+
+    # States table (REQ-ARCH-039)
+    states = getattr(model, "states", [])
+    transitions = getattr(model, "transitions", [])
+    if states:
+        lines.append("")
+        lines.append("const struct ARBITER_state_def ARBITER_generated_states[] = {")
+        for st in states:
+            name = _c_str(st["id"]) if emit_trace_strings else "NULL"
+            lines.append(
+                f"\t{{ .id = {st['index']}, "
+                f".on_enter_action = {st['on_enter_action']}, "
+                f".on_exit_action = {st['on_exit_action']}, "
+                f".name = {name} }},"
+            )
+        lines.append("};")
+        lines.append("")
+
+    # Transitions table (REQ-ARCH-039)
+    if transitions:
+        lines.append("const struct ARBITER_transition_def ARBITER_generated_transitions[] = {")
+        for tr in transitions:
+            lines.append(
+                f"\t{{ .source_state = {tr['source_state']}, "
+                f".target_state = {tr['target_state']}, "
+                f".condition_start = {tr['condition_start']}, "
+                f".condition_count = {tr['condition_count']}, "
+                f".guard_start = {tr['guard_start']}, "
+                f".guard_count = {tr['guard_count']}, "
+                f".priority = {tr['priority']} }},"
+            )
+        lines.append("};")
+        lines.append("")
 
     return "\n".join(lines)

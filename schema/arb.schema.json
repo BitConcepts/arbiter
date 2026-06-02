@@ -83,6 +83,10 @@
       "type": "array",
       "items": { "$ref": "#/$defs/action" }
     },
+    "states": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/state" }
+    },
     "runtime": { "type": "object" },
     "tests": { "type": "array" },
     "metadata": { "type": "object" }
@@ -193,6 +197,53 @@
         "must_complete_within_ms": { "type": "integer", "minimum": 0 },
         "failure_behavior": { "type": "string" },
         "safe_state_action": { "type": "boolean" }
+      }
+    },
+    "state": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string" },
+        "on_enter": { "type": "string", "description": "Action id to run on entry." },
+        "on_exit": { "type": "string", "description": "Action id to run on exit." },
+        "transitions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/transition" }
+        }
+      }
+    },
+    "transition": {
+      "type": "object",
+      "required": ["target"],
+      "properties": {
+        "target": { "type": "string", "description": "Target state id." },
+        "priority": { "type": "integer", "minimum": 0, "default": 0 },
+        "when": {
+          "type": "object",
+          "properties": {
+            "all": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/condition" }
+            },
+            "any": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/condition" }
+            },
+            "not": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/condition" }
+            }
+          }
+        },
+        "guard": {
+          "type": "object",
+          "properties": {
+            "all": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/condition" }
+            }
+          }
+        }
       }
     }
   }
