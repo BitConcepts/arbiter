@@ -166,6 +166,7 @@ struct ARBITER_rule_def {
 /** Complete compiled model. */
 struct ARBITER_model {
 	const char *name;
+	uint8_t version[3]; /**< Model version: [major, minor, patch]. */
 	const uint8_t model_hash[32];
 	const uint8_t schema_hash[32];
 	arbiter_index_t fact_count;
