@@ -11,6 +11,7 @@ import click
 from . import __version__
 from .compiler import CompileOptions, compile_model
 from .diagnostics import DiagnosticCollector
+from .evaluator import ArbiterEvaluator
 from .parser import parse_model
 from .schema import validate_schema
 from .validator import validate_model
@@ -132,6 +133,76 @@ def emit_docs_cmd(model: Path, out: Path) -> None:
         sys.exit(1)
 
     click.echo(f"✓ Documentation written to {out}")
+
+
+@main.command()
+@click.argument("model", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "--facts",
+    multiple=True,
+    help="Set facts as key=value pairs (e.g. battery.voltage_mv=3300).",
+)
+@click.option(
+    "--timestamps",
+    multiple=True,
+    help="Set fact timestamps as key=ms pairs (e.g. battery.voltage_mv=100).",
+)
+@click.option(
+    "--snapshot-ts",
+    type=int,
+    default=0,
+    help="Snapshot timestamp in ms (for staleness checks).",
+)
+@click.option("--json", "emit_json", is_flag=True, help="Output result as JSON.")
+def eval(model: Path, facts: tuple[str, ...], timestamps: tuple[str, ...],
+         snapshot_ts: int, emit_json: bool) -> None:
+    """Evaluate a .arb.yaml model with given facts."""
+    import json as json_mod
+
+    diag = DiagnosticCollector()
+    data = parse_model(model, diag)
+    if data is None:
+        click.echo(diag.format(), err=True)
+        sys.exit(1)
+
+    evaluator = ArbiterEvaluator(data)
+
+    for kv in facts:
+        if "=" not in kv:
+            click.echo(f"Error: invalid fact '{kv}', expected key=value", err=True)
+            sys.exit(1)
+        key, val = kv.split("=", 1)
+        try:
+            evaluator.set_fact(key, val)
+        except KeyError as e:
+            click.echo(f"Error: {e}", err=True)
+            sys.exit(1)
+
+    for kv in timestamps:
+        if "=" not in kv:
+            click.echo(f"Error: invalid timestamp '{kv}', expected key=ms", err=True)
+            sys.exit(1)
+        key, val = kv.split("=", 1)
+        try:
+            evaluator.set_timestamp(key, int(val))
+        except (KeyError, ValueError) as e:
+            click.echo(f"Error: {e}", err=True)
+            sys.exit(1)
+
+    evaluator.set_snapshot_timestamp(snapshot_ts)
+    result = evaluator.eval()
+
+    if emit_json:
+        click.echo(json_mod.dumps(result.to_dict(), indent=2))
+    else:
+        click.echo(f"Fired rules: {result.fired_rules}")
+        if result.current_mode:
+            click.echo(f"Mode: {result.current_mode}")
+        if result.requested_actions:
+            click.echo(f"Actions: {result.requested_actions}")
+        if result.raised_faults:
+            click.echo(f"Faults: {sorted(result.raised_faults)}")
+        click.echo(f"Op count: {result.op_count}")
 
 
 @main.command("emit-tests")
