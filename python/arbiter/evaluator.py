@@ -97,6 +97,26 @@ def _saturate32(value: int) -> int:
     return value
 
 
+def _table_lookup(keys: list[int], values: list[int], input_val: int) -> int:
+    """Linear interpolation lookup matching the C engine."""
+    n = len(keys)
+    if n == 0:
+        return 0
+    if input_val <= keys[0]:
+        return values[0]
+    if input_val >= keys[n - 1]:
+        return values[n - 1]
+    for i in range(1, n):
+        if input_val <= keys[i]:
+            k0, k1 = keys[i - 1], keys[i]
+            v0, v1 = values[i - 1], values[i]
+            dk = k1 - k0
+            if dk == 0:
+                return v0
+            return v0 + (v1 - v0) * (input_val - k0) // dk
+    return values[n - 1]
+
+
 # ---------------------------------------------------------------------------
 # Evaluator
 # ---------------------------------------------------------------------------
@@ -134,6 +154,9 @@ class ArbiterEvaluator:
 
         # Snapshot timestamp (set by caller for staleness tests).
         self._snapshot_ts: int = 0
+
+        # Hysteresis per-condition state (persistent across evals).
+        self._hyst_state: dict[str, bool] = {}
 
         # Faults (persistent across evals until cleared).
         self._raised_faults: set[str] = set()
@@ -363,6 +386,20 @@ class ArbiterEvaluator:
             delta = abs(fact_val - prev)
             return delta < int(threshold)
 
+        if op == "hysteresis":
+            rising = int(cond.get("rising", cond.get("value", 0)))
+            falling = int(cond.get("falling", cond.get("aux_value", 0)))
+            key = f"{fact_name}:{rising}:{falling}"
+            prev_state = self._hyst_state.get(key, False)
+            if fact_val >= rising:
+                result = True
+            elif fact_val <= falling:
+                result = False
+            else:
+                result = prev_state
+            self._hyst_state[key] = result
+            return result
+
         return False  # unknown operator
 
     @staticmethod
@@ -400,6 +437,12 @@ class ArbiterEvaluator:
             expr.get("right_literal", 0),
         )
         scale = expr.get("scale", 1)
+
+        # Lookup: resolve table name to index if not yet resolved
+        if op == "lookup" and "table" in expr:
+            table_id_map = getattr(self._model, "table_id_map", {})
+            tbl_idx = table_id_map.get(expr["table"], 0)
+            scale = tbl_idx
 
         result = self._compute_op(op, target_name, left, right, scale)
         self._fact_values[target_name] = result
@@ -479,6 +522,19 @@ class ArbiterEvaluator:
                 return _saturate32(current)
             wide = left * right
             return _saturate32(current + int(wide / scale))
+
+        if op == "lookup":
+            # scale field holds the table index
+            tbl_idx = scale
+            tables = getattr(self._model, "tables", [])
+            if 0 <= tbl_idx < len(tables):
+                tbl = tables[tbl_idx]
+                return _saturate32(_table_lookup(
+                    tbl.get("keys", []),
+                    tbl.get("values", []),
+                    left,
+                ))
+            return 0
 
         return 0  # unknown op
 

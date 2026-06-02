@@ -16,6 +16,7 @@ _OP_MAP = {
     "stale": "ARBITER_OP_STALE", "not_stale": "ARBITER_OP_NOT_STALE",
     "changed": "ARBITER_OP_CHANGED",
     "delta_gt": "ARBITER_OP_DELTA_GT", "delta_lt": "ARBITER_OP_DELTA_LT",
+    "hysteresis": "ARBITER_OP_HYSTERESIS",
 }
 
 _TYPE_MAP = {
@@ -45,6 +46,7 @@ _EXPR_OP_MAP = {
     "shift_r": "ARBITER_EXPR_SHIFT_R", "shift_l": "ARBITER_EXPR_SHIFT_L",
     "scale": "ARBITER_EXPR_SCALE", "accumulate": "ARBITER_EXPR_ACCUMULATE",
     "assign": "ARBITER_EXPR_ASSIGN",
+    "lookup": "ARBITER_EXPR_LOOKUP",
 }
 
 
@@ -158,9 +160,12 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
         val = c.get("value", 0)
         if isinstance(val, bool):
             val = 1 if val else 0
+        aux_val = c.get("aux_value", 0)
+        if isinstance(aux_val, bool):
+            aux_val = 1 if aux_val else 0
         lines.append(
             f"\t{{ .fact_id = {c.get('fact_id', 0)}, .op = {op_enum}, "
-            f".value = {val}, .group = {grp}, "
+            f".value = {val}, .aux_value = {aux_val}, .group = {grp}, "
             f".group_index = 0, .next = UINT16_MAX }},"
         )
     if not model.conditions:
@@ -261,6 +266,33 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
         lines.append("")
     # If no expressions, we emit nothing here and use NULL directly below.
 
+    # Tables — emit key/value arrays and table_def array
+    tables = getattr(model, "tables", [])
+    table_id_map = getattr(model, "table_id_map", {})
+    if tables:
+        for tbl in tables:
+            tid = tbl["id"].replace(".", "_")
+            keys = tbl["keys"]
+            vals = tbl["values"]
+            lines.append(f"static const int32_t table_{tid}_keys[] = {{ {', '.join(str(k) for k in keys)} }};")
+            lines.append(f"static const int32_t table_{tid}_values[] = {{ {', '.join(str(v) for v in vals)} }};")
+        lines.append("")
+        lines.append("static const struct ARBITER_table_def model_tables[] = {")
+        for tbl in tables:
+            tid = tbl["id"].replace(".", "_")
+            count = len(tbl["keys"])
+            lines.append(f"\t{{ .count = {count}, .keys = table_{tid}_keys, .values = table_{tid}_values }},")
+        lines.append("};")
+        lines.append("")
+
+    # Resolve table references in expressions
+    if tables and expressions:
+        for e in expressions:
+            if e.get("op") == "lookup" and "table" in e:
+                tbl_name = e["table"]
+                tbl_idx = table_id_map.get(tbl_name, 0)
+                e["scale"] = tbl_idx
+
     # Mode names
     if model.modes and emit_trace_strings:
         lines.append("static const char *model_mode_names[] = {")
@@ -280,6 +312,8 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
 
     expr_count_total = len(getattr(model, "expressions", []))
     exprs_field = "model_expressions" if expressions else "NULL"
+    tables_field = "model_tables" if tables else "NULL"
+    table_count = len(tables)
     lines.extend([
         "const struct ARBITER_model ARBITER_generated_model = {",
         f'\t.name = "{model.name}",',
@@ -297,6 +331,8 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
         "\t.actions = model_actions,",
         f"\t.expressions = {exprs_field},",
         "\t.mode_names = model_mode_names,",
+        f"\t.tables = {tables_field},",
+        f"\t.table_count = {table_count},",
         "};",
         "",
     ])

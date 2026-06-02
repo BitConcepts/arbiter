@@ -56,6 +56,7 @@ enum ARBITER_op {
 	ARBITER_OP_CHANGED,
 	ARBITER_OP_DELTA_GT,
 	ARBITER_OP_DELTA_LT,
+	ARBITER_OP_HYSTERESIS = 13,
 };
 
 /** Action types. */
@@ -76,6 +77,14 @@ enum ARBITER_cond_group {
 	ARBITER_COND_NOT,
 };
 
+/**
+ * Maximum number of conditions that support per-condition state (hysteresis).
+ * Kept small to avoid dynamic allocation; sized for typical safety models.
+ */
+#ifndef CONFIG_ARBITER_MAX_HYSTERESIS_CONDITIONS
+#define CONFIG_ARBITER_MAX_HYSTERESIS_CONDITIONS 32
+#endif
+
 /** Expression operators for compute engine. */
 enum ARBITER_expr_op {
 	ARBITER_EXPR_ADD = 0,    /**< target = left + right */
@@ -93,6 +102,7 @@ enum ARBITER_expr_op {
 	ARBITER_EXPR_SCALE,      /**< target = (left * right) / scale (fixed-point) */
 	ARBITER_EXPR_ASSIGN,     /**< target = left (copy fact or literal) */
 	ARBITER_EXPR_ACCUMULATE, /**< target = target + (left * right) / scale */
+	ARBITER_EXPR_LOOKUP = 15, /**< target = table_lookup(table[scale], left) */
 };
 
 /** Fact definition (compiled model table entry). */
@@ -125,6 +135,7 @@ struct ARBITER_condition_def {
 	arbiter_index_t fact_id;
 	enum ARBITER_op op;
 	int32_t value;
+	int32_t aux_value; /**< Secondary threshold (e.g. falling edge for hysteresis). */
 	enum ARBITER_cond_group group;
 	arbiter_index_t group_index;
 	arbiter_index_t next;
@@ -163,6 +174,13 @@ struct ARBITER_rule_def {
 #endif
 };
 
+/** Lookup table definition for interpolation. */
+struct ARBITER_table_def {
+	uint16_t count;           /**< Number of entries in the table. */
+	const int32_t *keys;      /**< Sorted input key values. */
+	const int32_t *values;    /**< Output values (same count as keys). */
+};
+
 /** Complete compiled model. */
 struct ARBITER_model {
 	const char *name;
@@ -181,6 +199,8 @@ struct ARBITER_model {
 	const struct ARBITER_action_def *actions;
 	const struct ARBITER_expr_def *expressions;
 	const char **mode_names;
+	const struct ARBITER_table_def *tables; /**< Lookup tables. */
+	uint16_t table_count;
 #if defined(CONFIG_ARBITER_FPGA_OFFLOAD) && CONFIG_ARBITER_FPGA_OFFLOAD
 	const struct ARBITER_hw_offload_ops *offload_ops;
 #endif

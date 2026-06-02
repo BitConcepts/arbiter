@@ -92,6 +92,11 @@
       "type": "array",
       "items": { "$ref": "#/$defs/state" }
     },
+    "tables": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/table" },
+      "description": "Lookup tables for interpolation."
+    },
     "runtime": { "type": "object" },
     "tests": { "type": "array" },
     "metadata": { "type": "object" }
@@ -126,9 +131,11 @@
         "fact": { "type": "string" },
         "op": {
           "type": "string",
-          "enum": ["==", "!=", "<", "<=", ">", ">=", "in", "not_in", "stale", "not_stale", "changed", "delta_gt", "delta_lt"]
+          "enum": ["==", "!=", "<", "<=", ">", ">=", "in", "not_in", "stale", "not_stale", "changed", "delta_gt", "delta_lt", "hysteresis"]
         },
-        "value": {}
+        "value": {},
+        "rising": { "type": "integer", "description": "Rising threshold for hysteresis operator." },
+        "falling": { "type": "integer", "description": "Falling threshold for hysteresis operator." }
       }
     },
     "rule": {
@@ -173,6 +180,25 @@
         }
       }
     },
+    "table": {
+      "type": "object",
+      "required": ["id", "keys", "values"],
+      "properties": {
+        "id": { "type": "string" },
+        "keys": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "minItems": 2,
+          "description": "Sorted input key values for the lookup."
+        },
+        "values": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "minItems": 2,
+          "description": "Output values corresponding to each key."
+        }
+      }
+    },
     "expression": {
       "type": "object",
       "required": ["target", "op"],
@@ -180,13 +206,14 @@
         "target": { "type": "string", "description": "Fact id to write the result to." },
         "op": {
           "type": "string",
-          "enum": ["add", "sub", "mul", "div", "mod", "abs", "negate", "min", "max", "clamp", "shift_r", "shift_l", "scale", "assign", "accumulate"]
+          "enum": ["add", "sub", "mul", "div", "mod", "abs", "negate", "min", "max", "clamp", "shift_r", "shift_l", "scale", "assign", "accumulate", "lookup"]
         },
         "left": { "type": "string", "description": "Left operand fact id." },
         "left_literal": { "type": "integer", "description": "Left operand literal value." },
         "right": { "type": "string", "description": "Right operand fact id." },
         "right_literal": { "type": "integer", "description": "Right operand literal value." },
-        "scale": { "type": "integer", "description": "Divisor for scale/accumulate, or hi bound for clamp." }
+        "scale": { "type": "integer", "description": "Divisor for scale/accumulate, or hi bound for clamp." },
+        "table": { "type": "string", "description": "Table id for lookup expressions." }
       }
     },
     "action": {
