@@ -1,434 +1,464 @@
 [
   {
     "id": "TEST-001",
-    "title": "Engine init and context management",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-001",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-002",
-    "title": "Rule evaluation loop",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-002",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-003",
-    "title": "Compute expression interpreter",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-003",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-004",
-    "title": "Fact store with timestamps",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-004",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-005",
-    "title": "Trace subsystem",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-005",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-006",
-    "title": "Binary blob loading",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-006",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-007",
-    "title": "Action dispatcher",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-007",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-008",
-    "title": "Public C API",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-008",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-009",
-    "title": "Model data structures",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-009",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-010",
-    "title": "Evaluation result structure",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-010",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-011",
-    "title": "Trace API header",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-011",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-012",
-    "title": "Version constants",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-012",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-013",
-    "title": "Shell commands",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-013",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-014",
-    "title": "Runtime evaluation thread",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-014",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-015",
-    "title": "Watchdog supervision",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-015",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-016",
-    "title": "Kconfig feature flags",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-016",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-017",
-    "title": "arbiterc CLI",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-017",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-018",
-    "title": "YAML model parser",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-018",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-019",
-    "title": "Model validator",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-019",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-020",
-    "title": "JSON Schema validation",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-020",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-021",
-    "title": "Canonical ordering",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-021",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-022",
-    "title": "C code emitter",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-022",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-023",
-    "title": "Blob emitter",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-023",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-024",
-    "title": "Documentation emitter",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-024",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-025",
-    "title": "Compiler pipeline",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-025",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-026",
-    "title": "Diagnostics reporting",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-026",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-027",
-    "title": "ARB model format schema",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-027",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-028",
-    "title": "Reusable include library",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-ARCH-028",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-029",
-    "title": "Deterministic evaluation order",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-SAFETY-001",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-030",
-    "title": "No dynamic allocation",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-SAFETY-002",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-031",
-    "title": "Bounded execution",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-SAFETY-003",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-032",
-    "title": "Overflow protection",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-SAFETY-004",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-033",
-    "title": "Model integrity hash",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-SAFETY-005",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-034",
-    "title": "Staleness detection",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-SAFETY-006",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-035",
-    "title": "Division by zero handling",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-SAFETY-007",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
   },
   {
     "id": "TEST-036",
-    "title": "Zephyr module build",
+    "title": "",
     "description": "",
-    "requirement_id": "REQ-BUILD-001",
+    "requirement_id": "",
     "type": "unit",
     "verification_method": "evaluator",
     "input": {},
     "expected_behavior": {},
-    "confidence": 1.0,
-    "last_result": "passed"
+    "confidence": 1.0
+  },
+  {
+    "id": "TEST-037",
+    "title": "",
+    "description": "",
+    "requirement_id": "",
+    "type": "unit",
+    "verification_method": "evaluator",
+    "input": {},
+    "expected_behavior": {},
+    "confidence": 1.0
+  },
+  {
+    "id": "TEST-038",
+    "title": "",
+    "description": "",
+    "requirement_id": "",
+    "type": "unit",
+    "verification_method": "evaluator",
+    "input": {},
+    "expected_behavior": {},
+    "confidence": 1.0
+  },
+  {
+    "id": "TEST-039",
+    "title": "",
+    "description": "",
+    "requirement_id": "",
+    "type": "unit",
+    "verification_method": "evaluator",
+    "input": {},
+    "expected_behavior": {},
+    "confidence": 1.0
+  },
+  {
+    "id": "TEST-040",
+    "title": "",
+    "description": "",
+    "requirement_id": "",
+    "type": "unit",
+    "verification_method": "evaluator",
+    "input": {},
+    "expected_behavior": {},
+    "confidence": 1.0
+  },
+  {
+    "id": "TEST-041",
+    "title": "",
+    "description": "",
+    "requirement_id": "",
+    "type": "unit",
+    "verification_method": "evaluator",
+    "input": {},
+    "expected_behavior": {},
+    "confidence": 1.0
+  },
+  {
+    "id": "TEST-042",
+    "title": "",
+    "description": "",
+    "requirement_id": "",
+    "type": "unit",
+    "verification_method": "evaluator",
+    "input": {},
+    "expected_behavior": {},
+    "confidence": 1.0
   }
 ]

@@ -1,5 +1,67 @@
 # Change Ledger
 
+## 2026-06-02T13:25 — Comprehensive test suite and CI expansion
+- **Author**: Oz
+- **Type**: test, ci
+- **REQs affected**: REQ-ARCH-029, REQ-ARCH-033, REQ-BUILD-002
+- **Summary**: Added comprehensive Python test suite (test_profiles.py) with
+  37 new tests covering engine scaling profiles, resource budget reports,
+  profile validation, string stripping, header generation, and end-to-end
+  sample compilation across all four profiles. Fixed diag.error() call
+  signatures in compiler pipeline (ARB-PROFILE-001/002 codes). Added CI
+  step to validate all 17 sample models with --profile standard. Full
+  specsmith governance flow: audit 30/30, 42 REQs, 42 TESTs, all green.
+- **Status**: complete
+
+## 2026-06-02T13:16 — Core engine performance optimizations
+- **Author**: Oz
+- **Type**: optimization
+- **REQs affected**: REQ-ARCH-002, REQ-ARCH-003, REQ-ARCH-004, REQ-ARCH-005
+- **Summary**: Hardcore code-level optimizations to the core evaluation engine,
+  all Zephyr-kosher:
+  - arbiter_eval.c: __attribute__((hot, flatten)) on ARBITER_eval inlines all
+    helpers into a single optimizable unit. __attribute__((always_inline)) on
+    eval_condition, eval_condition_group, eval_expression, resolve_operand.
+    __restrict on all non-aliasing pointers. likely()/unlikely() on all branches.
+    Branchless abs via XOR trick (ASR+EOR+SUB, 3 cycles on Cortex-M vs branch).
+    Cached model-> pointers into locals. Local op_count written back once.
+    Targeted zero-init (6 fields vs full memset). Trace-NULL fast path skips
+    function call entirely. Single-condition special case. Switch cases
+    reordered by frequency. record_trace marked cold+noinline.
+  - arbiter_fact_store.c: Eliminated 3-level call chain
+    (set_bool->set_fact_value->validate_ctx_and_fact) via always_inline.
+    Collapsed range check conditionals. Cached old value to avoid double read.
+  - arbiter_engine.c: Batch memset + patch-only defaults with __restrict
+    pointers on the init loop.
+  - arbiter_trace.c: Struct assignment instead of memcpy for trace recording.
+    unlikely() on overflow check.
+  - Updated clang-tidy stubs with likely/unlikely macros.
+- **Status**: complete
+
+## 2026-06-02T13:04 — Engine evolution: clang-tidy CI, scaling profiles, HW acceleration, FPGA offload, gap analysis
+- **Author**: Oz
+- **Type**: feature, ci, architecture
+- **REQs affected**: REQ-BUILD-002, REQ-ARCH-029, REQ-ARCH-030, REQ-ARCH-031, REQ-ARCH-032, REQ-ARCH-033
+- **Summary**: Comprehensive engine evolution implementing the arbiter Evolution Plan:
+  - Added `.clang-tidy` config and clang-tidy CI job with Zephyr header stubs (REQ-BUILD-002).
+  - Added 6 new requirements (REQ-ARCH-029–033, REQ-BUILD-002) and 6 new tests (TEST-037–042).
+  - Implemented engine scaling profiles (nano/micro/standard/full) with Kconfig auto-detection
+    based on CPU family (Cortex-M0→nano, M3→micro, M4/M7→standard, A/R→full) and user override.
+  - Added `arbiter_index_t` typedef (uint8 for nano/micro, uint16 for standard/full).
+  - Added `CONFIG_ARBITER_STRINGS` to conditionally strip name/explanation pointers.
+  - Added `CONFIG_ARBITER_HW_ACCEL` with `lib/arbiter_accel.c` implementing CMSIS-DSP
+    intrinsics (__QADD, __QSUB) for ARM and RISC-V P-extension builtins.
+  - Added `CONFIG_ARBITER_ASM_OPT` Kconfig for future assembly hot paths.
+  - Added `CONFIG_ARBITER_FPGA_OFFLOAD` and `include/arbiter/arbiter_offload.h` defining
+    the `ARBITER_hw_offload_ops` struct for FPGA offload (future work).
+  - Added `--profile` and `--force-strings` flags to `arbiterc compile` CLI.
+  - Added profile validation (rejects oversized models) and resource budget report
+    (RAM estimate, .rodata, WCET ops, per-profile fit check) to compiler pipeline.
+  - Updated `docs/ARCHITECTURE.md` with Engine Profiles, HW Acceleration, Assembly
+    Hot Paths, FPGA Offload, and Model Complexity Analysis sections.
+  - Full gap analysis documented in plan.
+- **Status**: complete
+
 ## 2026-06-01T00:04 — Fix ZRMB header length and CRC offset
 - **Author**: Oz
 - **Type**: fix
@@ -353,3 +415,11 @@
 - **REQs affected**: TEST-036
 - **Status**: complete
 - **Chain hash**: `93b3525850de7bfd...`
+
+## 2026-06-02T08:51 — KILL SWITCH ACTIVATED: emergency stop
+- **Author**: specsmith-operator
+- **Type**: kill-switch
+- **REQs affected**: REG-005
+- **Status**: complete
+- **Epistemic status**: high
+- **Chain hash**: `63c25bfd300d9835...`

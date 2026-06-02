@@ -23,16 +23,24 @@ int ARBITER_init(struct ARBITER_ctx *ctx, const struct ARBITER_model *model)
 		return ARBITER_EMODEL;
 	}
 
+	/*
+	 * Single memset zeros entire ctx (fact_values[], snapshot,
+	 * counters, flags). Then patch only the non-zero fields.
+	 * This is faster than per-field init for large MAX_FACTS
+	 * because memset is often a hardware-optimized word-fill.
+	 */
 	memset(ctx, 0, sizeof(*ctx));
 	ctx->model = model;
 
-	/* Initialize fact values from model defaults */
-	for (uint16_t i = 0; i < model->fact_count; i++) {
-		ctx->fact_values[i].value = model->facts[i].default_value;
-		ctx->fact_values[i].prev_value = model->facts[i].default_value;
-		ctx->fact_values[i].timestamp_ms = 0;
-		ctx->fact_values[i].valid = false;
-		ctx->fact_values[i].changed = false;
+	/* Patch only default values — everything else is already 0 */
+	const struct ARBITER_fact_def *__restrict facts = model->facts;
+	struct ARBITER_fact_value *__restrict fv = ctx->fact_values;
+
+	for (arbiter_index_t i = 0; i < model->fact_count; i++) {
+		const int32_t def = facts[i].default_value;
+
+		fv[i].value = def;
+		fv[i].prev_value = def;
 	}
 
 	/* Set up internal snapshot to reference the fact_values array */

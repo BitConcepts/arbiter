@@ -59,6 +59,13 @@ def validate(model: Path, strict: bool, safety_profile: str | None, fail_on_warn
 @click.option("--model-hash-out", type=click.Path(path_type=Path), default=None)
 @click.option("--fail-on-warning", is_flag=True)
 @click.option("--emit-trace-strings/--no-trace-strings", default=True)
+@click.option(
+    "--profile",
+    type=click.Choice(["auto", "nano", "micro", "standard", "full"], case_sensitive=False),
+    default="auto",
+    help="Engine scaling profile. 'auto' defaults to standard when no board info.",
+)
+@click.option("--force-strings", is_flag=True, help="Force string emission even on nano/micro.")
 def compile(
     model: Path,
     out_c: Path | None,
@@ -70,8 +77,17 @@ def compile(
     model_hash_out: Path | None,
     fail_on_warning: bool,
     emit_trace_strings: bool,
+    profile: str,
+    force_strings: bool,
 ) -> None:
     """Compile a .arb.yaml model to C source or binary blob."""
+    # Resolve profile: auto -> standard (no board info in CLI)
+    resolved_profile = profile if profile != "auto" else "standard"
+
+    # Profile-driven string stripping
+    if resolved_profile in ("nano", "micro") and not force_strings:
+        emit_trace_strings = False
+
     options = CompileOptions(
         out_c=out_c,
         out_h=out_h,
@@ -82,6 +98,7 @@ def compile(
         model_hash_out=model_hash_out,
         fail_on_warning=fail_on_warning,
         emit_trace_strings=emit_trace_strings,
+        profile=resolved_profile,
     )
 
     result = compile_model(model, options)
@@ -96,6 +113,10 @@ def compile(
     click.echo(f"  Hash: {result.model_hash[:16]}...")
     for f in result.generated_files:
         click.echo(f"  → {f}")
+
+    # Resource budget report (REQ-ARCH-033)
+    if result.resource_report:
+        click.echo(result.resource_report)
 
 
 @main.command("emit-docs")

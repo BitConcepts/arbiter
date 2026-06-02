@@ -38,6 +38,41 @@ jobs:
       - name: Validate sample model
         run: arbiterc validate samples/battery_policy/models/battery.arb.yaml --strict
 
+      - name: Profile validation — compile all samples on standard profile
+        run: |
+          for model in samples/*/models/*.arb.yaml; do
+            echo "--- $model ---"
+            arbiterc compile "$model" --profile standard --out-c /dev/null --out-h /dev/null
+          done
+
+  clang-tidy:
+    name: clang-tidy Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang-tidy
+        run: sudo apt-get install -y --no-install-recommends clang-tidy
+
+      - name: Run clang-tidy on engine sources
+        run: |
+          clang-tidy \
+            lib/arbiter_engine.c \
+            lib/arbiter_eval.c \
+            lib/arbiter_fact_store.c \
+            lib/arbiter_trace.c \
+            lib/arbiter_blob.c \
+            lib/arbiter_action.c \
+            -- \
+            -I include \
+            -isystem tools/clang-tidy-stubs \
+            -std=c11 \
+            -DCONFIG_ARBITER_LOG_LEVEL=3 \
+            -DCONFIG_ARBITER_MAX_FACTS=64 \
+            -DCONFIG_ARBITER_MAX_ACTIONS_PER_EVAL=16 \
+            -DCONFIG_ARBITER_MAX_TRACE_ENTRIES=64 \
+            -DCONFIG_ARBITER_MAX_TRACE_INPUTS=8
+
   spdx:
     name: SPDX Header Check
     runs-on: ubuntu-latest

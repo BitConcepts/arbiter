@@ -4,359 +4,335 @@
     "title": "REQ-ARCH-001",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-001"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-002",
     "title": "REQ-ARCH-002",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-002"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-003",
     "title": "REQ-ARCH-003",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-003"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-004",
     "title": "REQ-ARCH-004",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-004"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-005",
     "title": "REQ-ARCH-005",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-005"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-006",
     "title": "REQ-ARCH-006",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-006"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-007",
     "title": "REQ-ARCH-007",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-007"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-008",
     "title": "REQ-ARCH-008",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-008"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-009",
     "title": "REQ-ARCH-009",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-009"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-010",
     "title": "REQ-ARCH-010",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-010"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-011",
     "title": "REQ-ARCH-011",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-011"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-012",
     "title": "REQ-ARCH-012",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-012"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-013",
     "title": "REQ-ARCH-013",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-013"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-014",
     "title": "REQ-ARCH-014",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-014"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-015",
     "title": "REQ-ARCH-015",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-015"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-016",
     "title": "REQ-ARCH-016",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-016"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-017",
     "title": "REQ-ARCH-017",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-017"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-018",
     "title": "REQ-ARCH-018",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-018"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-019",
     "title": "REQ-ARCH-019",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-019"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-020",
     "title": "REQ-ARCH-020",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-020"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-021",
     "title": "REQ-ARCH-021",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-021"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-022",
     "title": "REQ-ARCH-022",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-022"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-023",
     "title": "REQ-ARCH-023",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-023"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-024",
     "title": "REQ-ARCH-024",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-024"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-025",
     "title": "REQ-ARCH-025",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-025"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-026",
     "title": "REQ-ARCH-026",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-026"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-027",
     "title": "REQ-ARCH-027",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-027"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-ARCH-028",
     "title": "REQ-ARCH-028",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-028"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-SAFETY-001",
     "title": "REQ-SAFETY-001",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-029"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-SAFETY-002",
     "title": "REQ-SAFETY-002",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-030"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-SAFETY-003",
     "title": "REQ-SAFETY-003",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-031"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-SAFETY-004",
     "title": "REQ-SAFETY-004",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-032"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-SAFETY-005",
     "title": "REQ-SAFETY-005",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-033"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-SAFETY-006",
     "title": "REQ-SAFETY-006",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-034"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-SAFETY-007",
     "title": "REQ-SAFETY-007",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-035"
-    ]
+    "status": "defined",
+    "test_ids": []
   },
   {
     "id": "REQ-BUILD-001",
     "title": "REQ-BUILD-001",
     "description": "",
     "source": "docs/REQUIREMENTS.md",
-    "status": "accepted",
-    "test_ids": [
-      "TEST-036"
-    ]
+    "status": "defined",
+    "test_ids": []
+  },
+  {
+    "id": "REQ-BUILD-002",
+    "title": "REQ-BUILD-002",
+    "description": "",
+    "source": "docs/REQUIREMENTS.md",
+    "status": "defined",
+    "test_ids": []
+  },
+  {
+    "id": "REQ-ARCH-029",
+    "title": "REQ-ARCH-029",
+    "description": "",
+    "source": "docs/REQUIREMENTS.md",
+    "status": "defined",
+    "test_ids": []
+  },
+  {
+    "id": "REQ-ARCH-030",
+    "title": "REQ-ARCH-030",
+    "description": "",
+    "source": "docs/REQUIREMENTS.md",
+    "status": "defined",
+    "test_ids": []
+  },
+  {
+    "id": "REQ-ARCH-031",
+    "title": "REQ-ARCH-031",
+    "description": "",
+    "source": "docs/REQUIREMENTS.md",
+    "status": "defined",
+    "test_ids": []
+  },
+  {
+    "id": "REQ-ARCH-032",
+    "title": "REQ-ARCH-032",
+    "description": "",
+    "source": "docs/REQUIREMENTS.md",
+    "status": "defined",
+    "test_ids": []
+  },
+  {
+    "id": "REQ-ARCH-033",
+    "title": "REQ-ARCH-033",
+    "description": "",
+    "source": "docs/REQUIREMENTS.md",
+    "status": "defined",
+    "test_ids": []
   }
 ]

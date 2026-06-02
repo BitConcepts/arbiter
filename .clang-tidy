@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: MIT
+# clang-tidy configuration for arbiter engine C sources.
+#
+# Run:  clang-tidy -p build lib/*.c -- -I include
+#
+# Checks target safety-critical embedded C patterns:
+#   bugprone-*    — common bug patterns (use-after-move, narrowing, etc.)
+#   cert-*        — CERT C Coding Standard rules
+#   clang-analyzer-* — Clang Static Analyzer checks
+#   misc-*        — miscellaneous (unused parameters, static asserts, etc.)
+#   performance-* — unnecessary copies, moves, etc.
+#   readability-identifier-naming — enforce Zephyr-style naming conventions
+
+Checks: >
+  -*,
+  bugprone-*,
+  cert-*,
+  clang-analyzer-*,
+  misc-*,
+  performance-*,
+  readability-identifier-naming,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-reserved-identifier,
+  -cert-dcl37-c,
+  -cert-dcl51-cpp,
+  -misc-include-cleaner,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
+
+WarningsAsErrors: '*'
+
+CheckOptions:
+  # Struct/enum types: UPPER_SNAKE for ARBITER_* types
+  - key: readability-identifier-naming.TypedefCase
+    value: UPPER_CASE
+  # Macros: UPPER_SNAKE
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+  # Functions: mixed (ARBITER_* public API, snake_case internal)
+  - key: readability-identifier-naming.FunctionCase
+    value: aNy_CasE
+  # Local variables: snake_case
+  - key: readability-identifier-naming.LocalVariableCase
+    value: lower_case
+  # Parameters: snake_case
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  # Global constants: UPPER_CASE
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: UPPER_CASE
+  # Enum constants: UPPER_CASE
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE

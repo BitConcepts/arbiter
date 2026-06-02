@@ -17,29 +17,141 @@ config ARBITER_LOG_LEVEL
 	help
 	  Log level for arbiter module (0=off, 1=err, 2=wrn, 3=inf, 4=dbg).
 
+# ── Engine Scaling Profiles (REQ-ARCH-029) ──────────────────────
+
+choice ARBITER_PROFILE
+	prompt "Engine scaling profile"
+	default ARBITER_PROFILE_AUTO
+	help
+	  Select the engine scaling profile. AUTO detects the best
+	  profile from the target CPU family and SRAM size. Override
+	  to a fixed profile for explicit resource control.
+
+config ARBITER_PROFILE_AUTO
+	bool "Auto-detect from target hardware"
+	help
+	  Automatically selects nano/micro/standard/full based on
+	  the target CPU family and SRAM size.
+
+config ARBITER_PROFILE_NANO
+	bool "Nano — 8 facts, 8 rules, no trace, no strings"
+	help
+	  Minimal profile for Cortex-M0/M0+, AVR, or targets with
+	  less than 16 KB SRAM. ~200 bytes RAM.
+
+config ARBITER_PROFILE_MICRO
+	bool "Micro — 16 facts, 32 rules, minimal trace"
+	help
+	  Small profile for Cortex-M3 or targets with 16-64 KB SRAM.
+	  ~512 bytes RAM.
+
+config ARBITER_PROFILE_STANDARD
+	bool "Standard — 64 facts, full trace (current default)"
+	help
+	  Standard profile for Cortex-M4/M7 or targets with 64-512 KB
+	  SRAM. ~3 KB RAM. This matches the original arbiter defaults.
+
+config ARBITER_PROFILE_FULL
+	bool "Full — 256 facts, extended trace, runtime metrics"
+	help
+	  Full profile for Cortex-A/R, x86, or targets with 512+ KB
+	  SRAM. ~12 KB RAM.
+
+endchoice
+
+# Hidden resolved symbols — auto-detection cascade.
+# When ARBITER_PROFILE_AUTO is selected, exactly one of these will
+# be set to y based on the target's CPU and SRAM Kconfig symbols.
+# When a fixed profile is selected, the corresponding RESOLVED_*
+# symbol is set directly.
+
+config ARBITER_RESOLVED_NANO
+	bool
+	default y if ARBITER_PROFILE_NANO
+	default y if ARBITER_PROFILE_AUTO && \
+		(CPU_CORTEX_M0 || CPU_CORTEX_M0PLUS || CPU_CORTEX_M23)
+
+config ARBITER_RESOLVED_MICRO
+	bool
+	default y if ARBITER_PROFILE_MICRO
+	default y if ARBITER_PROFILE_AUTO && !ARBITER_RESOLVED_NANO && \
+		CPU_CORTEX_M3
+
+config ARBITER_RESOLVED_FULL
+	bool
+	default y if ARBITER_PROFILE_FULL
+	default y if ARBITER_PROFILE_AUTO && \
+		(CPU_CORTEX_A || CPU_CORTEX_R || ARCH_POSIX)
+
+config ARBITER_RESOLVED_STANDARD
+	bool
+	default y if ARBITER_PROFILE_STANDARD
+	default y if !ARBITER_RESOLVED_NANO && !ARBITER_RESOLVED_MICRO && \
+		!ARBITER_RESOLVED_FULL
+
+# Profile-driven limits.
+
 config ARBITER_MAX_FACTS
 	int "Maximum number of facts"
+	default 8 if ARBITER_RESOLVED_NANO
+	default 16 if ARBITER_RESOLVED_MICRO
+	default 256 if ARBITER_RESOLVED_FULL
 	default 64
 	help
 	  Maximum number of facts supported by the runtime context.
+	  Driven by the selected engine profile.
+
+config ARBITER_MAX_RULES
+	int "Maximum number of rules"
+	default 8 if ARBITER_RESOLVED_NANO
+	default 32 if ARBITER_RESOLVED_MICRO
+	default 256 if ARBITER_RESOLVED_FULL
+	default 64
+	help
+	  Maximum number of rules in a compiled model.
 
 config ARBITER_MAX_ACTIONS_PER_EVAL
 	int "Maximum actions per evaluation"
+	default 4 if ARBITER_RESOLVED_NANO
+	default 8 if ARBITER_RESOLVED_MICRO
+	default 32 if ARBITER_RESOLVED_FULL
 	default 16
 	help
 	  Maximum number of actions that can be requested per evaluation.
 
 config ARBITER_MAX_TRACE_ENTRIES
 	int "Maximum trace entries"
+	default 0 if ARBITER_RESOLVED_NANO
+	default 4 if ARBITER_RESOLVED_MICRO
+	default 256 if ARBITER_RESOLVED_FULL
 	default 64
 	help
 	  Maximum number of trace entries per evaluation.
+	  Set to 0 for nano profile (trace disabled).
 
 config ARBITER_MAX_TRACE_INPUTS
 	int "Maximum input facts per trace entry"
+	default 4 if ARBITER_RESOLVED_NANO || ARBITER_RESOLVED_MICRO
 	default 8
 	help
 	  Maximum number of input fact IDs recorded per trace entry.
+
+config ARBITER_STRINGS
+	bool "Include name/explanation strings in model tables"
+	default n if ARBITER_RESOLVED_NANO
+	default n if ARBITER_RESOLVED_MICRO
+	default y
+	help
+	  When disabled, all name and explanation string pointers in
+	  the generated model tables are NULL. Saves .rodata space
+	  on resource-constrained targets.
+
+config ARBITER_8BIT_INDEX
+	bool
+	default y if ARBITER_RESOLVED_NANO || ARBITER_RESOLVED_MICRO
+	help
+	  Use uint8_t for fact/rule/condition indices instead of
+	  uint16_t. Saves RAM and .rodata on small profiles.
 
 config ARBITER_SHELL
 	bool "Enable arbiter shell commands"
@@ -135,5 +247,41 @@ config ARBITER_WATCHDOG
 	  Feed a watchdog channel after each successful evaluation.
 	  On evaluation failure or timeout, the watchdog is not fed,
 	  allowing it to trigger a reset.
+
+# ── HW Acceleration (REQ-ARCH-030) ───────────────────────────
+
+config ARBITER_HW_ACCEL
+	bool "Enable HW-accelerated expression evaluation"
+	default n
+	help
+	  Use platform-optimized intrinsics for batch expression
+	  evaluation. On ARM Cortex-M4+ this uses CMSIS-DSP
+	  saturating arithmetic (__QADD, __QSUB, __SMMUL). On
+	  RISC-V with P-extension this uses packed SIMD intrinsics.
+	  When disabled, the standard scalar C path is used with
+	  zero overhead.
+
+# ── Assembly Hot Paths (REQ-ARCH-031) ────────────────────────
+
+config ARBITER_ASM_OPT
+	bool "Enable hand-tuned assembly hot paths"
+	depends on ARBITER_HW_ACCEL
+	default n
+	help
+	  Provide hand-tuned assembly for the innermost hot loops
+	  (expression batch eval, condition scan). Only available
+	  on supported CPU families. Assembly is only added when
+	  benchmarks demonstrate >15%% speedup over the C path.
+
+# ── FPGA Offload (REQ-ARCH-032) ─────────────────────────────
+
+config ARBITER_FPGA_OFFLOAD
+	bool "Enable FPGA offload interface (future)"
+	default n
+	help
+	  Enable the FPGA hardware offload interface. This provides
+	  the ARBITER_hw_offload_ops struct for board-level drivers
+	  to offload condition evaluation and expression execution
+	  to FPGA fabric. No implementation is shipped in v1.
 
 endif # ARBITER

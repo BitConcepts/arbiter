@@ -11,6 +11,18 @@
 extern "C" {
 #endif
 
+/**
+ * Index type: uint8_t for nano/micro profiles, uint16_t for standard/full.
+ * Driven by CONFIG_ARBITER_8BIT_INDEX from Kconfig.
+ */
+#if defined(CONFIG_ARBITER_8BIT_INDEX) && CONFIG_ARBITER_8BIT_INDEX
+typedef uint8_t arbiter_index_t;
+#define ARBITER_INDEX_MAX UINT8_MAX
+#else
+typedef uint16_t arbiter_index_t;
+#define ARBITER_INDEX_MAX UINT16_MAX
+#endif
+
 /** Supported fact types in ARB v0. */
 enum ARBITER_fact_type {
 	ARBITER_FACT_BOOL = 0,
@@ -85,64 +97,70 @@ enum ARBITER_expr_op {
 
 /** Fact definition (compiled model table entry). */
 struct ARBITER_fact_def {
-	uint16_t id;
+	arbiter_index_t id;
 	enum ARBITER_fact_type type;
 	int32_t range_min;
 	int32_t range_max;
 	int32_t default_value;
-	uint16_t stale_after_ms;
+	arbiter_index_t stale_after_ms;
 	bool safety_relevant;
+#if !defined(CONFIG_ARBITER_STRINGS) || CONFIG_ARBITER_STRINGS
 	const char *name;
+#endif
 };
 
 /** Expression definition — compute engine instruction. */
 struct ARBITER_expr_def {
-	uint16_t target_fact_id;  /**< Fact to write the result to. */
+	arbiter_index_t target_fact_id;  /**< Fact to write the result to. */
 	enum ARBITER_expr_op op;
-	uint16_t left_fact_id;    /**< UINT16_MAX = use left_literal. */
+	arbiter_index_t left_fact_id;    /**< ARBITER_INDEX_MAX = use left_literal. */
 	int32_t left_literal;
-	uint16_t right_fact_id;   /**< UINT16_MAX = use right_literal. */
+	arbiter_index_t right_fact_id;   /**< ARBITER_INDEX_MAX = use right_literal. */
 	int32_t right_literal;
 	int32_t scale;            /**< Divisor for SCALE/ACCUMULATE/CLAMP(hi). */
 };
 
 /** Condition definition (compiled model table entry). */
 struct ARBITER_condition_def {
-	uint16_t fact_id;
+	arbiter_index_t fact_id;
 	enum ARBITER_op op;
 	int32_t value;
 	enum ARBITER_cond_group group;
-	uint16_t group_index;
-	uint16_t next;
+	arbiter_index_t group_index;
+	arbiter_index_t next;
 };
 
 /** Action definition (compiled model table entry). */
 struct ARBITER_action_def {
-	uint16_t id;
+	arbiter_index_t id;
 	enum ARBITER_action_type type;
-	uint16_t target_fact_id;
+	arbiter_index_t target_fact_id;
 	int32_t target_value;
 	void (*callback)(void);
-	uint16_t must_complete_within_ms;
+	arbiter_index_t must_complete_within_ms;
 	bool safe_state_action;
+#if !defined(CONFIG_ARBITER_STRINGS) || CONFIG_ARBITER_STRINGS
 	const char *name;
+#endif
 };
 
 /** Rule definition (compiled model table entry). */
 struct ARBITER_rule_def {
-	uint16_t id;
+	arbiter_index_t id;
 	enum ARBITER_rule_class rule_class;
-	uint16_t condition_start;
-	uint16_t condition_count;
-	uint16_t action_start;
-	uint16_t action_count;
-	uint16_t expr_start;      /**< Index into expressions table. */
-	uint16_t expr_count;      /**< Number of expressions to evaluate. */
-	uint16_t safety_goal_id;
-	uint16_t set_mode;
+	arbiter_index_t condition_start;
+	arbiter_index_t condition_count;
+	arbiter_index_t action_start;
+	arbiter_index_t action_count;
+	arbiter_index_t expr_start;      /**< Index into expressions table. */
+	arbiter_index_t expr_count;      /**< Number of expressions to evaluate. */
+	arbiter_index_t safety_goal_id;
+	arbiter_index_t set_mode;
 	bool safety_critical;
+#if !defined(CONFIG_ARBITER_STRINGS) || CONFIG_ARBITER_STRINGS
 	const char *name;
 	const char *explanation;
+#endif
 };
 
 /** Complete compiled model. */
@@ -150,18 +168,21 @@ struct ARBITER_model {
 	const char *name;
 	const uint8_t model_hash[32];
 	const uint8_t schema_hash[32];
-	uint16_t fact_count;
-	uint16_t rule_count;
-	uint16_t condition_count;
-	uint16_t action_count;
-	uint16_t expr_count;
-	uint16_t mode_count;
+	arbiter_index_t fact_count;
+	arbiter_index_t rule_count;
+	arbiter_index_t condition_count;
+	arbiter_index_t action_count;
+	arbiter_index_t expr_count;
+	arbiter_index_t mode_count;
 	const struct ARBITER_fact_def *facts;
 	const struct ARBITER_rule_def *rules;
 	const struct ARBITER_condition_def *conditions;
 	const struct ARBITER_action_def *actions;
 	const struct ARBITER_expr_def *expressions;
 	const char **mode_names;
+#if defined(CONFIG_ARBITER_FPGA_OFFLOAD) && CONFIG_ARBITER_FPGA_OFFLOAD
+	const struct ARBITER_hw_offload_ops *offload_ops;
+#endif
 };
 
 #ifdef __cplusplus

@@ -17,6 +17,10 @@ if(CONFIG_ARBITER)
     ${CMAKE_CURRENT_LIST_DIR}/lib/arbiter_action.c
   )
 
+  zephyr_library_sources_ifdef(CONFIG_ARBITER_HW_ACCEL
+    ${CMAKE_CURRENT_LIST_DIR}/lib/arbiter_accel.c
+  )
+
   zephyr_include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
   add_subdirectory_ifdef(CONFIG_ARBITER ${CMAKE_CURRENT_LIST_DIR}/subsys/arbiter)

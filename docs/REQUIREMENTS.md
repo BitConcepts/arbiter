@@ -278,3 +278,58 @@
 - **Boundary:** Zephyr build system integration
 - **Description**: Project builds as a Zephyr module via CMake and zephyr/module.yml.
 
+## REQ-BUILD-002
+- **Title**: clang-tidy CI gate
+- **Status**: Accepted
+- **Platform:** all
+- **Boundary:** CI/CD pipeline
+- **Description**: CI SHALL run clang-tidy on all engine C sources and headers, gating on zero diagnostics.
+- **Verification**: CI job pass/fail
+
+## Engine Scaling & Acceleration Requirements
+
+## REQ-ARCH-029
+- **Title**: Engine scaling profiles with auto-detection
+- **Component**: subsys/arbiter/Kconfig, python/arbiter/cli.py
+- **Status**: Accepted
+- **Platform:** all
+- **Boundary:** Engine configuration; integrator selects or auto-detects profile
+- **Description**: The compiler and runtime SHALL support four scaling profiles — nano, micro, standard, full — selectable via Kconfig ARBITER_PROFILE. Default is ARBITER_PROFILE_AUTO, which selects the profile automatically based on Zephyr target Kconfig symbols (CPU family, SRAM size). Users can override to any fixed profile. Profiles cap max facts, rules, trace depth, string inclusion, and index type to fit target resource budgets.
+- **Verification**: Kconfig build test per profile, compiler --profile validation test
+
+## REQ-ARCH-030
+- **Title**: HW-accelerated expression evaluation
+- **Component**: lib/arbiter_accel.c
+- **Status**: Accepted
+- **Platform:** ARM Cortex-M4+, RISC-V with P-extension
+- **Boundary:** Engine internals; transparent to integrator API
+- **Description**: When CONFIG_ARBITER_HW_ACCEL=y, the expression evaluator SHALL use platform-optimized intrinsics for batch operations (saturating arithmetic, SIMD min/max/clamp). Detection via Kconfig depends on CPU_CORTEX_M_HAS_DSP or RISCV_ISA_EXT_P. Zero overhead when disabled.
+- **Verification**: Benchmark comparison with/without HW_ACCEL on Cortex-M4 target
+
+## REQ-ARCH-031
+- **Title**: Optional assembly hot paths
+- **Component**: lib/arch/arm/arbiter_eval_arm.S, lib/arch/riscv/arbiter_eval_rv.S
+- **Status**: Accepted
+- **Platform:** ARM Cortex-M4/M7, RISC-V RV32
+- **Boundary:** Engine internals; transparent to integrator API
+- **Description**: Performance-critical inner loops (expression batch eval, condition scan) MAY provide hand-tuned assembly implementations gated behind CONFIG_ARBITER_ASM_OPT=y with depends on for specific CPU Kconfig symbols. Assembly is only added when benchmarks demonstrate >15% speedup.
+- **Verification**: Benchmark comparison with/without ASM_OPT
+
+## REQ-ARCH-032
+- **Title**: FPGA offload interface (future)
+- **Component**: include/arbiter/arbiter_offload.h
+- **Status**: Accepted
+- **Platform:** FPGA-equipped targets (Intel MAX10, Xilinx Zynq, Lattice iCE40/ECP5, Microsemi SmartFusion2)
+- **Boundary:** Engine-to-hardware interface; board driver implements ops struct
+- **Description**: The engine SHALL define an ARBITER_hw_offload_ops struct allowing a board-level driver to offload bulk condition evaluation and expression execution to FPGA fabric. This is a future-work interface; no implementation is shipped in v1.
+- **Verification**: Header compiles, struct layout test
+
+## REQ-ARCH-033
+- **Title**: Model complexity analysis
+- **Component**: python/arbiter/cli.py, python/arbiter/canonical.py
+- **Status**: Accepted
+- **Platform:** all
+- **Boundary:** Compiler toolchain output
+- **Description**: The arbiterc compiler SHALL emit a resource budget report showing estimated RAM (per profile), WCET op count (worst-case condition + expression evaluations), and .rodata size for the generated model tables.
+- **Verification**: Python test verifying report output for sample models
+

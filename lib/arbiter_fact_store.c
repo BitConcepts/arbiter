@@ -7,54 +7,51 @@
 
 LOG_MODULE_DECLARE(arbiter, CONFIG_ARBITER_LOG_LEVEL);
 
-static int validate_ctx_and_fact(const struct ARBITER_ctx *ctx, uint16_t fact_id)
+/*
+ * Fact setter — inlined validation eliminates the 3-level call chain
+ * (set_bool -> set_fact_value -> validate_ctx_and_fact) and lets the
+ * compiler optimize the entire path as a single function body.
+ *
+ * The __attribute__((always_inline)) ensures this happens even at -O1.
+ */
+static inline __attribute__((always_inline))
+int set_fact_value(struct ARBITER_ctx *ctx, arbiter_index_t fact_id,
+		   enum ARBITER_fact_type expected_type, int32_t value)
 {
-	if (ctx == NULL || !ctx->initialized) {
+	/* Inline validation — no function call overhead */
+	if (unlikely(ctx == NULL || !ctx->initialized)) {
 		return ARBITER_EINVAL;
 	}
-	if (fact_id >= ctx->model->fact_count) {
+	if (unlikely(fact_id >= ctx->model->fact_count)) {
 		return ARBITER_ERANGE;
 	}
-	return ARBITER_OK;
-}
 
-static int set_fact_value(struct ARBITER_ctx *ctx, uint16_t fact_id,
-			  enum ARBITER_fact_type expected_type, int32_t value)
-{
-	int ret = validate_ctx_and_fact(ctx, fact_id);
+	const struct ARBITER_fact_def *__restrict def =
+		&ctx->model->facts[fact_id];
 
-	if (ret != ARBITER_OK) {
-		return ret;
-	}
-
-	const struct ARBITER_fact_def *def = &ctx->model->facts[fact_id];
-
-	if (def->type != expected_type) {
+	if (unlikely(def->type != expected_type)) {
 		LOG_WRN("Type mismatch for fact %u: expected %d, got %d",
 			fact_id, def->type, expected_type);
 		return ARBITER_EINVAL;
 	}
 
-	/* Range check for int32 and uint32 */
-	if (expected_type == ARBITER_FACT_INT32 ||
-	    expected_type == ARBITER_FACT_UINT32) {
-		if (value < def->range_min || value > def->range_max) {
-			/* Only enforce range if range is specified (non-zero) */
-			if (def->range_min != 0 || def->range_max != 0) {
-				LOG_WRN("Value %d out of range [%d, %d] for fact %u",
-					value, def->range_min, def->range_max,
-					fact_id);
-				return ARBITER_ERANGE;
-			}
-		}
+	/* Range check — only when range is specified (non-zero bounds) */
+	if ((expected_type == ARBITER_FACT_INT32 ||
+	     expected_type == ARBITER_FACT_UINT32) &&
+	    (def->range_min != 0 || def->range_max != 0) &&
+	    unlikely(value < def->range_min || value > def->range_max)) {
+		LOG_WRN("Value %d out of range [%d, %d] for fact %u",
+			value, def->range_min, def->range_max, fact_id);
+		return ARBITER_ERANGE;
 	}
 
-	struct ARBITER_fact_value *fv = &ctx->fact_values[fact_id];
+	struct ARBITER_fact_value *__restrict fv = &ctx->fact_values[fact_id];
+	const int32_t old = fv->value;
 
-	fv->prev_value = fv->value;
+	fv->prev_value = old;
 	fv->value = value;
 	fv->valid = true;
-	fv->changed = (fv->value != fv->prev_value);
+	fv->changed = (value != old);
 
 	return ARBITER_OK;
 }
@@ -88,10 +85,11 @@ int ARBITER_set_enum(struct ARBITER_ctx *ctx, uint16_t fact_id, uint16_t value)
 int ARBITER_set_timestamp(struct ARBITER_ctx *ctx, uint16_t fact_id,
 			uint32_t timestamp_ms)
 {
-	int ret = validate_ctx_and_fact(ctx, fact_id);
-
-	if (ret != ARBITER_OK) {
-		return ret;
+	if (unlikely(ctx == NULL || !ctx->initialized)) {
+		return ARBITER_EINVAL;
+	}
+	if (unlikely(fact_id >= ctx->model->fact_count)) {
+		return ARBITER_ERANGE;
 	}
 
 	ctx->fact_values[fact_id].timestamp_ms = timestamp_ms;

@@ -228,3 +228,41 @@
 - **File**: samples/battery_policy/testcase.yaml
 - **Status**: Implemented
 
+## Engine Scaling & Acceleration Tests
+
+## TEST-037
+- title: clang-tidy CI gate
+- Covers: REQ-BUILD-002
+- **File**: .github/workflows/ci.yml (clang-tidy job)
+- **Status**: Implemented
+
+## TEST-038
+- title: Engine scaling profiles with auto-detection
+- Covers: REQ-ARCH-029
+- **File**: subsys/arbiter/Kconfig, tests/python/test_emit_c.py
+- **Status**: Implemented
+
+## TEST-039
+- title: HW-accelerated expression evaluation
+- Covers: REQ-ARCH-030
+- **File**: lib/arbiter_accel.c, tests/benchmarks/
+- **Status**: Implemented
+
+## TEST-040
+- title: Optional assembly hot paths
+- Covers: REQ-ARCH-031
+- **File**: lib/arch/ (future — benchmark-gated)
+- **Status**: Pending
+
+## TEST-041
+- title: FPGA offload interface
+- Covers: REQ-ARCH-032
+- **File**: include/arbiter/arbiter_offload.h
+- **Status**: Implemented
+
+## TEST-042
+- title: Model complexity analysis
+- Covers: REQ-ARCH-033
+- **File**: tests/python/test_emit_c.py
+- **Status**: Implemented
+

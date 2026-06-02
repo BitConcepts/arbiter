@@ -31,13 +31,16 @@ int ARBITER_trace_record(struct ARBITER_trace *trace,
 		return ARBITER_EINVAL;
 	}
 
-	if (trace->count >= trace->capacity) {
+	if (unlikely(trace->count >= trace->capacity)) {
 		trace->overflow = true;
 		return ARBITER_ETRACE_FULL;
 	}
 
-	memcpy(&trace->entries[trace->count], entry,
-	       sizeof(struct ARBITER_trace_entry));
+	/* Struct assignment: compiler emits optimal reg-to-reg moves
+	 * or word-sized stores. Avoids memcpy function call overhead
+	 * and lets the compiler see through the copy for optimization.
+	 */
+	trace->entries[trace->count] = *entry;
 	trace->count++;
 
 	return ARBITER_OK;

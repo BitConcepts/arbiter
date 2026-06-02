@@ -16,6 +16,15 @@ from .schema import validate_schema
 from .validator import validate_model
 
 
+# Profile resource budgets
+PROFILE_LIMITS: dict[str, dict[str, int]] = {
+    "nano":     {"max_facts": 8,   "max_rules": 8,   "max_trace": 0,   "index_bits": 8},
+    "micro":    {"max_facts": 16,  "max_rules": 32,  "max_trace": 4,   "index_bits": 8},
+    "standard": {"max_facts": 64,  "max_rules": 64,  "max_trace": 64,  "index_bits": 16},
+    "full":     {"max_facts": 256, "max_rules": 256, "max_trace": 256, "index_bits": 16},
+}
+
+
 @dataclass
 class CompileOptions:
     """Options for the compiler pipeline."""
@@ -30,6 +39,7 @@ class CompileOptions:
     safety_profile: str | None = None
     fail_on_warning: bool = False
     emit_trace_strings: bool = True
+    profile: str = "standard"
 
 
 @dataclass
@@ -41,6 +51,7 @@ class CompileResult:
     model_hash: str = ""
     generated_files: list[str] = field(default_factory=list)
     canonical_model: CanonicalModel | None = None
+    resource_report: str = ""
 
 
 def compile_model(path: Path, options: CompileOptions) -> CompileResult:
@@ -67,11 +78,34 @@ def compile_model(path: Path, options: CompileOptions) -> CompileResult:
     # Phase 10: Canonicalize
     model = canonicalize(data)
 
+    # Phase 10b: Profile validation (REQ-ARCH-029)
+    limits = PROFILE_LIMITS.get(options.profile, PROFILE_LIMITS["standard"])
+    if model.max_facts > limits["max_facts"]:
+        diag.error(
+            "ARB-PROFILE-001", "compiler",
+            f"Model has {model.max_facts} facts, exceeds {options.profile} profile "
+            f"limit of {limits['max_facts']}.",
+            suggestion="Use a larger profile (e.g. --profile micro or --profile standard).",
+        )
+        return CompileResult(success=False, diagnostics=diag)
+    if model.max_rules > limits["max_rules"]:
+        diag.error(
+            "ARB-PROFILE-002", "compiler",
+            f"Model has {model.max_rules} rules, exceeds {options.profile} profile "
+            f"limit of {limits['max_rules']}.",
+            suggestion="Use a larger profile (e.g. --profile micro or --profile standard).",
+        )
+        return CompileResult(success=False, diagnostics=diag)
+
+    # Phase 10c: Resource budget report (REQ-ARCH-033)
+    report = _build_resource_report(model, options.profile, limits)
+
     result = CompileResult(
         success=True,
         diagnostics=diag,
         model_hash=model.model_hash,
         canonical_model=model,
+        resource_report=report,
     )
 
     # Phase 11: Emit outputs
@@ -109,3 +143,66 @@ def compile_model(path: Path, options: CompileOptions) -> CompileResult:
         result.generated_files.append(str(options.model_hash_out))
 
     return result
+
+
+def _build_resource_report(
+    model: CanonicalModel, profile: str, limits: dict[str, int]
+) -> str:
+    """Build a human-readable resource budget report (REQ-ARCH-033)."""
+    fact_pct = (model.max_facts * 100 // limits["max_facts"]) if limits["max_facts"] else 0
+    rule_pct = (model.max_rules * 100 // limits["max_rules"]) if limits["max_rules"] else 0
+
+    # RAM estimate: sizeof(ARBITER_fact_value) * facts + ctx overhead
+    # ARBITER_fact_value is ~14 bytes (2x int32 + uint32 + 2 bools)
+    fact_value_size = 14
+    ctx_overhead = 32  # model ptr, snapshot struct, counters, etc.
+    ram_est = model.max_facts * fact_value_size + ctx_overhead
+
+    # .rodata estimate: fact_def + rule_def + condition_def + expr_def + action_def
+    idx_size = 1 if limits["index_bits"] == 8 else 2
+    has_strings = profile not in ("nano", "micro")
+    ptr_size = 4  # assume 32-bit target
+    fact_def_size = idx_size + 4 + 12 + idx_size + 1 + (ptr_size if has_strings else 0)
+    rule_def_size = idx_size * 8 + 1 + (ptr_size * 2 if has_strings else 0)
+    cond_def_size = idx_size + 4 + 4 + idx_size * 2
+    expr_def_size = idx_size * 3 + 12
+    action_def_size = idx_size * 2 + 4 + ptr_size + idx_size + 1 + (ptr_size if has_strings else 0)
+
+    rodata_est = (
+        model.max_facts * fact_def_size
+        + model.max_rules * rule_def_size
+        + model.max_conditions * cond_def_size
+        + model.max_expressions * expr_def_size
+        + len(model.actions) * action_def_size
+    )
+
+    # WCET: worst case = all conditions + all expressions + rule count
+    wcet_ops = model.max_conditions + model.max_expressions + model.max_rules
+
+    lines = [
+        f"  Profile: {profile}",
+        f"  Facts:       {model.max_facts:>3} / {limits['max_facts']:<3}   ({fact_pct}%)",
+        f"  Rules:       {model.max_rules:>3} / {limits['max_rules']:<3}   ({rule_pct}%)",
+        f"  Conditions:  {model.max_conditions:>3}",
+        f"  Expressions: {model.max_expressions:>3}",
+        f"  RAM estimate:    ~{ram_est} B",
+        f"  .rodata:         ~{rodata_est} B",
+        f"  WCET ops:        {wcet_ops}",
+    ]
+
+    # Fit check against all profiles
+    for pname, plimits in PROFILE_LIMITS.items():
+        fits = (
+            model.max_facts <= plimits["max_facts"]
+            and model.max_rules <= plimits["max_rules"]
+        )
+        mark = "\u2713" if fits else "\u2717"
+        reason = ""
+        if not fits:
+            if model.max_facts > plimits["max_facts"]:
+                reason = f" ({model.max_facts} facts > {plimits['max_facts']} max)"
+            elif model.max_rules > plimits["max_rules"]:
+                reason = f" ({model.max_rules} rules > {plimits['max_rules']} max)"
+        lines.append(f"  {mark} {pname}{reason}")
+
+    return "\n".join(lines)
