@@ -53,7 +53,7 @@ _BLOB_VERSION = 1
 # Wire sizes for packed structs (all little-endian, uint16 indices)
 _FACT_ELEM_SIZE = 16   # id(2) + type(1) + pad(1) + range_min(4) + range_max(4) + default(4) + stale(2) + safety(1) + pad(1) => rearranged below
 _RULE_ELEM_SIZE = 22
-_COND_ELEM_SIZE = 8
+_COND_ELEM_SIZE = 12  # fact_id(2) + op(1) + group(1) + value(4) + aux_value(4)
 _EXPR_ELEM_SIZE = 20
 _ACTION_ELEM_SIZE = 12
 
@@ -68,6 +68,7 @@ _OP_MAP = {
     "==": 0, "!=": 1, "<": 2, "<=": 3, ">": 4, ">=": 5,
     "in": 6, "not_in": 7, "stale": 8, "not_stale": 9,
     "changed": 10, "delta_gt": 11, "delta_lt": 12,
+    "hysteresis": 13,
 }
 _COND_GROUP_MAP = {"all": 0, "any": 1, "not": 2}
 _EXPR_OP_MAP = {
@@ -75,6 +76,7 @@ _EXPR_OP_MAP = {
     "abs": 5, "negate": 6, "min": 7, "max": 8, "clamp": 9,
     "shift_r": 10, "shift_l": 11, "scale": 12, "assign": 13,
     "accumulate": 14,
+    "lookup": 15,
 }
 _ACTION_TYPE_MAP = {
     "callback": 0, "log": 1, "notify": 2, "set_fact": 3,
@@ -201,11 +203,12 @@ def _pack_rules(model: CanonicalModel) -> bytes:
 def _pack_conditions(model: CanonicalModel) -> bytes:
     """Pack condition definitions.
 
-    Wire layout per condition (8 bytes):
+    Wire layout per condition (12 bytes):
       fact_id:     uint16 LE
       op:          uint8
       group:       uint8
       value:       int32 LE
+      aux_value:   int32 LE (for hysteresis falling threshold)
     """
     buf = bytearray()
     for c in model.conditions:
@@ -215,7 +218,10 @@ def _pack_conditions(model: CanonicalModel) -> bytes:
         val = c.get("value", 0)
         if isinstance(val, bool):
             val = 1 if val else 0
-        buf += struct.pack("<HBBi", fact_id, op, group, int(val))
+        aux_val = c.get("aux_value", 0)
+        if isinstance(aux_val, bool):
+            aux_val = 1 if aux_val else 0
+        buf += struct.pack("<HBBii", fact_id, op, group, int(val), int(aux_val))
     return bytes(buf)
 
 
@@ -357,7 +363,7 @@ def emit_blob(model: CanonicalModel) -> bytes:
     if model.rules:
         sections.append((SECTION_RULES, rules_data, len(model.rules), rule_elem))
 
-    cond_elem = 8
+    cond_elem = 12
     if model.conditions:
         sections.append((SECTION_CONDITIONS, cond_data, len(model.conditions), cond_elem))
 

@@ -21,6 +21,8 @@ class CanonicalModel:
     actions: list[dict[str, Any]]
     modes: list[dict[str, Any]]
     expressions: list[dict[str, Any]] = field(default_factory=list)
+    tables: list[dict[str, Any]] = field(default_factory=list)
+    table_id_map: dict[str, int] = field(default_factory=dict)
     states: list[dict[str, Any]] = field(default_factory=list)
     transitions: list[dict[str, Any]] = field(default_factory=list)
     hazards: list[dict[str, Any]] = field(default_factory=list)
@@ -105,6 +107,22 @@ def canonicalize(data: dict[str, Any]) -> CanonicalModel:
         annotated["_expr_count"] = len(rule_exprs)
         rules.append(annotated)
 
+    # Flatten tables
+    tables_raw = data.get("tables", [])
+    tables: list[dict[str, Any]] = []
+    table_id_map: dict[str, int] = {}
+    if isinstance(tables_raw, list):
+        tables_sorted = sorted(tables_raw, key=lambda t: t.get("id", "") if isinstance(t, dict) else "")
+        for idx, tbl in enumerate(tables_sorted):
+            if isinstance(tbl, dict) and "id" in tbl:
+                table_id_map[tbl["id"]] = idx
+                tables.append({
+                    "id": tbl["id"],
+                    "index": idx,
+                    "keys": [int(k) for k in tbl.get("keys", [])],
+                    "values": [int(v) for v in tbl.get("values", [])],
+                })
+
     # Flatten states and transitions (REQ-ARCH-039)
     states_flat, transitions_flat, state_id_map = _flatten_states(
         data.get("states", []), action_id_map, fact_id_map, conditions,
@@ -119,6 +137,8 @@ def canonicalize(data: dict[str, Any]) -> CanonicalModel:
         actions=actions,
         modes=modes,
         expressions=expressions,
+        tables=tables,
+        table_id_map=table_id_map,
         states=states_flat,
         transitions=transitions_flat,
         hazards=data.get("hazards", []),
@@ -147,6 +167,7 @@ _EXPR_OP_ALIASES: dict[str, str] = {
     "min": "min", "max": "max", "clamp": "clamp",
     "shift_r": "shift_r", "shift_l": "shift_l",
     "scale": "scale", "accumulate": "accumulate",
+    "lookup": "lookup",
 }
 
 
@@ -194,7 +215,7 @@ def _flatten_expressions(
         op = _EXPR_OP_ALIASES.get(expr.get("op", "assign"), "assign")
         scale = int(expr.get("scale", 1))
 
-        out.append({
+        entry: dict[str, Any] = {
             "target_fact_id": target_id,
             "op": op,
             "left_fact_id": left_fact_id,
@@ -202,7 +223,11 @@ def _flatten_expressions(
             "right_fact_id": right_fact_id,
             "right_literal": right_literal,
             "scale": scale,
-        })
+        }
+        # Lookup: store table name for late binding (resolved by emitter)
+        if op == "lookup" and "table" in expr:
+            entry["table"] = expr["table"]
+        out.append(entry)
     return out
 
 
@@ -221,13 +246,19 @@ def _flatten_conditions(
         for cond in group:
             if not isinstance(cond, dict):
                 continue
-            flat = {
+            flat: dict[str, Any] = {
                 "group": group_type,
                 "fact": cond.get("fact", ""),
                 "fact_id": fact_id_map.get(cond.get("fact", ""), 0),
                 "op": cond.get("op", "=="),
                 "value": cond.get("value", 0),
             }
+            # Hysteresis: map rising → value, falling → aux_value
+            if cond.get("op") == "hysteresis":
+                flat["value"] = int(cond.get("rising", 0))
+                flat["aux_value"] = int(cond.get("falling", 0))
+                flat["rising"] = flat["value"]
+                flat["falling"] = flat["aux_value"]
             conditions.append(flat)
 
 

@@ -83,10 +83,14 @@ struct arbiter_cond_cache_entry {
  * No pointer-to-pointer indirection -- values[] and timestamp are
  * passed directly so the compiler can keep them in registers.
  */
+/* Per-condition hysteresis state bitmask (static — survives across evals). */
+static uint32_t hyst_state[CONFIG_ARBITER_MAX_HYSTERESIS_CONDITIONS / 32 + 1];
+
 ARBITER_ALWAYS_INLINE bool eval_condition(
 	const struct ARBITER_condition_def *__restrict cond,
 	const struct ARBITER_fact_value *__restrict values,
-	arbiter_index_t vcount, uint32_t snap_ts)
+	arbiter_index_t vcount, uint32_t snap_ts,
+	arbiter_index_t cond_index)
 {
 	if (unlikely(cond->fact_id >= vcount)) {
 		return false;
@@ -147,6 +151,43 @@ ARBITER_ALWAYS_INLINE bool eval_condition(
 	case ARBITER_OP_NOT_IN:
 		return val != cond->value;
 
+	/* Hysteresis: rising = value, falling = aux_value.
+	 * State persists in a static bitmask across evaluations.
+	 */
+	case ARBITER_OP_HYSTERESIS: {
+		const int32_t rising = cond->value;
+		const int32_t falling = cond->aux_value;
+		bool prev_state = false;
+
+		if (likely(cond_index <
+			   CONFIG_ARBITER_MAX_HYSTERESIS_CONDITIONS)) {
+			prev_state = (hyst_state[cond_index / 32] >>
+				      (cond_index & 31)) & 1u;
+		}
+
+		bool result;
+
+		if (val >= rising) {
+			result = true;
+		} else if (val <= falling) {
+			result = false;
+		} else {
+			result = prev_state;
+		}
+
+		if (likely(cond_index <
+			   CONFIG_ARBITER_MAX_HYSTERESIS_CONDITIONS)) {
+			if (result) {
+				hyst_state[cond_index / 32] |=
+					(1u << (cond_index & 31));
+			} else {
+				hyst_state[cond_index / 32] &=
+					~(1u << (cond_index & 31));
+			}
+		}
+		return result;
+	}
+
 	default:
 		return false;
 	}
@@ -171,7 +212,7 @@ ARBITER_ALWAYS_INLINE bool eval_condition_group(
 	/* Fast path: single condition -- skip loop entirely */
 	if (likely(count == 1)) {
 		bool r = eval_condition(&conds[start], values,
-					vcount, snap_ts);
+					vcount, snap_ts, start);
 		return (group == ARBITER_COND_NOT) ? !r : r;
 	}
 
@@ -179,7 +220,8 @@ ARBITER_ALWAYS_INLINE bool eval_condition_group(
 	if (likely(group == ARBITER_COND_ALL)) {
 		for (arbiter_index_t i = 0; i < count; i++) {
 			if (!eval_condition(&conds[start + i], values,
-					    vcount, snap_ts)) {
+					    vcount, snap_ts,
+					    start + i)) {
 				return false;
 			}
 		}
@@ -189,7 +231,8 @@ ARBITER_ALWAYS_INLINE bool eval_condition_group(
 	if (group == ARBITER_COND_ANY) {
 		for (arbiter_index_t i = 0; i < count; i++) {
 			if (eval_condition(&conds[start + i], values,
-					   vcount, snap_ts)) {
+					   vcount, snap_ts,
+					   start + i)) {
 				return true;
 			}
 		}
@@ -197,7 +240,7 @@ ARBITER_ALWAYS_INLINE bool eval_condition_group(
 	}
 
 	/* ARBITER_COND_NOT: invert single child */
-	return !eval_condition(&conds[start], values, vcount, snap_ts);
+	return !eval_condition(&conds[start], values, vcount, snap_ts, start);
 }
 
 /* ── Expression evaluator ─────────────────────────────────────── */
@@ -209,10 +252,56 @@ ARBITER_ALWAYS_INLINE bool eval_condition_group(
  * Switch cases ordered by frequency: ASSIGN and simple arithmetic
  * first (PID, Kalman models hit these 80%+ of the time).
  */
+/**
+ * Linear interpolation in a lookup table.
+ * Clamps to table endpoints when input is outside range.
+ */
+ARBITER_ALWAYS_INLINE int32_t table_lookup(
+	const struct ARBITER_table_def *__restrict tbl,
+	int32_t input)
+{
+	if (unlikely(tbl == NULL || tbl->count == 0)) {
+		return 0;
+	}
+	const uint16_t n = tbl->count;
+	const int32_t *__restrict keys = tbl->keys;
+	const int32_t *__restrict vals = tbl->values;
+
+	/* Clamp below minimum */
+	if (input <= keys[0]) {
+		return vals[0];
+	}
+	/* Clamp above maximum */
+	if (input >= keys[n - 1]) {
+		return vals[n - 1];
+	}
+	/* Binary-ish scan for bracket (tables are small, linear is fine) */
+	for (uint16_t i = 1; i < n; i++) {
+		if (input <= keys[i]) {
+			/* Linear interpolation between [i-1] and [i] */
+			int32_t k0 = keys[i - 1];
+			int32_t k1 = keys[i];
+			int32_t v0 = vals[i - 1];
+			int32_t v1 = vals[i];
+			int32_t dk = k1 - k0;
+
+			if (dk == 0) {
+				return v0;
+			}
+			/* lerp: v0 + (v1-v0)*(input-k0)/(k1-k0) */
+			int64_t num = (int64_t)(v1 - v0) *
+				      (int64_t)(input - k0);
+			return v0 + (int32_t)(num / dk);
+		}
+	}
+	return vals[n - 1];
+}
+
 ARBITER_ALWAYS_INLINE void eval_expression(
 	const struct ARBITER_expr_def *__restrict expr,
 	struct ARBITER_fact_value *__restrict values,
-	arbiter_index_t vcount)
+	arbiter_index_t vcount,
+	const struct ARBITER_model *__restrict model)
 {
 	const arbiter_index_t tid = expr->target_fact_id;
 
@@ -295,6 +384,19 @@ ARBITER_ALWAYS_INLINE void eval_expression(
 	case ARBITER_EXPR_SHIFT_L:
 		result = left << (right & 31);
 		break;
+	case ARBITER_EXPR_LOOKUP: {
+		/* scale field stores the table index */
+		const uint16_t tbl_idx = (uint16_t)expr->scale;
+
+		if (likely(model->tables != NULL &&
+			   tbl_idx < model->table_count)) {
+			result = table_lookup(
+				&model->tables[tbl_idx], left);
+		} else {
+			result = 0;
+		}
+		break;
+	}
 	default:
 		return;
 	}
@@ -489,11 +591,12 @@ int ARBITER_eval(const struct ARBITER_model *model,
 				for (arbiter_index_t i = 0; i < ec; i++) {
 					const arbiter_index_t ei = es + i;
 
-					if (likely(ei < expr_count)) {
-						eval_expression(
-							&exprs[ei],
-							values, vcount);
-					}
+				if (likely(ei < expr_count)) {
+					eval_expression(
+						&exprs[ei],
+						values, vcount,
+						model);
+				}
 				}
 				ops += ec;
 			}
