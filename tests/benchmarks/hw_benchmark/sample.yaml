@@ -1,0 +1,10 @@
+sample:
+  name: Hardware PID Benchmark
+  description: |
+    Cycle-accurate PID benchmark targeting real Cortex-M hardware.
+    Uses DWT CYCCNT on Cortex-M targets and Zephyr timing API
+    on native_sim for comparative measurement.
+  platforms:
+    - nucleo_f446re
+    - nucleo_h743zi
+    - native_sim

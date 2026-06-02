@@ -1,0 +1,2 @@
+/* SPDX-License-Identifier: MIT */
+/* Minimal overlay for STM32H743ZI — no board-specific DTS changes needed. */

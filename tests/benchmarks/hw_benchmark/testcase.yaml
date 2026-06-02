@@ -1,0 +1,13 @@
+tests:
+  benchmark.arbiter.hw_pid:
+    tags: arbiter benchmark hardware
+    platform_allow:
+      - nucleo_f446re
+      - nucleo_h743zi
+      - native_sim
+    harness: console
+    extra_args: CONF_FILE=prj.conf
+    harness_config:
+      type: one_line
+      regex:
+        - "HW Benchmark complete"

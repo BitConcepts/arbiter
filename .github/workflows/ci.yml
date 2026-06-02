@@ -90,6 +90,41 @@ jobs:
           done
           exit $missing
 
+  misra:
+    name: MISRA-C Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends cppcheck
+
+      - name: Run cppcheck with MISRA C 2012 rules
+        run: |
+          # cppcheck's MISRA addon may not be available on ubuntu-latest;
+          # fall back to built-in checks if the addon fails.
+          if cppcheck --addon=misra --version 2>/dev/null; then
+            cppcheck --addon=misra \
+              --suppress=misra-c2012-1.1 \
+              --suppress=misra-c2012-20.9 \
+              --suppress=misra-c2012-21.6 \
+              -I include/ \
+              -isystem tools/clang-tidy-stubs \
+              --error-exitcode=1 \
+              --inline-suppr \
+              lib/*.c
+          else
+            echo "MISRA addon not available — falling back to built-in checks"
+            cppcheck \
+              --enable=all \
+              --suppress=missingIncludeSystem \
+              -I include/ \
+              -isystem tools/clang-tidy-stubs \
+              --error-exitcode=1 \
+              --inline-suppr \
+              lib/*.c
+          fi
+
   zephyr:
     name: Zephyr Twister Tests
     runs-on: ubuntu-latest
@@ -170,13 +205,33 @@ jobs:
           ~/zephyr-sdk/setup.sh -c
 
       # Unit tests run as native executables on native_sim.
+      # -fstack-usage emits .su files for stack analysis.
       - name: Twister — unit tests
         run: |
           west twister \
             -T app/tests/unit \
             -p native_sim \
             --inline-logs -v \
-            -O twister-out/unit
+            -O twister-out/unit \
+            -- -DEXTRA_CFLAGS=-fstack-usage
+
+      - name: Check stack usage (max 512 bytes per function)
+        run: |
+          echo "--- Stack usage analysis ---"
+          err=0
+          while IFS= read -r sufile; do
+            while IFS=$'\t' read -r func bytes type; do
+              if [ "${bytes:-0}" -gt 512 ] 2>/dev/null; then
+                echo "STACK EXCEEDED: $sufile: $func  $bytes  $type"
+                err=1
+              fi
+            done < "$sufile"
+          done < <(find twister-out/unit -name '*.su' 2>/dev/null)
+          if [ $err -ne 0 ]; then
+            echo "::error::One or more functions exceed 512-byte stack limit"
+            exit 1
+          fi
+          echo "All functions within 512-byte stack limit"
 
       # Benchmarks execute on native_sim; Twister captures timing output
       # as an artifact. pass/fail is gated on the final log line regex.
@@ -203,3 +258,11 @@ jobs:
         with:
           name: twister-results
           path: twister-out/
+
+      - name: Upload stack usage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stack-usage-reports
+          path: twister-out/**/*.su
+          if-no-files-found: ignore

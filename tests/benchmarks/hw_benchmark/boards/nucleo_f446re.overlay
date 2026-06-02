@@ -1,0 +1,2 @@
+/* SPDX-License-Identifier: MIT */
+/* Minimal overlay for STM32F446RE — no board-specific DTS changes needed. */
