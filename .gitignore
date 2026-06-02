@@ -49,3 +49,9 @@ coverage.xml
 
 twister-results-*/
 
+
+bench-*/
+arbiter-bench-ws/
+make_bench_sh.py
+bench_wsl.sh
+

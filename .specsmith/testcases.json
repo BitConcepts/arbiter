@@ -1,7 +1,7 @@
 [
   {
     "id": "TEST-001",
-    "title": "",
+    "title": "Engine init and context management",
     "description": "",
     "requirement_id": "REQ-ARCH-001",
     "type": "unit",
@@ -13,7 +13,7 @@
   },
   {
     "id": "TEST-002",
-    "title": "",
+    "title": "Rule evaluation loop",
     "description": "",
     "requirement_id": "REQ-ARCH-002",
     "type": "unit",
@@ -25,7 +25,7 @@
   },
   {
     "id": "TEST-003",
-    "title": "",
+    "title": "Compute expression interpreter",
     "description": "",
     "requirement_id": "REQ-ARCH-003",
     "type": "unit",
@@ -37,7 +37,7 @@
   },
   {
     "id": "TEST-004",
-    "title": "",
+    "title": "Fact store with timestamps",
     "description": "",
     "requirement_id": "REQ-ARCH-004",
     "type": "unit",
@@ -49,7 +49,7 @@
   },
   {
     "id": "TEST-005",
-    "title": "",
+    "title": "Trace subsystem",
     "description": "",
     "requirement_id": "REQ-ARCH-005",
     "type": "unit",
@@ -61,7 +61,7 @@
   },
   {
     "id": "TEST-006",
-    "title": "",
+    "title": "Binary blob loading",
     "description": "",
     "requirement_id": "REQ-ARCH-006",
     "type": "unit",
@@ -73,7 +73,7 @@
   },
   {
     "id": "TEST-007",
-    "title": "",
+    "title": "Action dispatcher",
     "description": "",
     "requirement_id": "REQ-ARCH-007",
     "type": "unit",
@@ -85,7 +85,7 @@
   },
   {
     "id": "TEST-008",
-    "title": "",
+    "title": "Public C API",
     "description": "",
     "requirement_id": "REQ-ARCH-008",
     "type": "unit",
@@ -97,7 +97,7 @@
   },
   {
     "id": "TEST-009",
-    "title": "",
+    "title": "Model data structures",
     "description": "",
     "requirement_id": "REQ-ARCH-009",
     "type": "unit",
@@ -109,7 +109,7 @@
   },
   {
     "id": "TEST-010",
-    "title": "",
+    "title": "Evaluation result structure",
     "description": "",
     "requirement_id": "REQ-ARCH-010",
     "type": "unit",
@@ -121,7 +121,7 @@
   },
   {
     "id": "TEST-011",
-    "title": "",
+    "title": "Trace API header",
     "description": "",
     "requirement_id": "REQ-ARCH-011",
     "type": "unit",
@@ -133,7 +133,7 @@
   },
   {
     "id": "TEST-012",
-    "title": "",
+    "title": "Version constants",
     "description": "",
     "requirement_id": "REQ-ARCH-012",
     "type": "unit",
@@ -145,7 +145,7 @@
   },
   {
     "id": "TEST-013",
-    "title": "",
+    "title": "Shell commands",
     "description": "",
     "requirement_id": "REQ-ARCH-013",
     "type": "unit",
@@ -157,7 +157,7 @@
   },
   {
     "id": "TEST-014",
-    "title": "",
+    "title": "Runtime evaluation thread",
     "description": "",
     "requirement_id": "REQ-ARCH-014",
     "type": "unit",
@@ -169,7 +169,7 @@
   },
   {
     "id": "TEST-015",
-    "title": "",
+    "title": "Watchdog supervision",
     "description": "",
     "requirement_id": "REQ-ARCH-015",
     "type": "unit",
@@ -181,7 +181,7 @@
   },
   {
     "id": "TEST-016",
-    "title": "",
+    "title": "Kconfig feature flags",
     "description": "",
     "requirement_id": "REQ-ARCH-016",
     "type": "unit",
@@ -193,7 +193,7 @@
   },
   {
     "id": "TEST-017",
-    "title": "",
+    "title": "arbiterc CLI",
     "description": "",
     "requirement_id": "REQ-ARCH-017",
     "type": "unit",
@@ -205,7 +205,7 @@
   },
   {
     "id": "TEST-018",
-    "title": "",
+    "title": "YAML model parser",
     "description": "",
     "requirement_id": "REQ-ARCH-018",
     "type": "unit",
@@ -217,7 +217,7 @@
   },
   {
     "id": "TEST-019",
-    "title": "",
+    "title": "Model validator",
     "description": "",
     "requirement_id": "REQ-ARCH-019",
     "type": "unit",
@@ -229,7 +229,7 @@
   },
   {
     "id": "TEST-020",
-    "title": "",
+    "title": "JSON Schema validation",
     "description": "",
     "requirement_id": "REQ-ARCH-020",
     "type": "unit",
@@ -241,7 +241,7 @@
   },
   {
     "id": "TEST-021",
-    "title": "",
+    "title": "Canonical ordering",
     "description": "",
     "requirement_id": "REQ-ARCH-021",
     "type": "unit",
@@ -253,7 +253,7 @@
   },
   {
     "id": "TEST-022",
-    "title": "",
+    "title": "C code emitter",
     "description": "",
     "requirement_id": "REQ-ARCH-022",
     "type": "unit",
@@ -265,7 +265,7 @@
   },
   {
     "id": "TEST-023",
-    "title": "",
+    "title": "Blob emitter",
     "description": "",
     "requirement_id": "REQ-ARCH-023",
     "type": "unit",
@@ -277,7 +277,7 @@
   },
   {
     "id": "TEST-024",
-    "title": "",
+    "title": "Documentation emitter",
     "description": "",
     "requirement_id": "REQ-ARCH-024",
     "type": "unit",
@@ -289,7 +289,7 @@
   },
   {
     "id": "TEST-025",
-    "title": "",
+    "title": "Compiler pipeline",
     "description": "",
     "requirement_id": "REQ-ARCH-025",
     "type": "unit",
@@ -301,7 +301,7 @@
   },
   {
     "id": "TEST-026",
-    "title": "",
+    "title": "Diagnostics reporting",
     "description": "",
     "requirement_id": "REQ-ARCH-026",
     "type": "unit",
@@ -313,7 +313,7 @@
   },
   {
     "id": "TEST-027",
-    "title": "",
+    "title": "ARB model format schema",
     "description": "",
     "requirement_id": "REQ-ARCH-027",
     "type": "unit",
@@ -325,7 +325,7 @@
   },
   {
     "id": "TEST-028",
-    "title": "",
+    "title": "Reusable include library",
     "description": "",
     "requirement_id": "REQ-ARCH-028",
     "type": "unit",
@@ -337,7 +337,7 @@
   },
   {
     "id": "TEST-029",
-    "title": "",
+    "title": "Deterministic evaluation order",
     "description": "",
     "requirement_id": "REQ-SAFETY-001",
     "type": "unit",
@@ -349,7 +349,7 @@
   },
   {
     "id": "TEST-030",
-    "title": "",
+    "title": "No dynamic allocation",
     "description": "",
     "requirement_id": "REQ-SAFETY-002",
     "type": "unit",
@@ -361,7 +361,7 @@
   },
   {
     "id": "TEST-031",
-    "title": "",
+    "title": "Bounded execution",
     "description": "",
     "requirement_id": "REQ-SAFETY-003",
     "type": "unit",
@@ -373,7 +373,7 @@
   },
   {
     "id": "TEST-032",
-    "title": "",
+    "title": "Overflow protection",
     "description": "",
     "requirement_id": "REQ-SAFETY-004",
     "type": "unit",
@@ -385,7 +385,7 @@
   },
   {
     "id": "TEST-033",
-    "title": "",
+    "title": "Model integrity hash",
     "description": "",
     "requirement_id": "REQ-SAFETY-005",
     "type": "unit",
@@ -397,7 +397,7 @@
   },
   {
     "id": "TEST-034",
-    "title": "",
+    "title": "Staleness detection",
     "description": "",
     "requirement_id": "REQ-SAFETY-006",
     "type": "unit",
@@ -409,7 +409,7 @@
   },
   {
     "id": "TEST-035",
-    "title": "",
+    "title": "Division by zero handling",
     "description": "",
     "requirement_id": "REQ-SAFETY-007",
     "type": "unit",
@@ -421,7 +421,7 @@
   },
   {
     "id": "TEST-036",
-    "title": "",
+    "title": "Zephyr module build",
     "description": "",
     "requirement_id": "REQ-BUILD-001",
     "type": "unit",
