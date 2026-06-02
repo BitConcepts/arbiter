@@ -21,6 +21,8 @@ class CanonicalModel:
     actions: list[dict[str, Any]]
     modes: list[dict[str, Any]]
     expressions: list[dict[str, Any]] = field(default_factory=list)
+    states: list[dict[str, Any]] = field(default_factory=list)
+    transitions: list[dict[str, Any]] = field(default_factory=list)
     hazards: list[dict[str, Any]] = field(default_factory=list)
     safety_goals: list[dict[str, Any]] = field(default_factory=list)
     model_hash: str = ""
@@ -102,6 +104,11 @@ def canonicalize(data: dict[str, Any]) -> CanonicalModel:
         annotated["_expr_count"] = len(rule_exprs)
         rules.append(annotated)
 
+    # Flatten states and transitions (REQ-ARCH-039)
+    states_flat, transitions_flat, state_id_map = _flatten_states(
+        data.get("states", []), action_id_map, fact_id_map, conditions,
+    )
+
     model = CanonicalModel(
         name=data.get("model", "unnamed"),
         arb_version=data.get("arb_version", 0.1),
@@ -111,6 +118,8 @@ def canonicalize(data: dict[str, Any]) -> CanonicalModel:
         actions=actions,
         modes=modes,
         expressions=expressions,
+        states=states_flat,
+        transitions=transitions_flat,
         hazards=data.get("hazards", []),
         safety_goals=data.get("safety_goals", []),
         fact_id_map=fact_id_map,
@@ -218,6 +227,78 @@ def _flatten_conditions(
                 "value": cond.get("value", 0),
             }
             conditions.append(flat)
+
+
+def _flatten_states(
+    states_raw: list[Any],
+    action_id_map: dict[str, int],
+    fact_id_map: dict[str, int],
+    conditions: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, int]]:
+    """Flatten states and their nested transitions into linear tables.
+
+    Returns (states, transitions, state_id_map).
+    Transition conditions are appended to the shared *conditions* list
+    so the C emitter can reuse the same conditions table.
+    """
+    if not isinstance(states_raw, list) or not states_raw:
+        return [], [], {}
+
+    # Sort states by id for determinism
+    states_sorted = sorted(states_raw, key=lambda s: s.get("id", "") if isinstance(s, dict) else "")
+    state_id_map: dict[str, int] = {}
+    states_out: list[dict[str, Any]] = []
+    transitions_out: list[dict[str, Any]] = []
+
+    for idx, st in enumerate(states_sorted):
+        if not isinstance(st, dict) or "id" not in st:
+            continue
+        state_id_map[st["id"]] = idx
+        on_enter = action_id_map.get(st.get("on_enter", ""), _UINT16_MAX)
+        on_exit = action_id_map.get(st.get("on_exit", ""), _UINT16_MAX)
+        states_out.append({
+            "id": st["id"],
+            "index": idx,
+            "on_enter_action": on_enter,
+            "on_exit_action": on_exit,
+        })
+
+    # Second pass: flatten transitions (needs state_id_map fully built)
+    for st in states_sorted:
+        if not isinstance(st, dict) or "id" not in st:
+            continue
+        source_idx = state_id_map[st["id"]]
+        for tr in st.get("transitions", []):
+            if not isinstance(tr, dict):
+                continue
+            target_id = tr.get("target", "")
+            target_idx = state_id_map.get(target_id, _UINT16_MAX)
+
+            # Flatten transition conditions into the shared conditions list
+            cond_start = len(conditions)
+            when = tr.get("when", {})
+            if isinstance(when, dict):
+                _flatten_conditions(when, conditions, fact_id_map)
+            cond_count = len(conditions) - cond_start
+
+            # Flatten guard conditions
+            guard_start = len(conditions)
+            guard = tr.get("guard", {})
+            if isinstance(guard, dict):
+                _flatten_conditions(guard, conditions, fact_id_map)
+            guard_count = len(conditions) - guard_start
+
+            transitions_out.append({
+                "source_state": source_idx,
+                "target_state": target_idx,
+                "condition_start": cond_start,
+                "condition_count": cond_count,
+                "guard_start": guard_start,
+                "guard_count": guard_count,
+                "priority": tr.get("priority", 0),
+            })
+
+    return states_out, transitions_out, state_id_map
 
 
 def to_canonical_json(model: CanonicalModel) -> str:

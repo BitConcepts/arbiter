@@ -284,4 +284,55 @@ config ARBITER_FPGA_OFFLOAD
 	  to offload condition evaluation and expression execution
 	  to FPGA fabric. No implementation is shipped in v1.
 
+# ── Event-Driven Evaluation (REQ-ARCH-036) ───────────────────
+
+config ARBITER_EVENT_DRIVEN
+	bool "Enable event-driven evaluation"
+	default n
+	help
+	  Watch specific facts for changes and evaluate only when a
+	  watched fact has been modified.  Uses static bitmasks —
+	  no dynamic allocation.
+
+# ── Multi-Model Composition (REQ-ARCH-037) ───────────────────
+
+config ARBITER_COMPOSE
+	bool "Enable multi-model composition"
+	default n
+	help
+	  Share facts between multiple models via a common fact bus.
+	  Each model is attached with a mapping table; the bus
+	  synchronizes and evaluates all models in order.
+
+config ARBITER_MAX_MODELS
+	int "Maximum number of attached models"
+	default 4
+	depends on ARBITER_COMPOSE
+	help
+	  Maximum number of model contexts that can be attached to a
+	  single fact bus.
+
+# ── State Machine Support (REQ-ARCH-039) ─────────────────────
+
+config ARBITER_STATE_MACHINE
+	bool "Enable state machine support"
+	default n
+	help
+	  Add explicit state machine evaluation with guarded
+	  transitions, priorities, and on_enter/on_exit actions.
+
+config ARBITER_MAX_STATES
+	int "Maximum number of states"
+	default 16
+	depends on ARBITER_STATE_MACHINE
+	help
+	  Maximum number of state definitions per model.
+
+config ARBITER_MAX_TRANSITIONS
+	int "Maximum number of transitions"
+	default 32
+	depends on ARBITER_STATE_MACHINE
+	help
+	  Maximum number of transition definitions per model.
+
 endif # ARBITER
