@@ -52,7 +52,7 @@ _BLOB_VERSION = 1
 
 # Wire sizes for packed structs (all little-endian, uint16 indices)
 _FACT_ELEM_SIZE = 16   # id(2) + type(1) + pad(1) + range_min(4) + range_max(4) + default(4) + stale(2) + safety(1) + pad(1) => rearranged below
-_RULE_ELEM_SIZE = 20
+_RULE_ELEM_SIZE = 22
 _COND_ELEM_SIZE = 8
 _EXPR_ELEM_SIZE = 20
 _ACTION_ELEM_SIZE = 12
@@ -132,7 +132,7 @@ def _pack_facts(model: CanonicalModel) -> bytes:
 def _pack_rules(model: CanonicalModel) -> bytes:
     """Pack rule definitions.
 
-    Wire layout per rule (20 bytes):
+    Wire layout per rule (22 bytes):
       id:              uint16 LE
       rule_class:      uint8
       safety_critical: uint8
@@ -144,6 +144,7 @@ def _pack_rules(model: CanonicalModel) -> bytes:
       expr_count:      uint16 LE
       safety_goal_id:  uint16 LE
       set_mode:        uint16 LE
+      required_mode:   uint16 LE
     """
     buf = bytearray()
     cond_offset = 0
@@ -180,14 +181,18 @@ def _pack_rules(model: CanonicalModel) -> bytes:
         expr_start = r.get("_expr_start", 0)
         expr_count = r.get("_expr_count", 0)
 
+        # required_mode: 0xFFFF means any mode
+        required_mode = 0xFFFF
+
         buf += struct.pack(
-            "<HBBHHHHHHHH",
+            "<HBBHHHHHHHHH",
             i, rclass, safety_critical,
             cond_offset, cond_count,
             action_start, action_count,
             expr_start, expr_count,
             0xFFFF,  # safety_goal_id
             set_mode,
+            required_mode,
         )
         cond_offset += cond_count
     return bytes(buf)
@@ -348,7 +353,7 @@ def emit_blob(model: CanonicalModel) -> bytes:
     if model.facts:
         sections.append((SECTION_FACTS, facts_data, len(model.facts), fact_elem))
 
-    rule_elem = 20
+    rule_elem = 22
     if model.rules:
         sections.append((SECTION_RULES, rules_data, len(model.rules), rule_elem))
 

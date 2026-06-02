@@ -145,6 +145,23 @@ int ARBITER_get_requested_actions(const struct ARBITER_result *result,
 				const uint16_t **actions, size_t *count);
 
 /**
+ * @brief Set multiple fact values in a single call.
+ *
+ * More efficient than calling ARBITER_set_i32() N times because
+ * context validation is performed once.
+ *
+ * @param ctx      Initialized context.
+ * @param fact_ids Array of fact indices.
+ * @param values   Array of int32_t values.
+ * @param count    Number of elements.
+ * @return ARBITER_OK on success, or the first error encountered.
+ */
+int ARBITER_set_facts(struct ARBITER_ctx *ctx,
+		      const uint16_t *fact_ids,
+		      const int32_t *values,
+		      uint16_t count);
+
+/**
  * @brief Get the operation count from the last evaluation.
  */
 uint32_t ARBITER_get_last_eval_op_count(const struct ARBITER_ctx *ctx);
