@@ -96,6 +96,38 @@ int ARBITER_set_timestamp(struct ARBITER_ctx *ctx, uint16_t fact_id,
 	return ARBITER_OK;
 }
 
+int ARBITER_set_facts(struct ARBITER_ctx *ctx,
+		      const uint16_t *fact_ids,
+		      const int32_t *values,
+		      uint16_t count)
+{
+	if (unlikely(ctx == NULL || !ctx->initialized ||
+		     fact_ids == NULL || values == NULL)) {
+		return ARBITER_EINVAL;
+	}
+
+	const arbiter_index_t fc = ctx->model->fact_count;
+
+	for (uint16_t i = 0; i < count; i++) {
+		const uint16_t fid = fact_ids[i];
+
+		if (unlikely(fid >= fc)) {
+			return ARBITER_ERANGE;
+		}
+
+		struct ARBITER_fact_value *__restrict fv =
+			&ctx->fact_values[fid];
+		const int32_t old = fv->value;
+
+		fv->prev_value = old;
+		fv->value = values[i];
+		fv->valid = true;
+		fv->changed = (values[i] != old);
+	}
+
+	return ARBITER_OK;
+}
+
 int ARBITER_snapshot_begin(struct ARBITER_ctx *ctx,
 			 struct ARBITER_snapshot *snapshot)
 {
@@ -108,6 +140,19 @@ int ARBITER_snapshot_begin(struct ARBITER_ctx *ctx,
 	snapshot->count = ctx->model->fact_count;
 	snapshot->timestamp_ms = k_uptime_get_32();
 	snapshot->frozen = true;
+
+#if defined(CONFIG_ARBITER_DIRTY_SKIP) && CONFIG_ARBITER_DIRTY_SKIP
+	/* Build dirty bitmask: OR BIT(fid) for each changed fact. */
+	uint64_t mask = 0;
+	const arbiter_index_t fc = ctx->model->fact_count;
+
+	for (arbiter_index_t i = 0; i < fc && i < 64; i++) {
+		if (ctx->fact_values[i].changed) {
+			mask |= ((uint64_t)1 << i);
+		}
+	}
+	snapshot->dirty_mask = mask;
+#endif
 
 	return ARBITER_OK;
 }

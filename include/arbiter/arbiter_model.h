@@ -156,6 +156,7 @@ struct ARBITER_rule_def {
 	arbiter_index_t expr_count;      /**< Number of expressions to evaluate. */
 	arbiter_index_t safety_goal_id;
 	arbiter_index_t set_mode;
+	arbiter_index_t required_mode;   /**< Mode required to evaluate (INDEX_MAX = any). */
 	bool safety_critical;
 #if !defined(CONFIG_ARBITER_STRINGS) || CONFIG_ARBITER_STRINGS
 	const char *name;

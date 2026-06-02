@@ -292,6 +292,30 @@ config ARBITER_FPGA_OFFLOAD
 	  to offload condition evaluation and expression execution
 	  to FPGA fabric. No implementation is shipped in v1.
 
+# ── Dirty-Flag Rule Skip ─────────────────────────────────
+
+config ARBITER_DIRTY_SKIP
+	bool "Enable dirty-flag rule skip optimisation"
+	default y if ARBITER_RESOLVED_STANDARD || ARBITER_RESOLVED_FULL
+	default n
+	help
+	  Track which facts each rule depends on. If none of a
+	  rule's input facts changed since the last evaluation,
+	  skip the rule entirely (keep previous result). Safe to
+	  disable — behaviour is identical to the unoptimised path.
+	  Requires <=64 facts (uses a uint64_t bitmask).
+
+# ── Condition Result Cache ───────────────────────────────
+
+config ARBITER_COND_CACHE
+	bool "Enable condition result cache"
+	default y
+	help
+	  Cache the results of the 8 most recently evaluated
+	  conditions during an eval cycle. Helps when multiple
+	  rules test the same condition (e.g. temp > 80).
+	  The cache is reset at the start of each evaluation.
+
 # ── Event-Driven Evaluation (REQ-ARCH-036) ───────────────
 
 config ARBITER_EVENT_DRIVEN

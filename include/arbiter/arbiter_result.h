@@ -29,6 +29,9 @@ struct ARBITER_snapshot {
 	uint16_t count;
 	uint32_t timestamp_ms;
 	bool frozen;
+#if defined(CONFIG_ARBITER_DIRTY_SKIP) && CONFIG_ARBITER_DIRTY_SKIP
+	uint64_t dirty_mask; /**< Bitmask of facts changed since last eval. */
+#endif
 };
 
 /** Evaluation result. */

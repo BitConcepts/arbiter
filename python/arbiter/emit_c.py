@@ -48,6 +48,67 @@ _EXPR_OP_MAP = {
 }
 
 
+def _compute_rule_dep_masks(model: CanonicalModel) -> list[int]:
+    """Compute a uint64 bitmask of fact IDs each rule depends on."""
+    masks: list[int] = []
+    cond_offset = 0
+    for r in model.rules:
+        when = r.get("when", {})
+        cond_count = 0
+        if isinstance(when, dict):
+            for gk in ("all", "any", "not"):
+                g = when.get(gk)
+                if isinstance(g, list):
+                    cond_count += len(g)
+        mask = 0
+        for ci in range(cond_offset, cond_offset + cond_count):
+            if ci < len(model.conditions):
+                fid = model.conditions[ci].get("fact_id", 0)
+                if fid < 64:
+                    mask |= 1 << fid
+        masks.append(mask)
+        cond_offset += cond_count
+    return masks
+
+
+def _compute_required_mode(
+    rule: dict,
+    model: CanonicalModel,
+) -> str:
+    """Return the C literal for required_mode.
+
+    For mode_guard rules whose 'when' block contains an equality check
+    on a fact named 'mode' (or similar mode fact), extract the mode value.
+    Otherwise return UINT16_MAX (any mode).
+    """
+    if rule.get("class") != "mode_guard":
+        return "UINT16_MAX"
+
+    when = rule.get("when", {})
+    if not isinstance(when, dict):
+        return "UINT16_MAX"
+
+    # Scan all condition groups for mode equality checks
+    for gk in ("all", "any"):
+        group = when.get(gk)
+        if not isinstance(group, list):
+            continue
+        for cond in group:
+            if not isinstance(cond, dict):
+                continue
+            fact_name = cond.get("fact", "")
+            op = cond.get("op", "")
+            # Look for mode facts by checking if the fact name contains 'mode'
+            if "mode" in fact_name.lower() and op == "==":
+                val = cond.get("value")
+                if isinstance(val, int):
+                    return str(val)
+                # Value might be a mode name string
+                if isinstance(val, str) and val in model.mode_id_map:
+                    return str(model.mode_id_map[val])
+    return "UINT16_MAX"
+
+
 def _c_str(s: str | None) -> str:
     return f'"{s}"' if s else "NULL"
 
@@ -98,6 +159,18 @@ def emit_c_header(model: CanonicalModel, emit_trace_strings: bool = True) -> str
         lines.append(f"#define ARBITER_MODE_{safe_name} {idx}u")
 
     lines.append("")
+
+    # Per-rule dependency bitmasks for dirty-flag rule skip
+    rule_dep_masks = _compute_rule_dep_masks(model)
+    if rule_dep_masks:
+        lines.append("/* Per-rule input fact dependency bitmasks (dirty-flag skip). */")
+        mask_strs = [f"UINT64_C(0x{m:016x})" for m in rule_dep_masks]
+        lines.append(
+            "#define ARBITER_MODEL_RULE_DEPS { "
+            + ", ".join(mask_strs)
+            + " }"
+        )
+        lines.append("")
 
     # State defines (REQ-ARCH-039)
     states = getattr(model, "states", [])
@@ -224,12 +297,17 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
 
         expr_start = r.get("_expr_start", 0)
         expr_count = r.get("_expr_count", 0)
+
+        # Mode-aware pruning: mode_guard rules with a mode equality check
+        required_mode = _compute_required_mode(r, model)
+
         lines.append(
             f"\t{{ .id = {i}, .rule_class = {rclass}, "
             f".condition_start = {cond_offset}, .condition_count = {cond_count}, "
             f".action_start = {action_start}, .action_count = {action_count}, "
             f".expr_start = {expr_start}, .expr_count = {expr_count}, "
             f".safety_goal_id = UINT16_MAX, .set_mode = {set_mode}, "
+            f".required_mode = {required_mode}, "
             f".safety_critical = {safety_critical}, "
             f".name = {name}, .explanation = {explanation} }},"
         )

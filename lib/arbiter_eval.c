@@ -62,6 +62,20 @@ ARBITER_ALWAYS_INLINE int32_t resolve_operand(
 	return 0;
 }
 
+/* ── Condition result cache ────────────────────────────────────── */
+
+#if defined(CONFIG_ARBITER_COND_CACHE) && CONFIG_ARBITER_COND_CACHE
+#define ARBITER_COND_CACHE_SIZE 8
+
+struct arbiter_cond_cache_entry {
+	uint16_t fact_id;
+	uint8_t op;
+	int32_t value;
+	bool result;
+	bool valid;
+};
+#endif /* CONFIG_ARBITER_COND_CACHE */
+
 /* ── Condition evaluator ──────────────────────────────────────── */
 
 /**
@@ -403,8 +417,60 @@ int ARBITER_eval(const struct ARBITER_model *model,
 	 */
 	uint32_t ops = 0;
 
+#if defined(CONFIG_ARBITER_COND_CACHE) && CONFIG_ARBITER_COND_CACHE
+	/* Per-eval condition result cache — reset each cycle. */
+	struct arbiter_cond_cache_entry cond_cache[ARBITER_COND_CACHE_SIZE];
+
+	memset(cond_cache, 0, sizeof(cond_cache));
+#endif
+
+#if defined(CONFIG_ARBITER_DIRTY_SKIP) && CONFIG_ARBITER_DIRTY_SKIP
+	const uint64_t dirty_mask = snapshot->dirty_mask;
+#endif
+
 	for (arbiter_index_t r = 0; r < rule_count; r++) {
 		const struct ARBITER_rule_def *__restrict rule = &rules[r];
+
+		/* ── Mode-aware pruning ──────────────────────── */
+		if (rule->required_mode != ARBITER_INDEX_MAX &&
+		    rule->required_mode != result->current_mode) {
+			ops += 1u;
+			continue;
+		}
+
+#if defined(CONFIG_ARBITER_DIRTY_SKIP) && CONFIG_ARBITER_DIRTY_SKIP
+		/* ── Dirty-flag rule skip ────────────────────── */
+		/*
+		 * If none of the rule's input facts have changed,
+		 * skip re-evaluation (keep previous result).
+		 * For rules with set_mode or no conditions, always
+		 * evaluate (dep_mask == 0 means unconditional).
+		 */
+		if (rule->condition_count > 0) {
+			uint64_t dep_mask = 0;
+			const arbiter_index_t cs = rule->condition_start;
+			const arbiter_index_t cc = rule->condition_count;
+
+			for (arbiter_index_t ci = 0; ci < cc; ci++) {
+				const arbiter_index_t idx = cs + ci;
+
+				if (likely(idx < cond_table_count)) {
+					const arbiter_index_t fid =
+						conds[idx].fact_id;
+
+					if (fid < 64) {
+						dep_mask |=
+							((uint64_t)1 << fid);
+					}
+				}
+			}
+			if (dep_mask != 0 &&
+			    (dirty_mask & dep_mask) == 0) {
+				ops += 1u;
+				continue;
+			}
+		}
+#endif /* CONFIG_ARBITER_DIRTY_SKIP */
 
 		/* ── Conditions ──────────────────────────────── */
 		const bool fired = eval_condition_group(
