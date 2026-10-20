@@ -41,6 +41,15 @@ int ARBITER_init(struct ARBITER_ctx *ctx, const struct ARBITER_model *model)
 
 		fv[i].value = def;
 		fv[i].prev_value = def;
+		/*
+		 * Mark every fact changed: nothing has been evaluated yet,
+		 * so relative to any previous result all facts are new.
+		 * Without this, the dirty-flag rule skip would treat a
+		 * fresh context as "nothing changed" and could skip every
+		 * rule on the first eval (e.g. when a caller's write
+		 * happens to equal the fact's default value).
+		 */
+		fv[i].changed = true;
 	}
 
 	/* Set up internal snapshot to reference the fact_values array */
@@ -151,6 +160,15 @@ int ARBITER_hot_swap(struct ARBITER_ctx *ctx,
 	for (arbiter_index_t i = new_model->fact_count;
 	     i < old_model->fact_count && i < CONFIG_ARBITER_MAX_FACTS; i++) {
 		memset(&fv[i], 0, sizeof(fv[i]));
+	}
+
+	/*
+	 * Every result produced so far belongs to the old model. Mark all
+	 * facts changed so the dirty-flag rule skip cannot carry those
+	 * results over the swap: the next eval must re-run every rule.
+	 */
+	for (arbiter_index_t i = 0; i < new_model->fact_count; i++) {
+		fv[i].changed = true;
 	}
 
 	/* Atomic swap: update model pointer and snapshot metadata */
