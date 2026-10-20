@@ -566,6 +566,36 @@ int ARBITER_eval(const struct ARBITER_model *model,
 					}
 				}
 			}
+			/*
+			 * A rule's result also depends on the facts its
+			 * expressions read. If only an expression input
+			 * changed, the rule must still re-run, so include
+			 * expression operand facts as dependencies.
+			 */
+			if (has_exprs) {
+				const arbiter_index_t es = rule->expr_start;
+				const arbiter_index_t ec = rule->expr_count;
+
+				for (arbiter_index_t ei = 0; ei < ec; ei++) {
+					const arbiter_index_t eidx = es + ei;
+
+					if (likely(eidx < expr_count)) {
+						const arbiter_index_t lf =
+							exprs[eidx].left_fact_id;
+						const arbiter_index_t rf =
+							exprs[eidx].right_fact_id;
+
+						if (lf < 64) {
+							dep_mask |=
+								((uint64_t)1 << lf);
+						}
+						if (rf < 64) {
+							dep_mask |=
+								((uint64_t)1 << rf);
+						}
+					}
+				}
+			}
 			if (dep_mask != 0 &&
 			    (dirty_mask & dep_mask) == 0) {
 				ops += 1u;

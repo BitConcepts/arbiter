@@ -46,7 +46,6 @@ def emit_mermaid(model: CanonicalModel) -> str:
         lines.append(f"    {nid}{{{{{aid}}}}}")
 
     # Rule nodes and edges
-    cond_offset = 0
     for r in model.rules:
         rid = r["id"]
         rnid = _sanitize_id(rid)

@@ -88,25 +88,6 @@ static struct ARBITER_expr_def      blob_expressions[CONFIG_ARBITER_MAX_EXPRESSI
 static struct ARBITER_action_def    blob_actions[CONFIG_ARBITER_MAX_ACTIONS_PER_EVAL];
 static const char                  *blob_mode_names[CONFIG_ARBITER_MAX_MODES];
 
-/* ── CRC-32 (ISO 3309 / ITU-T V.42) ─────────────────────────────── */
-
-static uint32_t blob_crc32(const uint8_t *__restrict data, size_t len)
-{
-	uint32_t crc = 0xFFFFFFFFU;
-
-	for (size_t i = 0; i < len; i++) {
-		crc ^= data[i];
-		for (int bit = 0; bit < 8; bit++) {
-			if (crc & 1U) {
-				crc = (crc >> 1) ^ 0xEDB88320U;
-			} else {
-				crc >>= 1;
-			}
-		}
-	}
-	return crc ^ 0xFFFFFFFFU;
-}
-
 /* ── Little-endian helpers ───────────────────────────────────────── */
 
 static inline uint16_t read_u16(const uint8_t *p)
@@ -279,6 +260,7 @@ static int parse_actions(const uint8_t *__restrict data, uint16_t count,
 static int parse_modes(const uint8_t *__restrict data, uint16_t count,
 		       struct ARBITER_model *__restrict m)
 {
+	(void)data; /* mode payload bytes carry no names; indices only */
 	if (unlikely(count > CONFIG_ARBITER_MAX_MODES)) {
 		LOG_ERR("blob: %u modes exceeds max %d", count,
 			CONFIG_ARBITER_MAX_MODES);

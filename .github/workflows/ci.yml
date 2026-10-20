@@ -223,7 +223,11 @@ jobs:
           ~/zephyr-sdk/setup.sh -c
 
       # Unit tests run as native executables on native_sim.
-      # -fstack-usage emits .su files for stack analysis.
+      # -fstack-usage emits .su files for stack analysis. The flag must
+      # go through --extra-args (a CMake argument): anything after a bare
+      # `--` is forwarded to the test binary as extra_test_args, and the
+      # native_sim binary rejects it and prints its usage text instead
+      # of running the tests.
       - name: Twister — unit tests
         run: |
           west twister \
@@ -231,25 +235,42 @@ jobs:
             -p native_sim \
             --inline-logs -v \
             -O twister-out/unit \
-            -- -DEXTRA_CFLAGS=-fstack-usage
+            --extra-args EXTRA_CFLAGS=-fstack-usage
 
-      - name: Check stack usage (max 512 bytes per function)
+      # The 512-byte budget is a property of the arbiter library itself
+      # (lib/, subsys/) — the code that runs on constrained targets.
+      # Test harness functions legitimately hold a whole ARBITER_ctx
+      # (~4 KB at MAX_FACTS=256) as a local, and Zephyr kernel frames
+      # are upstream's budget, so only arbiter library sources are
+      # gated. The .su record's first field carries the source path.
+      - name: Check stack usage — arbiter library (max 512 bytes per function)
         run: |
-          echo "--- Stack usage analysis ---"
+          echo "--- Stack usage analysis (arbiter library) ---"
           err=0
+          checked=0
           while IFS= read -r sufile; do
             while IFS=$'\t' read -r func bytes type; do
+              case "$func" in
+                *"/app/lib/"*|*"/app/subsys/"*) ;;
+                *) continue ;;
+              esac
+              checked=$((checked+1))
               if [ "${bytes:-0}" -gt 512 ] 2>/dev/null; then
                 echo "STACK EXCEEDED: $sufile: $func  $bytes  $type"
                 err=1
               fi
             done < "$sufile"
           done < <(find twister-out/unit -name '*.su' 2>/dev/null)
-          if [ $err -ne 0 ]; then
-            echo "::error::One or more functions exceed 512-byte stack limit"
+          echo "Checked $checked arbiter library functions"
+          if [ $checked -eq 0 ]; then
+            echo "::error::No arbiter library stack usage data found — check is misconfigured"
             exit 1
           fi
-          echo "All functions within 512-byte stack limit"
+          if [ $err -ne 0 ]; then
+            echo "::error::One or more arbiter library functions exceed 512-byte stack limit"
+            exit 1
+          fi
+          echo "All arbiter library functions within 512-byte stack limit"
 
       # Benchmarks execute on native_sim; Twister captures timing output
       # as an artifact. pass/fail is gated on the final log line regex.

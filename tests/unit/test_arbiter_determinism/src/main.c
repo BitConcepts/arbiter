@@ -38,7 +38,7 @@ static const struct ARBITER_fact_def test_facts[] = {
 
 static const struct ARBITER_condition_def test_conditions[] = {
 	{ .fact_id = 2, .op = ARBITER_OP_EQ, .value = 1,
-	  .group = ARBITER_COND_ALL, .group_index = 0, .next = UINT16_MAX },
+	  .group = ARBITER_COND_ALL },
 };
 
 static const struct ARBITER_expr_def test_expressions[] = {

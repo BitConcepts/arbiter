@@ -11,11 +11,11 @@ import click
 from . import __version__
 from .compiler import CompileOptions, compile_model
 from .diagnostics import DiagnosticCollector
+from .emit_graph import emit_dot, emit_mermaid
 from .evaluator import ArbiterEvaluator
 from .parser import parse_model
 from .schema import validate_schema
 from .validator import validate_model
-from .emit_graph import emit_dot, emit_mermaid
 
 
 @click.group()

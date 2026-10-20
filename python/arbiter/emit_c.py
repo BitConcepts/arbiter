@@ -351,14 +351,19 @@ def emit_c_source(model: CanonicalModel, header_name: str = "arbiter_model.h",
             tid = tbl["id"].replace(".", "_")
             keys = tbl["keys"]
             vals = tbl["values"]
-            lines.append(f"static const int32_t table_{tid}_keys[] = {{ {', '.join(str(k) for k in keys)} }};")
-            lines.append(f"static const int32_t table_{tid}_values[] = {{ {', '.join(str(v) for v in vals)} }};")
+            keys_csv = ", ".join(str(k) for k in keys)
+            lines.append(f"static const int32_t table_{tid}_keys[] = {{ {keys_csv} }};")
+            vals_csv = ", ".join(str(v) for v in vals)
+            lines.append(f"static const int32_t table_{tid}_values[] = {{ {vals_csv} }};")
         lines.append("")
         lines.append("static const struct ARBITER_table_def model_tables[] = {")
         for tbl in tables:
             tid = tbl["id"].replace(".", "_")
             count = len(tbl["keys"])
-            lines.append(f"\t{{ .count = {count}, .keys = table_{tid}_keys, .values = table_{tid}_values }},")
+            lines.append(
+                f"\t{{ .count = {count}, .keys = table_{tid}_keys, "
+                f".values = table_{tid}_values }},"
+            )
         lines.append("};")
         lines.append("")
 
