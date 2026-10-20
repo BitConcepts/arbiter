@@ -22,16 +22,16 @@ static const struct ARBITER_fact_def model_facts[] = {
 };
 
 static const struct ARBITER_condition_def model_conditions[] = {
-	{ .fact_id = 2, .op = ARBITER_OP_EQ, .value = 0, .group = ARBITER_COND_ANY, .group_index = 0, .next = UINT16_MAX },
-	{ .fact_id = 1, .op = ARBITER_OP_STALE, .value = 100, .group = ARBITER_COND_ANY, .group_index = 0, .next = UINT16_MAX },
-	{ .fact_id = 0, .op = ARBITER_OP_EQ, .value = 0, .group = ARBITER_COND_ALL, .group_index = 0, .next = UINT16_MAX },
-	{ .fact_id = 0, .op = ARBITER_OP_EQ, .value = 1, .group = ARBITER_COND_ALL, .group_index = 0, .next = UINT16_MAX },
-	{ .fact_id = 2, .op = ARBITER_OP_EQ, .value = 1, .group = ARBITER_COND_ALL, .group_index = 0, .next = UINT16_MAX },
-	{ .fact_id = 0, .op = ARBITER_OP_EQ, .value = 1, .group = ARBITER_COND_ALL, .group_index = 0, .next = UINT16_MAX },
-	{ .fact_id = 2, .op = ARBITER_OP_EQ, .value = 1, .group = ARBITER_COND_ALL, .group_index = 0, .next = UINT16_MAX },
-	{ .fact_id = 0, .op = ARBITER_OP_EQ, .value = 1, .group = ARBITER_COND_ALL, .group_index = 0, .next = UINT16_MAX },
-	{ .fact_id = 2, .op = ARBITER_OP_EQ, .value = 1, .group = ARBITER_COND_ALL, .group_index = 0, .next = UINT16_MAX },
-	{ .fact_id = 0, .op = ARBITER_OP_EQ, .value = 1, .group = ARBITER_COND_ALL, .group_index = 0, .next = UINT16_MAX },
+	{ .fact_id = 2, .op = ARBITER_OP_EQ, .value = 0, .group = ARBITER_COND_ANY },
+	{ .fact_id = 1, .op = ARBITER_OP_STALE, .value = 100, .group = ARBITER_COND_ANY },
+	{ .fact_id = 0, .op = ARBITER_OP_EQ, .value = 0, .group = ARBITER_COND_ALL },
+	{ .fact_id = 0, .op = ARBITER_OP_EQ, .value = 1, .group = ARBITER_COND_ALL },
+	{ .fact_id = 2, .op = ARBITER_OP_EQ, .value = 1, .group = ARBITER_COND_ALL },
+	{ .fact_id = 0, .op = ARBITER_OP_EQ, .value = 1, .group = ARBITER_COND_ALL },
+	{ .fact_id = 2, .op = ARBITER_OP_EQ, .value = 1, .group = ARBITER_COND_ALL },
+	{ .fact_id = 0, .op = ARBITER_OP_EQ, .value = 1, .group = ARBITER_COND_ALL },
+	{ .fact_id = 2, .op = ARBITER_OP_EQ, .value = 1, .group = ARBITER_COND_ALL },
+	{ .fact_id = 0, .op = ARBITER_OP_EQ, .value = 1, .group = ARBITER_COND_ALL },
 };
 
 static const struct ARBITER_action_def model_actions[] = {
