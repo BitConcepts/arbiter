@@ -112,7 +112,9 @@ def canonicalize(data: dict[str, Any]) -> CanonicalModel:
     tables: list[dict[str, Any]] = []
     table_id_map: dict[str, int] = {}
     if isinstance(tables_raw, list):
-        tables_sorted = sorted(tables_raw, key=lambda t: t.get("id", "") if isinstance(t, dict) else "")
+        tables_sorted = sorted(
+            tables_raw, key=lambda t: t.get("id", "") if isinstance(t, dict) else ""
+        )
         for idx, tbl in enumerate(tables_sorted):
             if isinstance(tbl, dict) and "id" in tbl:
                 table_id_map[tbl["id"]] = idx

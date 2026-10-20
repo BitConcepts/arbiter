@@ -30,7 +30,6 @@ import hashlib
 import hmac
 import struct
 import zlib
-from typing import Any
 
 from .canonical import CanonicalModel
 
@@ -51,7 +50,8 @@ _SECTION_ENTRY_SIZE = 8
 _BLOB_VERSION = 1
 
 # Wire sizes for packed structs (all little-endian, uint16 indices)
-_FACT_ELEM_SIZE = 16   # id(2) + type(1) + pad(1) + range_min(4) + range_max(4) + default(4) + stale(2) + safety(1) + pad(1) => rearranged below
+_FACT_ELEM_SIZE = 16   # id(2) + type(1) + pad(1) + range_min(4) + range_max(4)
+                       # + default(4) + stale(2) + safety(1) + pad(1); rearranged below
 _RULE_ELEM_SIZE = 22
 _COND_ELEM_SIZE = 12  # fact_id(2) + op(1) + group(1) + value(4) + aux_value(4)
 _EXPR_ELEM_SIZE = 20
@@ -241,9 +241,11 @@ def _pack_expressions(model: CanonicalModel) -> bytes:
     """
     buf = bytearray()
     # Recalculate: we need 20 bytes. Let's lay it out more carefully.
-    # target(2) + op(1) + pad(1) + left_fact(2) + pad(2) + left_lit(4) + right_fact(2) + pad(2) + right_lit(4) = 20
+    # target(2) + op(1) + pad(1) + left_fact(2) + pad(2) + left_lit(4)
+    # + right_fact(2) + pad(2) + right_lit(4) = 20
     # Actually let's use a cleaner layout:
-    # target(2) + op(1) + pad(1) + left_fact(2) + right_fact(2) + left_lit(4) + right_lit(4) + scale(4) = 20
+    # target(2) + op(1) + pad(1) + left_fact(2) + right_fact(2) + left_lit(4)
+    # + right_lit(4) + scale(4) = 20
     for e in model.expressions:
         target = e.get("target_fact_id", 0)
         op = _EXPR_OP_MAP.get(e.get("op", "assign"), 13)
