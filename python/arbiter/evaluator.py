@@ -550,7 +550,8 @@ class ArbiterEvaluator:
     def _fact_name_by_index(self, idx: int) -> str | None:
         """Map a canonical fact index back to its name."""
         if 0 <= idx < len(self._model.facts):
-            return self._model.facts[idx]["id"]
+            fact_id = self._model.facts[idx]["id"]
+            return fact_id if isinstance(fact_id, str) else None
         return None
 
     def _find_action(self, action_id: str) -> dict[str, Any] | None:
