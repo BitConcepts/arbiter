@@ -223,7 +223,11 @@ jobs:
           ~/zephyr-sdk/setup.sh -c
 
       # Unit tests run as native executables on native_sim.
-      # -fstack-usage emits .su files for stack analysis.
+      # -fstack-usage emits .su files for stack analysis. The flag must
+      # go through --extra-args (a CMake argument): anything after a bare
+      # `--` is forwarded to the test binary as extra_test_args, and the
+      # native_sim binary rejects it and prints its usage text instead
+      # of running the tests.
       - name: Twister — unit tests
         run: |
           west twister \
@@ -231,7 +235,7 @@ jobs:
             -p native_sim \
             --inline-logs -v \
             -O twister-out/unit \
-            -- -DEXTRA_CFLAGS=-fstack-usage
+            --extra-args EXTRA_CFLAGS=-fstack-usage
 
       - name: Check stack usage (max 512 bytes per function)
         run: |
